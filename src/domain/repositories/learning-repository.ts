@@ -5,6 +5,7 @@ import type {
   Student,
   Tutor,
 } from "@/domain/models";
+import type { StudentStudyState } from "@/domain/study";
 
 export interface LearningRepository {
   getStudent(studentId: string): Promise<Student | null>;
@@ -13,4 +14,7 @@ export interface LearningRepository {
   getTodayMission(studentId: string): Promise<DailyMission | null>;
   getMistakePatterns(studentId: string): Promise<MistakePattern[]>;
   getInterventions(tutorId: string): Promise<Intervention[]>;
+  getStudyState(studentId: string): Promise<StudentStudyState>;
+  saveStudyState(state: StudentStudyState): Promise<void>;
+  resetStudyState(studentId: string): Promise<StudentStudyState>;
 }

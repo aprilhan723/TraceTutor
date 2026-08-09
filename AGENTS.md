@@ -32,4 +32,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 - Read `docs/BUILD_STATE.md` before starting a new phase.
 - Update `docs/PRODUCT_SPEC.md`, `docs/ARCHITECTURE.md`, and `docs/BUILD_STATE.md` whenever behavior or architecture changes.
-- Phase 1 contains presentation shells and read-only mock data only. Do not add authentication, payments, Supabase, content authoring, or scoring until a later phase explicitly requests them.
+- Phase 1 established the presentation shells and storage-agnostic repository boundary.
+- Phase 2 adds the complete local student sprint, deterministic original content, rule-based feedback, and browser persistence. Keep authentication, payments, Supabase, AI diagnosis, tutor mutations, official score estimates, and deployment out until a later phase explicitly requests them.

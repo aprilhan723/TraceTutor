@@ -15,8 +15,8 @@ export default function TutorContentPage() {
       <div className="mt-8">
         <EmptyState
           eyebrow="Library shell"
-          title="Original correction content comes next"
-          description="Phase 2 can add original items for Complete the Words, Read in Daily Life, and Read an Academic Passage. No copyrighted test content is included in this demo."
+          title="Tutor authoring comes later"
+          description="The student sprint already uses original items for Complete the Words, Read in Daily Life, and Read an Academic Passage. Tutor editing and verification actions remain intentionally out of scope."
         />
       </div>
     </div>

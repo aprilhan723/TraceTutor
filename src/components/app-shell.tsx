@@ -16,6 +16,8 @@ interface AppShellProps {
   userInitials: string;
   children: ReactNode;
   demoMode?: boolean;
+  demoDesktopControl?: ReactNode;
+  demoMobileControl?: ReactNode;
 }
 
 interface NavigationItem {
@@ -84,7 +86,11 @@ export function AppShell({
   userInitials,
   children,
   demoMode = true,
+  demoDesktopControl,
+  demoMobileControl,
 }: AppShellProps) {
+  const pathname = usePathname();
+  const practiceMode = pathname.startsWith("/student/practice/");
   const otherRoleHref: Route =
     role === "student" ? "/tutor/dashboard" : "/student/today";
 
@@ -97,58 +103,77 @@ export function AppShell({
         Skip to content
       </a>
 
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 flex-col border-r border-ink/10 bg-white px-5 py-6 lg:flex">
-        <div className="px-2">
-          <BrandMark
-            href={role === "student" ? "/student/today" : "/tutor/dashboard"}
-          />
-          <p className="mt-2 pl-12 text-[0.65rem] font-bold tracking-[0.12em] text-ink-muted uppercase">
-            {role === "student" ? "Correction Sprint" : "Tutor Workspace"}
-          </p>
-        </div>
+      {!practiceMode ? (
+        <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 flex-col border-r border-ink/10 bg-white px-5 py-6 lg:flex">
+          <div className="px-2">
+            <BrandMark
+              href={role === "student" ? "/student/today" : "/tutor/dashboard"}
+            />
+            <p className="mt-2 pl-12 text-[0.65rem] font-bold tracking-[0.12em] text-ink-muted uppercase">
+              {role === "student" ? "Correction Sprint" : "Tutor Workspace"}
+            </p>
+          </div>
 
-        <nav
-          className="mt-10 flex flex-col gap-2"
-          aria-label={`${role} navigation`}
-        >
-          <NavigationLinks role={role} />
-        </nav>
+          <nav
+            className="mt-10 flex flex-col gap-2"
+            aria-label={`${role} navigation`}
+          >
+            <NavigationLinks role={role} />
+          </nav>
 
-        <div className="mt-auto">
-          {demoMode ? (
-            <Link
-              href={otherRoleHref}
-              className="mb-4 flex min-h-12 items-center justify-between rounded-2xl border border-violet/15 bg-violet-soft px-4 text-sm font-semibold text-violet-deep transition-colors hover:bg-violet/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet"
-            >
-              <span>Switch to {role === "student" ? "Tutor" : "Student"}</span>
-              <span aria-hidden="true">↗</span>
-            </Link>
-          ) : null}
-          <div className="flex items-center gap-3 border-t border-ink/10 pt-5">
-            <span className="grid size-10 place-items-center rounded-full bg-mint font-bold text-mint-deep">
-              {userInitials}
-            </span>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-bold">{userName}</p>
-              <p className="text-xs text-ink-muted capitalize">{role} demo</p>
+          <div className="mt-auto">
+            {demoDesktopControl ? (
+              <div className="mb-3">{demoDesktopControl}</div>
+            ) : null}
+            {demoMode ? (
+              <Link
+                href={otherRoleHref}
+                className="mb-4 flex min-h-12 items-center justify-between rounded-2xl border border-violet/15 bg-violet-soft px-4 text-sm font-semibold text-violet-deep transition-colors hover:bg-violet/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet"
+              >
+                <span>
+                  Switch to {role === "student" ? "Tutor" : "Student"}
+                </span>
+                <span aria-hidden="true">↗</span>
+              </Link>
+            ) : null}
+            <div className="flex items-center gap-3 border-t border-ink/10 pt-5">
+              <span className="grid size-10 place-items-center rounded-full bg-mint font-bold text-mint-deep">
+                {userInitials}
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-bold">{userName}</p>
+                <p className="text-xs text-ink-muted capitalize">{role} demo</p>
+              </div>
             </div>
           </div>
-        </div>
-      </aside>
+        </aside>
+      ) : null}
 
-      <div className="lg:pl-72">
+      <div className={practiceMode ? "" : "lg:pl-72"}>
         <header className="sticky top-0 z-20 flex min-h-16 items-center justify-between border-b border-ink/10 bg-cream/90 px-4 backdrop-blur-xl sm:px-6 lg:px-10">
-          <div className="lg:hidden">
-            <BrandMark compact />
-          </div>
-          <p className="hidden text-xs font-bold tracking-[0.15em] text-ink-muted uppercase lg:block">
-            {role === "student"
-              ? "Ten focused minutes. One repeating mistake."
-              : "See the pattern before the lesson."}
-          </p>
+          {practiceMode ? (
+            <Link
+              href="/student/today"
+              className="inline-flex min-h-10 items-center gap-2 rounded-full px-3 text-sm font-bold text-ink-muted transition hover:bg-white hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet"
+            >
+              <span aria-hidden="true">←</span> Today
+            </Link>
+          ) : (
+            <>
+              <div className="lg:hidden">
+                <BrandMark compact />
+              </div>
+              <p className="hidden text-xs font-bold tracking-[0.15em] text-ink-muted uppercase lg:block">
+                {role === "student"
+                  ? "Ten focused minutes. One repeating mistake."
+                  : "See the pattern before the lesson."}
+              </p>
+            </>
+          )}
           <div className="flex items-center gap-2">
             {demoMode ? <Badge tone="violet">Demo Mode</Badge> : null}
-            {demoMode ? (
+            {!practiceMode && demoMobileControl ? demoMobileControl : null}
+            {demoMode && !practiceMode ? (
               <Link
                 href={otherRoleHref}
                 className="grid size-9 place-items-center rounded-full border border-ink/10 bg-white text-sm font-bold text-ink transition-colors hover:bg-violet-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet lg:hidden"
@@ -162,18 +187,23 @@ export function AppShell({
 
         <main
           id="main-content"
-          className="mx-auto min-h-[calc(100dvh-4rem)] w-full max-w-[92rem] px-4 pt-7 pb-28 sm:px-6 sm:pt-10 lg:px-10 lg:pb-12"
+          className={cn(
+            "mx-auto min-h-[calc(100dvh-4rem)] w-full px-4 pt-7 sm:px-6 sm:pt-10 lg:px-10 lg:pb-12",
+            practiceMode ? "max-w-6xl pb-10" : "max-w-[92rem] pb-28",
+          )}
         >
           {children}
         </main>
       </div>
 
-      <nav
-        className="fixed inset-x-0 bottom-0 z-40 flex border-t border-ink/10 bg-white/95 px-2 pt-1 pb-[max(0.25rem,env(safe-area-inset-bottom))] shadow-[0_-10px_30px_rgba(36,31,28,0.08)] backdrop-blur-xl lg:hidden"
-        aria-label={`${role} mobile navigation`}
-      >
-        <NavigationLinks role={role} mobile />
-      </nav>
+      {!practiceMode ? (
+        <nav
+          className="fixed inset-x-0 bottom-0 z-40 flex border-t border-ink/10 bg-white/95 px-2 pt-1 pb-[max(0.25rem,env(safe-area-inset-bottom))] shadow-[0_-10px_30px_rgba(36,31,28,0.08)] backdrop-blur-xl lg:hidden"
+          aria-label={`${role} mobile navigation`}
+        >
+          <NavigationLinks role={role} mobile />
+        </nav>
+      ) : null}
     </div>
   );
 }

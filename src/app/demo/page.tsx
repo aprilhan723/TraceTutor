@@ -12,7 +12,7 @@ const roles = [
     label: "Student",
     eyebrow: "Ten-minute correction sprint",
     description:
-      "See a focused Today Mission, the start of a Mistake Map, and a progress shell built around retention—not volume.",
+      "Set a personal pace, complete an evidence-first Today Mission, and trace real local progress built around retention—not volume.",
     href: "/student/today" as const,
     action: "Enter as Student",
     tone: "coral",
@@ -53,7 +53,7 @@ export default function DemoPage() {
             Follow the mistake from either side.
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-ink-muted sm:text-lg">
-            Choose a role to explore the Phase 1 product shell. You can switch
+            Choose a role to explore the local product demo. You can switch
             roles at any time while Demo Mode is active.
           </p>
         </header>

@@ -68,7 +68,7 @@ export default async function TutorDashboardPage() {
                       </div>
                     </div>
                     <Button variant="secondary" size="sm" disabled>
-                      Review in Phase 2
+                      Review workflow coming later
                     </Button>
                   </div>
                   <div className="border-t border-violet/10 bg-violet-soft px-5 py-4 sm:px-7">
@@ -99,7 +99,7 @@ export default async function TutorDashboardPage() {
               {dashboard.students.length}
             </p>
             <p className="mt-2 text-sm text-ink-muted">
-              in this Phase 1 demo workspace
+              in this local demo workspace
             </p>
           </Card>
           <Card tone="mint">

@@ -2,7 +2,7 @@
 
 ## Current phase
 
-**Phase 1: complete and verified.**
+**Phase 2: complete and verified.**
 
 ## Implemented
 
@@ -17,22 +17,30 @@
 - Loading, error, and not-found states
 - Unit and E2E smoke test configuration
 - Local-only configuration with no secrets or external services
+- First-entry student onboarding with locally persisted test date, confidence, daily study time, reminder time, and main struggle
+- Personalized 14-day Correction Sprint with deterministic mission selection, D2/D7 review priority, Correction Streak, Recovery Pass, and five-, ten-, or fifteen-minute mission variants
+- Full practice route with timer, autosave, refresh-safe resume, keyboard-accessible selection, staged answer/confidence/evidence submission, and concise Secure/Unstable/Diagnose feedback
+- Original content library with 12 Complete the Words items, 6 Daily Life questions across 3 stimuli, 6 Academic questions across 2 passages, and 4 transfer checks
+- Versioned local browser persistence for onboarding, drafts, attempts, confidence, evidence, reviews, patterns, mission history, and completion
+- Confirmed Reset demo data control in the shared demo shell
+- Dynamic Mistake Map and Progress dashboards with status chips, mission history, task accuracy, evidence accuracy, and confidence calibration
+- Deterministic clock abstraction and seeded review history for stable tests
 
 ## Deferred by design
 
-- Interactive mission flow and persistence
 - Authentication and authorization
 - Remote data and Supabase
 - Tutor editing and verification actions
-- Scoring, payments, notifications, and deployment
+- AI diagnosis or generated content
+- Payments, remote notifications, and deployment
+- Official score estimates or predictions
 
 ## Verification
 
-- Prettier format check: passed
+- Prettier formatting: passed
 - ESLint: passed with zero warnings or errors
-- Strict TypeScript check: passed
-- Vitest: 2 files passed, 3 tests passed
-- Playwright: 4 smoke tests passed across desktop Chromium and Pixel 7 profiles
-- Production build: passed; all eight requested routes statically generated
-- Local route health: 8 of 8 returned HTTP 200
-- Browser QA: passed at 390×844 and 1440×900 with no horizontal overflow or console errors
+- Strict TypeScript and Next.js route type generation: passed
+- Vitest: 5 files passed, 8 tests passed
+- Playwright: 6 tests passed across desktop Chromium and Pixel 7 profiles
+- Production build: passed; 11 routes generated, including the dynamic student mission route
+- Browser QA: passed at 1440×900 and 375×812 with no horizontal overflow or console errors

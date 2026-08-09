@@ -46,7 +46,7 @@ export default async function TutorStudentsPage() {
             </div>
             <div className="flex flex-wrap gap-2">
               <Badge tone="coral">Evidence drift</Badge>
-              <Badge tone="neutral">Profile in Phase 2</Badge>
+              <Badge tone="neutral">Profile view planned</Badge>
             </div>
           </Card>
         ))}

@@ -1,0 +1,129 @@
+"use client";
+
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/page-header";
+import { useStudentDemo } from "@/components/student/student-demo-provider";
+import type { PatternStatus } from "@/domain/study";
+
+const statusCopy: Record<
+  PatternStatus,
+  {
+    label: string;
+    detail: string;
+    tone: "neutral" | "coral" | "violet" | "mint";
+  }
+> = {
+  new: {
+    label: "New",
+    detail: "Seen once; watch before calling it a stable pattern.",
+    tone: "neutral",
+  },
+  working: {
+    label: "Working",
+    detail: "The correction is active and needs deliberate practice.",
+    tone: "coral",
+  },
+  unstable: {
+    label: "Unstable",
+    detail: "Some answers land, but confidence or evidence is not reliable.",
+    tone: "violet",
+  },
+  improving: {
+    label: "Improving",
+    detail: "Secure attempts are beginning to repeat.",
+    tone: "mint",
+  },
+  resolved: {
+    label: "Resolved",
+    detail: "The correction held across repeated returns.",
+    tone: "mint",
+  },
+};
+
+export function MistakeMapDashboard() {
+  const { hydrated, state } = useStudentDemo();
+  if (!hydrated || !state?.onboarding) {
+    return null;
+  }
+
+  return (
+    <div>
+      <PageHeader
+        eyebrow="Pattern memory · Live local data"
+        title="Mistake Map"
+        description="A living map of why misses happen, where they repeat, and which correction is beginning to hold."
+        action={
+          <Badge tone="violet">{state.patterns.length} patterns traced</Badge>
+        }
+      />
+
+      <div className="mt-8 grid gap-5 lg:grid-cols-2">
+        {state.patterns.map((pattern, index) => {
+          const status = statusCopy[pattern.status];
+          return (
+            <Card
+              key={pattern.id}
+              tone={
+                pattern.status === "improving" || pattern.status === "resolved"
+                  ? "mint"
+                  : index === 0
+                    ? "violet"
+                    : "paper"
+              }
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-bold tracking-[0.13em] text-ink-muted uppercase">
+                    Pattern {String(index + 1).padStart(2, "0")}
+                  </p>
+                  <h2 className="mt-3 font-editorial text-3xl tracking-tight">
+                    {pattern.label}
+                  </h2>
+                </div>
+                <Badge tone={status.tone}>{status.label}</Badge>
+              </div>
+              <p className="mt-5 text-sm leading-6 text-ink-muted">
+                {pattern.description}
+              </p>
+              <div className="mt-6 rounded-2xl bg-white/70 p-4">
+                <p className="text-xs font-bold tracking-wide text-violet uppercase">
+                  What this status means
+                </p>
+                <p className="mt-2 text-sm leading-6 text-ink-muted">
+                  {status.detail}
+                </p>
+              </div>
+              <div className="mt-6 grid grid-cols-2 gap-3 border-t border-ink/10 pt-5">
+                <div>
+                  <p className="font-editorial text-3xl font-bold">
+                    {pattern.recurrenceCount}
+                  </p>
+                  <p className="mt-1 text-xs text-ink-muted">times noticed</p>
+                </div>
+                <div>
+                  <p className="font-editorial text-3xl font-bold">
+                    {pattern.secureCount}
+                  </p>
+                  <p className="mt-1 text-xs text-ink-muted">secure returns</p>
+                </div>
+              </div>
+            </Card>
+          );
+        })}
+      </div>
+
+      <Card className="mt-5 border-dashed text-center">
+        <p className="font-editorial text-2xl">
+          Status changes come from answer, confidence, and evidence behavior
+          together.
+        </p>
+        <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-ink-muted">
+          TraceTutor does not claim to know why you thought something. It
+          records the observable trace and leaves deeper interpretation to you
+          and your tutor.
+        </p>
+      </Card>
+    </div>
+  );
+}

@@ -1,0 +1,138 @@
+import type { StudentStudyState } from "@/domain/study";
+import { DEMO_NOW_ISO } from "@/lib/clock";
+import { demoStudent } from "@/data/mock-data";
+
+export function createInitialStudyState(): StudentStudyState {
+  return {
+    version: 2,
+    studentId: demoStudent.id,
+    onboarding: null,
+    correctionStreak: 4,
+    recoveryPasses: 1,
+    activeMission: null,
+    attempts: [
+      {
+        id: "attempt-baseline-ctw",
+        missionId: "mission-baseline",
+        missionEntryId: "baseline-ctw",
+        itemId: "ctw-01",
+        taskType: "complete-the-words",
+        response: "er",
+        confidence: null,
+        evidenceSegmentIds: [],
+        correct: true,
+        evidenceCorrect: null,
+        result: "secure",
+        submittedAt: "2026-08-08T09:02:00.000Z",
+        reviewOfAttemptId: null,
+      },
+      {
+        id: "attempt-baseline-academic",
+        missionId: "mission-baseline",
+        missionEntryId: "baseline-academic",
+        itemId: "academic-01",
+        taskType: "academic-passage",
+        response: "b",
+        confidence: "guessing",
+        evidenceSegmentIds: ["moss-s2"],
+        correct: true,
+        evidenceCorrect: false,
+        result: "unstable",
+        submittedAt: "2026-08-08T09:07:00.000Z",
+        reviewOfAttemptId: null,
+      },
+      {
+        id: "attempt-baseline-daily",
+        missionId: "mission-baseline",
+        missionEntryId: "baseline-daily",
+        itemId: "daily-01",
+        taskType: "daily-life",
+        response: "a",
+        confidence: "certain",
+        evidenceSegmentIds: ["seed-s2"],
+        correct: false,
+        evidenceCorrect: false,
+        result: "diagnose",
+        submittedAt: "2026-08-08T09:10:00.000Z",
+        reviewOfAttemptId: null,
+      },
+    ],
+    reviewSchedules: [
+      {
+        id: "review-baseline-academic-d2",
+        sourceAttemptId: "attempt-baseline-academic",
+        itemId: "academic-01",
+        cadence: "D2",
+        dueDate: "2026-08-10",
+        completedAt: null,
+      },
+      {
+        id: "review-baseline-academic-d7",
+        sourceAttemptId: "attempt-baseline-academic",
+        itemId: "academic-01",
+        cadence: "D7",
+        dueDate: "2026-08-15",
+        completedAt: null,
+      },
+    ],
+    missionHistory: [
+      {
+        missionId: "mission-baseline",
+        dayNumber: 0,
+        dateKey: "2026-08-08",
+        title: "Tutor-verified baseline",
+        completedAt: "2026-08-08T09:11:00.000Z",
+        secureCount: 1,
+        attemptCount: 3,
+        estimatedMinutes: 10,
+      },
+    ],
+    patterns: [
+      {
+        id: "pattern-evidence-drift",
+        category: "evidence-drift",
+        label: "Evidence drift",
+        description:
+          "A plausible choice is selected without matching the exact proof.",
+        status: "working",
+        recurrenceCount: 3,
+        secureCount: 0,
+        lastSeenAt: "2026-08-08T09:07:00.000Z",
+      },
+      {
+        id: "pattern-word-form",
+        category: "word-form",
+        label: "Word-form signal",
+        description:
+          "The surrounding grammar is not yet consistently guiding the ending.",
+        status: "improving",
+        recurrenceCount: 2,
+        secureCount: 1,
+        lastSeenAt: "2026-08-08T09:02:00.000Z",
+      },
+      {
+        id: "pattern-inference-overreach",
+        category: "inference-overreach",
+        label: "Inference overreach",
+        description:
+          "The conclusion sometimes goes farther than the text allows.",
+        status: "unstable",
+        recurrenceCount: 2,
+        secureCount: 0,
+        lastSeenAt: "2026-08-06T09:00:00.000Z",
+      },
+      {
+        id: "pattern-purpose-confusion",
+        category: "purpose-confusion",
+        label: "Purpose and detail",
+        description:
+          "A new pattern to watch when a text explains why something is included.",
+        status: "new",
+        recurrenceCount: 1,
+        secureCount: 0,
+        lastSeenAt: "2026-08-08T09:10:00.000Z",
+      },
+    ],
+    updatedAt: DEMO_NOW_ISO,
+  };
+}
