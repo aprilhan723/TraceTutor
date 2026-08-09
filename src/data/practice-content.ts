@@ -5,6 +5,7 @@ import type {
   ReadingStimulus,
   TransferItem,
 } from "@/domain/study";
+import { mistakeTransferItems } from "@/data/mistake-transfer-bank";
 
 export const completeWordsItems: CompleteWordsItem[] = [
   {
@@ -627,6 +628,7 @@ export const practiceItems: PracticeItem[] = [
   ...dailyLifeQuestions,
   ...academicQuestions,
   ...transferItems,
+  ...mistakeTransferItems,
 ];
 
 export function getPracticeItem(itemId: string): PracticeItem | null {

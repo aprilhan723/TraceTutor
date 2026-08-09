@@ -1,4 +1,13 @@
 import type { MistakeCategory, ReadingTaskType } from "@/domain/models";
+import type {
+  DiagnosisRecord,
+  ErrorCause,
+  ProbeResponse,
+  ProcessStage,
+  RetentionCadence,
+  RetentionOutcome,
+  RetentionSchedule,
+} from "@/domain/mistake-intelligence";
 
 export const readingConfidenceLevels = [
   "beginner",
@@ -33,7 +42,7 @@ export interface OnboardingProfile {
 export type AnswerConfidence = "guessing" | "think-so" | "certain";
 export type ResultState = "secure" | "unstable" | "diagnose";
 export type PatternStatus =
-  "new" | "working" | "unstable" | "improving" | "resolved";
+  "new" | "working" | "unstable" | "improving" | "resolved" | "recurring";
 
 export interface ChoiceOption {
   id: string;
@@ -103,6 +112,9 @@ export interface MissionItemRef {
   part: MissionPartKind;
   reviewScheduleId?: string;
   reviewCadence?: ReviewCadence;
+  retentionScheduleId?: string;
+  retentionCadence?: RetentionCadence;
+  sourceDiagnosisId?: string;
 }
 
 export interface AnswerDraft {
@@ -110,6 +122,7 @@ export interface AnswerDraft {
   selectedOptionId?: string;
   confidence?: AnswerConfidence;
   evidenceSegmentIds: string[];
+  answerChanges?: number;
   savedAt: string;
 }
 
@@ -144,6 +157,9 @@ export interface StudyAttempt {
   correct: boolean;
   evidenceCorrect: boolean | null;
   result: ResultState;
+  answerChanges: number;
+  elapsedSeconds: number;
+  diagnosisId: string | null;
   submittedAt: string;
   reviewOfAttemptId: string | null;
 }
@@ -174,13 +190,27 @@ export interface StudentPatternRecord {
   label: string;
   description: string;
   status: PatternStatus;
+  errorCause: ErrorCause | null;
+  processStage: ProcessStage | null;
   recurrenceCount: number;
   secureCount: number;
+  diagnosisIds: string[];
+  distinctTransferItemIds: string[];
+  recentEvidence: Array<{
+    attemptId: string;
+    summary: string;
+    observedAt: string;
+  }>;
+  retention: Record<
+    Lowercase<RetentionCadence>,
+    { outcome: RetentionOutcome | "not-scheduled"; dueDate: string | null }
+  >;
+  tutorReviewRequired: boolean;
   lastSeenAt: string;
 }
 
 export interface StudentStudyState {
-  version: 2;
+  version: 3;
   studentId: string;
   onboarding: OnboardingProfile | null;
   correctionStreak: number;
@@ -188,6 +218,9 @@ export interface StudentStudyState {
   activeMission: StudyMission | null;
   attempts: StudyAttempt[];
   reviewSchedules: ReviewSchedule[];
+  diagnoses: DiagnosisRecord[];
+  probeResponses: ProbeResponse[];
+  retentionSchedules: RetentionSchedule[];
   missionHistory: MissionHistoryRecord[];
   patterns: StudentPatternRecord[];
   updatedAt: string;

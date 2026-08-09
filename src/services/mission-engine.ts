@@ -88,6 +88,15 @@ export function createMissionForState(
   const target = struggleTargets[state.onboarding.mainStruggle];
   const items: MissionItemRef[] = [];
 
+  const dueRetention = state.retentionSchedules
+    .filter(
+      (schedule) =>
+        schedule.cadence !== "immediate" &&
+        !schedule.completedAt &&
+        schedule.dueDate.localeCompare(dateKey) <= 0,
+    )
+    .sort((left, right) => left.dueDate.localeCompare(right.dueDate))[0];
+
   const dueReview = state.reviewSchedules
     .filter(
       (review) =>
@@ -95,7 +104,17 @@ export function createMissionForState(
     )
     .sort((left, right) => left.dueDate.localeCompare(right.dueDate))[0];
 
-  if (dueReview) {
+  if (dueRetention) {
+    items.push({
+      entryId: `retention-${dueRetention.id}`,
+      itemId: dueRetention.itemId,
+      part: "review",
+      retentionScheduleId: dueRetention.id,
+      retentionCadence: dueRetention.cadence,
+      reviewCadence: dueRetention.cadence === "D2" ? "D2" : "D7",
+      sourceDiagnosisId: dueRetention.diagnosisId,
+    });
+  } else if (dueReview) {
     items.push({
       entryId: `review-${dueReview.id}`,
       itemId: dueReview.itemId,
@@ -171,6 +190,21 @@ export function getDueReviews(state: StudentStudyState, clock: Clock) {
     .filter(
       (review) =>
         !review.completedAt && review.dueDate.localeCompare(dateKey) <= 0,
+    )
+    .sort((left, right) => left.dueDate.localeCompare(right.dueDate));
+}
+
+export function getDueRetentionSchedules(
+  state: StudentStudyState,
+  clock: Clock,
+) {
+  const dateKey = getProgramDateKey(state, clock);
+  return state.retentionSchedules
+    .filter(
+      (schedule) =>
+        schedule.cadence !== "immediate" &&
+        !schedule.completedAt &&
+        schedule.dueDate.localeCompare(dateKey) <= 0,
     )
     .sort((left, right) => left.dueDate.localeCompare(right.dueDate));
 }

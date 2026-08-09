@@ -79,7 +79,7 @@ test("student onboarding and mission draft resume after refresh", async ({
     .poll(() =>
       page.evaluate(() =>
         localStorage
-          .getItem("tracetutor.demo.study.v2")
+          .getItem("tracetutor.demo.study.v3")
           ?.includes('"typedAnswer":"er"'),
       ),
     )
@@ -89,6 +89,67 @@ test("student onboarding and mission draft resume after refresh", async ({
   await expect(page).toHaveURL(/\/student\/practice\/mission-/);
   await expect(page.getByLabel("Missing ending for low")).toHaveValue("er");
   await expect(page.getByText("2 of 6", { exact: true })).toBeVisible();
+});
+
+test("wrong certain answer runs a probe and immediate transfer", async ({
+  page,
+}) => {
+  await page.goto("/student/today");
+  await completeStudentOnboarding(page);
+
+  await page.getByRole("link", { name: /start today’s correction/i }).click();
+  await page
+    .getByRole("radio", { name: "To date each rock with complete precision" })
+    .check();
+
+  const confidence = page.getByRole("radio", { name: "Certain" });
+  await confidence.focus();
+  await confidence.press("Space");
+  await page.getByRole("button", { name: /evidence segment 3:/i }).click();
+  await page.getByRole("button", { name: /submit this item/i }).click();
+
+  await expect(page.getByRole("heading", { name: "Diagnose" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Observed facts" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Strength check" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Complete probe", exact: true }),
+  ).toBeDisabled();
+
+  await page
+    .getByRole("radio", {
+      name: "Rooftop gardens may reduce some afternoon heat.",
+    })
+    .check();
+  await page.getByRole("button", { name: /update the diagnosis/i }).click();
+
+  await expect(
+    page.getByRole("heading", { name: "Likely diagnosis" }),
+  ).toBeVisible();
+  await expect(page.getByText(/likely: modality strengthened/i)).toBeVisible();
+  await expect(page.getByText(/immediate transfer next/i)).toBeVisible();
+
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await expect(
+    page.getByRole("heading", {
+      name: "Which statement preserves the notice’s limits?",
+    }),
+  ).toBeVisible();
+  await page
+    .getByRole("radio", { name: "Some shaded paths may reopen after a check" })
+    .check();
+  await page.getByRole("button", { name: /submit this item/i }).click();
+
+  await expect(page.getByRole("heading", { name: "Secure" })).toBeVisible();
+  await expect(page.getByText(/transfer secure/i)).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Correction schedule" }),
+  ).toBeVisible();
+  await expect(page.getByText("Day 2", { exact: true })).toBeVisible();
+  await expect(page.getByText("Day 7", { exact: true })).toBeVisible();
 });
 
 test("tutor shell navigation is reachable", async ({ page }) => {

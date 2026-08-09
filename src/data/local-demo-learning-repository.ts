@@ -7,9 +7,14 @@ import {
 } from "@/data/mock-data";
 import { createInitialStudyState } from "@/data/seed-study-state";
 import type { LearningRepository } from "@/domain/repositories/learning-repository";
-import type { StudentStudyState } from "@/domain/study";
+import type {
+  StudentPatternRecord,
+  StudentStudyState,
+  StudyAttempt,
+} from "@/domain/study";
 
-export const DEMO_STUDY_STORAGE_KEY = "tracetutor.demo.study.v2";
+export const DEMO_STUDY_STORAGE_KEY = "tracetutor.demo.study.v3";
+export const LEGACY_DEMO_STUDY_STORAGE_KEY = "tracetutor.demo.study.v2";
 
 export interface KeyValueStore {
   getItem(key: string): string | null;
@@ -40,6 +45,67 @@ function isStudyState(value: unknown): value is StudentStudyState {
 
   const candidate = value as Partial<StudentStudyState>;
   return (
+    candidate.version === 3 &&
+    typeof candidate.studentId === "string" &&
+    Array.isArray(candidate.attempts) &&
+    Array.isArray(candidate.reviewSchedules) &&
+    Array.isArray(candidate.diagnoses) &&
+    Array.isArray(candidate.probeResponses) &&
+    Array.isArray(candidate.retentionSchedules) &&
+    Array.isArray(candidate.missionHistory) &&
+    Array.isArray(candidate.patterns)
+  );
+}
+
+type LegacyAttempt = Omit<
+  StudyAttempt,
+  "answerChanges" | "elapsedSeconds" | "diagnosisId"
+> &
+  Partial<
+    Pick<StudyAttempt, "answerChanges" | "elapsedSeconds" | "diagnosisId">
+  >;
+
+type LegacyPattern = Omit<
+  StudentPatternRecord,
+  | "errorCause"
+  | "processStage"
+  | "diagnosisIds"
+  | "distinctTransferItemIds"
+  | "recentEvidence"
+  | "retention"
+  | "tutorReviewRequired"
+> &
+  Partial<
+    Pick<
+      StudentPatternRecord,
+      | "errorCause"
+      | "processStage"
+      | "diagnosisIds"
+      | "distinctTransferItemIds"
+      | "recentEvidence"
+      | "retention"
+      | "tutorReviewRequired"
+    >
+  >;
+
+interface LegacyStudyState extends Omit<
+  StudentStudyState,
+  | "version"
+  | "attempts"
+  | "patterns"
+  | "diagnoses"
+  | "probeResponses"
+  | "retentionSchedules"
+> {
+  version: 2;
+  attempts: LegacyAttempt[];
+  patterns: LegacyPattern[];
+}
+
+function isLegacyStudyState(value: unknown): value is LegacyStudyState {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Partial<LegacyStudyState>;
+  return (
     candidate.version === 2 &&
     typeof candidate.studentId === "string" &&
     Array.isArray(candidate.attempts) &&
@@ -47,6 +113,42 @@ function isStudyState(value: unknown): value is StudentStudyState {
     Array.isArray(candidate.missionHistory) &&
     Array.isArray(candidate.patterns)
   );
+}
+
+function migrateLegacyState(legacy: LegacyStudyState): StudentStudyState {
+  const seedPatterns = createInitialStudyState().patterns;
+  return {
+    ...legacy,
+    version: 3,
+    attempts: legacy.attempts.map((attempt) => ({
+      ...attempt,
+      answerChanges: attempt.answerChanges ?? 0,
+      elapsedSeconds: attempt.elapsedSeconds ?? 0,
+      diagnosisId: attempt.diagnosisId ?? null,
+    })),
+    patterns: legacy.patterns.map((pattern) => {
+      const seed = seedPatterns.find(
+        (candidate) => candidate.category === pattern.category,
+      );
+      return {
+        ...pattern,
+        errorCause: pattern.errorCause ?? seed?.errorCause ?? null,
+        processStage: pattern.processStage ?? seed?.processStage ?? null,
+        diagnosisIds: pattern.diagnosisIds ?? [],
+        distinctTransferItemIds: pattern.distinctTransferItemIds ?? [],
+        recentEvidence: pattern.recentEvidence ?? [],
+        retention: pattern.retention ?? {
+          immediate: { outcome: "not-scheduled", dueDate: null },
+          d2: { outcome: "not-scheduled", dueDate: null },
+          d7: { outcome: "not-scheduled", dueDate: null },
+        },
+        tutorReviewRequired: pattern.tutorReviewRequired ?? false,
+      };
+    }),
+    diagnoses: [],
+    probeResponses: [],
+    retentionSchedules: [],
+  };
 }
 
 export class LocalDemoLearningRepository implements LearningRepository {
@@ -83,14 +185,22 @@ export class LocalDemoLearningRepository implements LearningRepository {
       return createInitialStudyState();
     }
 
-    const serialized = this.storage.getItem(DEMO_STUDY_STORAGE_KEY);
+    const serialized =
+      this.storage.getItem(DEMO_STUDY_STORAGE_KEY) ??
+      this.storage.getItem(LEGACY_DEMO_STUDY_STORAGE_KEY);
     if (!serialized) {
       return createInitialStudyState();
     }
 
     try {
       const parsed: unknown = JSON.parse(serialized);
-      return isStudyState(parsed) ? parsed : createInitialStudyState();
+      if (isStudyState(parsed)) return parsed;
+      if (isLegacyStudyState(parsed)) {
+        const migrated = migrateLegacyState(parsed);
+        await this.saveStudyState(migrated);
+        return migrated;
+      }
+      return createInitialStudyState();
     } catch {
       return createInitialStudyState();
     }
@@ -102,6 +212,7 @@ export class LocalDemoLearningRepository implements LearningRepository {
 
   async resetStudyState(studentId: string) {
     this.storage.removeItem(DEMO_STUDY_STORAGE_KEY);
+    this.storage.removeItem(LEGACY_DEMO_STUDY_STORAGE_KEY);
     const initialState = createInitialStudyState();
     if (studentId === demoStudent.id) {
       await this.saveStudyState(initialState);

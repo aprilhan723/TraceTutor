@@ -5,6 +5,10 @@ import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { useStudentDemo } from "@/components/student/student-demo-provider";
 import type { PatternStatus } from "@/domain/study";
+import {
+  errorCauseLabels,
+  processStageLabels,
+} from "@/domain/mistake-intelligence";
 
 const statusCopy: Record<
   PatternStatus,
@@ -39,10 +43,29 @@ const statusCopy: Record<
     detail: "The correction held across repeated returns.",
     tone: "mint",
   },
+  recurring: {
+    label: "Recurring",
+    detail:
+      "The pattern returned after improvement and is queued for tutor review.",
+    tone: "coral",
+  },
 };
 
+const retentionLabels = {
+  immediate: "Immediate",
+  d2: "Day 2",
+  d7: "Day 7",
+} as const;
+
+const retentionOutcomeCopy = {
+  "not-scheduled": "Not scheduled",
+  scheduled: "Scheduled",
+  secure: "Secure",
+  "needs-work": "Needs work",
+} as const;
+
 export function MistakeMapDashboard() {
-  const { hydrated, state } = useStudentDemo();
+  const { hydrated, state, vecr7 } = useStudentDemo();
   if (!hydrated || !state?.onboarding) {
     return null;
   }
@@ -58,7 +81,25 @@ export function MistakeMapDashboard() {
         }
       />
 
-      <div className="mt-8 grid gap-5 lg:grid-cols-2">
+      <Card tone="violet" className="mt-8 sm:p-7">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-bold tracking-[0.13em] text-violet uppercase">
+              VECR-7 · Verified error correction retention
+            </p>
+            <p className="mt-3 font-editorial text-4xl">
+              {vecr7?.rate === null ? "Not eligible yet" : `${vecr7?.rate}%`}
+            </p>
+          </div>
+          <p className="max-w-xl text-sm leading-6 text-ink-muted">
+            {vecr7?.rate === null
+              ? "VECR-7 waits until at least one diagnosis reaches a real Day 7 opportunity. Early attempts never inflate the denominator."
+              : `${vecr7?.retainedDiagnoses} of ${vecr7?.eligibleDiagnoses} eligible diagnoses held on Day 7.`}
+          </p>
+        </div>
+      </Card>
+
+      <div className="mt-5 grid gap-5 lg:grid-cols-2">
         {state.patterns.map((pattern, index) => {
           const status = statusCopy[pattern.status];
           return (
@@ -86,6 +127,23 @@ export function MistakeMapDashboard() {
               <p className="mt-5 text-sm leading-6 text-ink-muted">
                 {pattern.description}
               </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {pattern.errorCause ? (
+                  <Badge tone="violet">
+                    Cause · {errorCauseLabels[pattern.errorCause]}
+                  </Badge>
+                ) : null}
+                {pattern.processStage ? (
+                  <Badge tone="neutral">
+                    Stage · {processStageLabels[pattern.processStage]}
+                  </Badge>
+                ) : null}
+                {pattern.tutorReviewRequired ? (
+                  <Badge tone="coral">Tutor review</Badge>
+                ) : (
+                  <Badge tone="mint">Rule-monitored</Badge>
+                )}
+              </div>
               <div className="mt-6 rounded-2xl bg-white/70 p-4">
                 <p className="text-xs font-bold tracking-wide text-violet uppercase">
                   What this status means
@@ -94,6 +152,47 @@ export function MistakeMapDashboard() {
                   {status.detail}
                 </p>
               </div>
+              <div className="mt-5 grid grid-cols-3 gap-2">
+                {(
+                  Object.entries(pattern.retention) as Array<
+                    [
+                      keyof typeof retentionLabels,
+                      (typeof pattern.retention)[keyof typeof pattern.retention],
+                    ]
+                  >
+                ).map(([cadence, retention]) => (
+                  <div
+                    key={cadence}
+                    className="rounded-xl border border-ink/10 bg-white/70 p-3"
+                  >
+                    <p className="text-[0.65rem] font-bold tracking-wide text-ink-muted uppercase">
+                      {retentionLabels[cadence]}
+                    </p>
+                    <p className="mt-1 text-xs font-bold">
+                      {retentionOutcomeCopy[retention.outcome]}
+                    </p>
+                    {retention.dueDate ? (
+                      <p className="mt-1 text-[0.65rem] text-ink-muted">
+                        {retention.dueDate}
+                      </p>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+              {pattern.recentEvidence.length > 0 ? (
+                <div className="mt-5 border-t border-ink/10 pt-5">
+                  <p className="text-xs font-bold tracking-wide text-violet uppercase">
+                    Recent observable evidence
+                  </p>
+                  <ul className="mt-3 space-y-2 text-sm leading-6 text-ink-muted">
+                    {pattern.recentEvidence.slice(0, 2).map((evidence) => (
+                      <li key={`${evidence.attemptId}-${evidence.observedAt}`}>
+                        • {evidence.summary}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
               <div className="mt-6 grid grid-cols-2 gap-3 border-t border-ink/10 pt-5">
                 <div>
                   <p className="font-editorial text-3xl font-bold">

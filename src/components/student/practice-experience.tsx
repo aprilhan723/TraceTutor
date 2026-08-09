@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getPracticeItem, getReadingStimulus } from "@/data/practice-content";
+import { getDiagnosticProbe } from "@/data/diagnostic-probes";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -17,6 +18,13 @@ import type {
   StudyAttempt,
   StudyMission,
 } from "@/domain/study";
+import {
+  distractorRelationLabels,
+  errorCauseLabels,
+  type DiagnosisRecord,
+  type ProbeResponse,
+  type RetentionSchedule,
+} from "@/domain/mistake-intelligence";
 import { isDraftReady } from "@/services/answer-evaluation";
 import { cn } from "@/lib/cn";
 
@@ -65,6 +73,7 @@ export function PracticeExperience({ missionId }: { missionId: string }) {
     startMission,
     saveDraft,
     submitEntry,
+    completeProbe,
     advanceMission,
     saveElapsedSeconds,
   } = useStudentDemo();
@@ -132,6 +141,28 @@ export function PracticeExperience({ missionId }: { missionId: string }) {
   const attempt = attemptId
     ? state.attempts.find((candidate) => candidate.id === attemptId)
     : undefined;
+  const attemptDiagnosis = attempt?.diagnosisId
+    ? state.diagnoses.find((diagnosis) => diagnosis.id === attempt.diagnosisId)
+    : undefined;
+  const sourceDiagnosis = entry.sourceDiagnosisId
+    ? state.diagnoses.find(
+        (diagnosis) => diagnosis.id === entry.sourceDiagnosisId,
+      )
+    : undefined;
+  const displayDiagnosis = attemptDiagnosis ?? sourceDiagnosis;
+  const probeResponse = displayDiagnosis?.probeResponseId
+    ? state.probeResponses.find(
+        (response) => response.id === displayDiagnosis.probeResponseId,
+      )
+    : undefined;
+  const retentionSchedules = displayDiagnosis
+    ? state.retentionSchedules.filter(
+        (schedule) => schedule.diagnosisId === displayDiagnosis.id,
+      )
+    : [];
+  const probePending = Boolean(
+    attemptDiagnosis?.recommendedProbeCode && !attemptDiagnosis.probeResponseId,
+  );
   const completedCount = Object.keys(mission.attemptIdsByEntry).length;
 
   async function handleNext() {
@@ -196,8 +227,20 @@ export function PracticeExperience({ missionId }: { missionId: string }) {
           entry={entry}
           item={item}
           attempt={attempt}
+          diagnosis={displayDiagnosis}
+          probeResponse={probeResponse}
+          retentionSchedules={retentionSchedules}
           onSave={(patch) => saveDraft(mission.id, entry.entryId, patch)}
-          onSubmit={() => submitEntry(mission.id, entry.entryId)}
+          onSubmit={() =>
+            submitEntry(
+              mission.id,
+              entry.entryId,
+              mission.elapsedSeconds + sessionSecondsRef.current,
+            )
+          }
+          onCompleteProbe={(diagnosisId, selectedOptionId) =>
+            completeProbe(diagnosisId, selectedOptionId)
+          }
         />
 
         <aside className="space-y-4" aria-label="Practice guidance">
@@ -238,9 +281,19 @@ export function PracticeExperience({ missionId }: { missionId: string }) {
         <p className="hidden text-xs font-semibold text-ink-muted sm:block">
           Submitted answers are locked; previous items stay reviewable.
         </p>
-        <Button size="sm" onClick={() => void handleNext()} disabled={!attempt}>
-          {viewIndex === mission.items.length - 1 ? "Finish" : "Next"}
-          <span aria-hidden="true">→</span>
+        <Button
+          size="sm"
+          onClick={() => void handleNext()}
+          disabled={!attempt || probePending}
+        >
+          {probePending ? (
+            "Complete probe"
+          ) : (
+            <>
+              {viewIndex === mission.items.length - 1 ? "Finish" : "Next"}
+              <span aria-hidden="true">→</span>
+            </>
+          )}
         </Button>
       </footer>
     </div>
@@ -252,15 +305,23 @@ function PracticeItemPanel({
   entry,
   item,
   attempt,
+  diagnosis,
+  probeResponse,
+  retentionSchedules,
   onSave,
   onSubmit,
+  onCompleteProbe,
 }: {
   mission: StudyMission;
   entry: MissionItemRef;
   item: PracticeItem;
   attempt?: StudyAttempt;
+  diagnosis?: DiagnosisRecord;
+  probeResponse?: ProbeResponse;
+  retentionSchedules: RetentionSchedule[];
   onSave(patch: Partial<AnswerDraft>): Promise<void>;
   onSubmit(): Promise<void>;
+  onCompleteProbe(diagnosisId: string, selectedOptionId: string): Promise<void>;
 }) {
   const savedDraft = mission.drafts[entry.entryId];
   const [draft, setDraft] = useState<AnswerDraft>(
@@ -319,9 +380,14 @@ function PracticeItemPanel({
                 options={item.options}
                 selected={draft.selectedOptionId}
                 disabled={Boolean(attempt)}
-                onChange={(selectedOptionId) =>
-                  updateDraft({ selectedOptionId })
-                }
+                onChange={(selectedOptionId) => {
+                  const answerChanges =
+                    draft.selectedOptionId &&
+                    draft.selectedOptionId !== selectedOptionId
+                      ? (draft.answerChanges ?? 0) + 1
+                      : (draft.answerChanges ?? 0);
+                  updateDraft({ selectedOptionId, answerChanges });
+                }}
               />
             </div>
           ) : null}
@@ -336,7 +402,16 @@ function PracticeItemPanel({
             />
           ) : null}
 
-          {attempt ? <ResultFeedback attempt={attempt} item={item} /> : null}
+          {attempt ? (
+            <ResultFeedback
+              attempt={attempt}
+              item={item}
+              diagnosis={diagnosis}
+              probeResponse={probeResponse}
+              retentionSchedules={retentionSchedules}
+              onCompleteProbe={onCompleteProbe}
+            />
+          ) : null}
 
           {!attempt ? (
             <div className="mt-8 border-t border-ink/10 pt-6">
@@ -521,7 +596,14 @@ function ReadingQuestionPrompt({
         options={item.options}
         selected={draft.selectedOptionId}
         disabled={disabled}
-        onChange={(selectedOptionId) => onChange({ selectedOptionId })}
+        onChange={(selectedOptionId) => {
+          const answerChanges =
+            draft.selectedOptionId &&
+            draft.selectedOptionId !== selectedOptionId
+              ? (draft.answerChanges ?? 0) + 1
+              : (draft.answerChanges ?? 0);
+          onChange({ selectedOptionId, answerChanges });
+        }}
       />
 
       <fieldset className="mt-7" disabled={disabled || !draft.selectedOptionId}>
@@ -600,11 +682,23 @@ function ReadingQuestionPrompt({
 function ResultFeedback({
   attempt,
   item,
+  diagnosis,
+  probeResponse,
+  retentionSchedules,
+  onCompleteProbe,
 }: {
   attempt: StudyAttempt;
   item: PracticeItem;
+  diagnosis?: DiagnosisRecord;
+  probeResponse?: ProbeResponse;
+  retentionSchedules: RetentionSchedule[];
+  onCompleteProbe(diagnosisId: string, selectedOptionId: string): Promise<void>;
 }) {
   const copy = resultCopy[attempt.result];
+  const probe = diagnosis?.recommendedProbeCode
+    ? getDiagnosticProbe(diagnosis.recommendedProbeCode)
+    : null;
+  const probePending = Boolean(probe && !probeResponse);
   return (
     <section
       className={cn(
@@ -633,18 +727,254 @@ function ResultFeedback({
       <p className="mt-3 text-sm leading-6 font-semibold text-ink">
         {item.explanation}
       </p>
-      {attempt.result === "diagnose" ? (
-        <div className="mt-5 border-t border-coral/20 pt-4">
-          <p className="text-xs font-bold tracking-wide text-coral-deep uppercase">
-            Short diagnostic check
-          </p>
-          <p className="mt-2 text-sm leading-6 text-ink-muted">
-            Before Next, name the gap: word form, exact evidence, or a
-            conclusion that went beyond the text. TraceTutor records the miss
-            without pretending to know your thought process.
-          </p>
+
+      {diagnosis ? (
+        <div className="mt-6 border-t border-ink/10 pt-6">
+          {item.kind === "transfer" ? (
+            <div className="rounded-xl border border-violet/15 bg-white/65 px-4 py-3">
+              <h3 className="text-xs font-bold tracking-[0.13em] text-violet uppercase">
+                Source correction
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-ink-muted">
+                This fresh item checked the likely pattern from the original
+                miss. The diagnostic trace below belongs to that source
+                diagnosis, not this secure transfer answer.
+              </p>
+            </div>
+          ) : (
+            <>
+              <h3 className="text-xs font-bold tracking-[0.13em] text-violet uppercase">
+                Observed facts
+              </h3>
+              <ul className="mt-3 space-y-2">
+                {diagnosis.observations.map((observation) => (
+                  <li
+                    key={observation.code}
+                    className="rounded-xl bg-white/65 px-4 py-3 text-sm leading-6"
+                  >
+                    <strong>{observation.label}.</strong>{" "}
+                    <span className="text-ink-muted">{observation.detail}</span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+
+          {probePending && probe ? (
+            <DiagnosticProbePanel
+              diagnosisId={diagnosis.id}
+              probe={probe}
+              onComplete={onCompleteProbe}
+            />
+          ) : (
+            <DiagnosisSummary
+              diagnosis={diagnosis}
+              probeResponse={probeResponse}
+              schedules={retentionSchedules}
+              transferResult={item.kind === "transfer" ? attempt.result : null}
+            />
+          )}
         </div>
+      ) : attempt.result === "diagnose" ? (
+        <p className="mt-5 border-t border-coral/20 pt-4 text-sm leading-6 text-ink-muted">
+          This result is recorded without claiming certainty about the student’s
+          hidden reasoning.
+        </p>
       ) : null}
     </section>
+  );
+}
+
+function DiagnosticProbePanel({
+  diagnosisId,
+  probe,
+  onComplete,
+}: {
+  diagnosisId: string;
+  probe: NonNullable<ReturnType<typeof getDiagnosticProbe>>;
+  onComplete(diagnosisId: string, selectedOptionId: string): Promise<void>;
+}) {
+  const [selectedOptionId, setSelectedOptionId] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  async function submitProbe() {
+    if (!selectedOptionId) return;
+    setSubmitting(true);
+    await onComplete(diagnosisId, selectedOptionId);
+    setSubmitting(false);
+  }
+
+  return (
+    <section
+      className="mt-6 rounded-2xl border border-violet/20 bg-violet-soft p-4 sm:p-5"
+      aria-labelledby={`${diagnosisId}-probe-title`}
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs font-bold tracking-[0.13em] text-violet uppercase">
+          30-second diagnostic probe
+        </p>
+        <Badge tone="violet">≈ {probe.estimatedSeconds} sec</Badge>
+      </div>
+      <h3
+        id={`${diagnosisId}-probe-title`}
+        className="mt-3 font-editorial text-2xl"
+      >
+        {probe.title}
+      </h3>
+      <p className="mt-2 text-sm font-semibold">{probe.prompt}</p>
+      <blockquote className="mt-4 rounded-xl border-l-4 border-violet bg-white/75 p-4 text-sm leading-6 text-ink-muted">
+        {probe.sourceText}
+      </blockquote>
+      <fieldset className="mt-4">
+        <legend className="sr-only">Choose the diagnostic probe answer</legend>
+        <div className="grid gap-2">
+          {probe.options.map((option) => (
+            <label
+              key={option.id}
+              className={cn(
+                "flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border bg-white px-4 py-3 text-sm font-semibold focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-violet",
+                selectedOptionId === option.id
+                  ? "border-violet shadow-[inset_4px_0_0_var(--color-violet)]"
+                  : "border-ink/10",
+              )}
+            >
+              <input
+                type="radio"
+                name={`${diagnosisId}-probe`}
+                value={option.id}
+                checked={selectedOptionId === option.id}
+                onChange={() => setSelectedOptionId(option.id)}
+                className="size-4 accent-violet"
+              />
+              {option.label}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <Button
+        className="mt-4 w-full sm:w-auto"
+        variant="violet"
+        onClick={() => void submitProbe()}
+        disabled={!selectedOptionId || submitting}
+      >
+        {submitting ? "Updating…" : "Update the diagnosis"}
+      </Button>
+      <p className="mt-3 text-xs leading-5 text-ink-muted">
+        This probe distinguishes observable rule patterns; it does not read or
+        infer private thoughts.
+      </p>
+    </section>
+  );
+}
+
+function DiagnosisSummary({
+  diagnosis,
+  probeResponse,
+  schedules,
+  transferResult,
+}: {
+  diagnosis: DiagnosisRecord;
+  probeResponse?: ProbeResponse;
+  schedules: RetentionSchedule[];
+  transferResult: ResultState | null;
+}) {
+  return (
+    <div className="mt-6 space-y-5">
+      <section className="rounded-2xl border border-violet/20 bg-white/75 p-4 sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-xs font-bold tracking-[0.13em] text-violet uppercase">
+            Likely diagnosis
+          </h3>
+          <Badge tone={diagnosis.tutorReviewRequired ? "coral" : "violet"}>
+            {diagnosis.tutorReviewRequired
+              ? "Tutor review requested"
+              : `${Math.round(diagnosis.confidence * 100)}% rule confidence`}
+          </Badge>
+        </div>
+        <p className="mt-3 font-editorial text-3xl">
+          {diagnosis.primaryHypothesis
+            ? `Likely: ${errorCauseLabels[diagnosis.primaryHypothesis]}`
+            : "No causal label assigned"}
+        </p>
+        <p className="mt-2 text-xs leading-5 text-ink-muted">
+          This is a reviewable rule-based hypothesis, not certainty about a
+          hidden mental state.
+        </p>
+        {probeResponse ? (
+          <p className="mt-4 rounded-xl bg-violet-soft px-4 py-3 text-sm leading-6">
+            <strong>Probe update:</strong>{" "}
+            {probeResponse.correct
+              ? "The contrast was recognized on the probe, so hypothesis confidence was reduced slightly."
+              : "The same contrast remained difficult on the probe, so hypothesis confidence increased."}
+          </p>
+        ) : null}
+        {diagnosis.distractorRelation ? (
+          <div className="mt-4">
+            <p className="text-xs font-bold tracking-wide text-coral-deep uppercase">
+              Distractor trap
+            </p>
+            <p className="mt-1 text-sm leading-6 text-ink-muted">
+              {distractorRelationLabels[diagnosis.distractorRelation]}. The
+              option’s relationship to the source—not just its vocabulary—made
+              it unsafe.
+            </p>
+          </div>
+        ) : null}
+        <div className="mt-4">
+          <p className="text-xs font-bold tracking-wide text-ink-muted uppercase">
+            Supporting trace
+          </p>
+          <ul className="mt-2 space-y-1 text-sm leading-6 text-ink-muted">
+            {diagnosis.supportingEvidence.map((evidence) => (
+              <li key={evidence}>• {evidence}</li>
+            ))}
+          </ul>
+        </div>
+        <p className="mt-4 text-sm font-semibold">
+          Next target: {diagnosis.nextRemediationTarget.label}
+        </p>
+      </section>
+
+      {schedules.length > 0 ? (
+        <section aria-labelledby={`${diagnosis.id}-schedule-title`}>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3
+              id={`${diagnosis.id}-schedule-title`}
+              className="font-editorial text-2xl"
+            >
+              Correction schedule
+            </h3>
+            {transferResult ? (
+              <Badge tone={transferResult === "secure" ? "mint" : "coral"}>
+                Transfer {transferResult}
+              </Badge>
+            ) : (
+              <Badge tone="violet">Immediate transfer next</Badge>
+            )}
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+            {schedules.map((schedule) => (
+              <div
+                key={schedule.id}
+                className="rounded-xl border border-ink/10 bg-white/70 p-3"
+              >
+                <p className="text-xs font-bold tracking-wide text-ink-muted uppercase">
+                  {schedule.cadence === "immediate"
+                    ? "Immediate"
+                    : `Day ${schedule.cadence.slice(1)}`}
+                </p>
+                <p className="mt-1 text-sm font-semibold">
+                  {schedule.outcome === "scheduled"
+                    ? schedule.dueDate
+                    : schedule.outcome === "secure"
+                      ? "Secure"
+                      : "Needs another correction"}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+    </div>
   );
 }

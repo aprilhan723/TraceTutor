@@ -4,7 +4,7 @@ import { demoStudent } from "@/data/mock-data";
 
 export function createInitialStudyState(): StudentStudyState {
   return {
-    version: 2,
+    version: 3,
     studentId: demoStudent.id,
     onboarding: null,
     correctionStreak: 4,
@@ -23,6 +23,9 @@ export function createInitialStudyState(): StudentStudyState {
         correct: true,
         evidenceCorrect: null,
         result: "secure",
+        answerChanges: 0,
+        elapsedSeconds: 18,
+        diagnosisId: null,
         submittedAt: "2026-08-08T09:02:00.000Z",
         reviewOfAttemptId: null,
       },
@@ -38,6 +41,9 @@ export function createInitialStudyState(): StudentStudyState {
         correct: true,
         evidenceCorrect: false,
         result: "unstable",
+        answerChanges: 1,
+        elapsedSeconds: 64,
+        diagnosisId: null,
         submittedAt: "2026-08-08T09:07:00.000Z",
         reviewOfAttemptId: null,
       },
@@ -53,6 +59,9 @@ export function createInitialStudyState(): StudentStudyState {
         correct: false,
         evidenceCorrect: false,
         result: "diagnose",
+        answerChanges: 0,
+        elapsedSeconds: 22,
+        diagnosisId: null,
         submittedAt: "2026-08-08T09:10:00.000Z",
         reviewOfAttemptId: null,
       },
@@ -75,6 +84,9 @@ export function createInitialStudyState(): StudentStudyState {
         completedAt: null,
       },
     ],
+    diagnoses: [],
+    probeResponses: [],
+    retentionSchedules: [],
     missionHistory: [
       {
         missionId: "mission-baseline",
@@ -95,8 +107,26 @@ export function createInitialStudyState(): StudentStudyState {
         description:
           "A plausible choice is selected without matching the exact proof.",
         status: "working",
+        errorCause: "evidence-misread",
+        processStage: "evidence-interpretation",
         recurrenceCount: 3,
         secureCount: 0,
+        diagnosisIds: [],
+        distinctTransferItemIds: [],
+        recentEvidence: [
+          {
+            attemptId: "attempt-baseline-academic",
+            summary:
+              "Correct answer with low confidence and evidence outside the keyed segment.",
+            observedAt: "2026-08-08T09:07:00.000Z",
+          },
+        ],
+        retention: {
+          immediate: { outcome: "needs-work", dueDate: "2026-08-08" },
+          d2: { outcome: "scheduled", dueDate: "2026-08-10" },
+          d7: { outcome: "scheduled", dueDate: "2026-08-15" },
+        },
+        tutorReviewRequired: true,
         lastSeenAt: "2026-08-08T09:07:00.000Z",
       },
       {
@@ -106,8 +136,25 @@ export function createInitialStudyState(): StudentStudyState {
         description:
           "The surrounding grammar is not yet consistently guiding the ending.",
         status: "improving",
+        errorCause: "grammar-morphology-failure",
+        processStage: "constraint-application",
         recurrenceCount: 2,
         secureCount: 1,
+        diagnosisIds: [],
+        distinctTransferItemIds: ["ctw-01"],
+        recentEvidence: [
+          {
+            attemptId: "attempt-baseline-ctw",
+            summary: "The base verb ending was completed securely.",
+            observedAt: "2026-08-08T09:02:00.000Z",
+          },
+        ],
+        retention: {
+          immediate: { outcome: "secure", dueDate: "2026-08-08" },
+          d2: { outcome: "not-scheduled", dueDate: null },
+          d7: { outcome: "not-scheduled", dueDate: null },
+        },
+        tutorReviewRequired: false,
         lastSeenAt: "2026-08-08T09:02:00.000Z",
       },
       {
@@ -117,8 +164,25 @@ export function createInitialStudyState(): StudentStudyState {
         description:
           "The conclusion sometimes goes farther than the text allows.",
         status: "unstable",
+        errorCause: "scope-expanded",
+        processStage: "constraint-application",
         recurrenceCount: 2,
         secureCount: 0,
+        diagnosisIds: [],
+        distinctTransferItemIds: [],
+        recentEvidence: [
+          {
+            attemptId: "attempt-baseline-daily",
+            summary: "A certain response expanded what the notice supported.",
+            observedAt: "2026-08-06T09:00:00.000Z",
+          },
+        ],
+        retention: {
+          immediate: { outcome: "needs-work", dueDate: "2026-08-06" },
+          d2: { outcome: "scheduled", dueDate: "2026-08-08" },
+          d7: { outcome: "scheduled", dueDate: "2026-08-13" },
+        },
+        tutorReviewRequired: true,
         lastSeenAt: "2026-08-06T09:00:00.000Z",
       },
       {
@@ -128,8 +192,25 @@ export function createInitialStudyState(): StudentStudyState {
         description:
           "A new pattern to watch when a text explains why something is included.",
         status: "new",
+        errorCause: "example-main-point-confusion",
+        processStage: "option-comparison",
         recurrenceCount: 1,
         secureCount: 0,
+        diagnosisIds: [],
+        distinctTransferItemIds: [],
+        recentEvidence: [
+          {
+            attemptId: "attempt-baseline-daily",
+            summary: "A mentioned detail was selected instead of its purpose.",
+            observedAt: "2026-08-08T09:10:00.000Z",
+          },
+        ],
+        retention: {
+          immediate: { outcome: "not-scheduled", dueDate: null },
+          d2: { outcome: "not-scheduled", dueDate: null },
+          d7: { outcome: "not-scheduled", dueDate: null },
+        },
+        tutorReviewRequired: false,
         lastSeenAt: "2026-08-08T09:10:00.000Z",
       },
     ],

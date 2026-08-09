@@ -23,6 +23,7 @@ import {
   demoIds,
   type LearningService,
 } from "@/services/learning-service";
+import type { Vecr7Metric } from "@/services/retention-engine";
 
 interface StudentDemoContextValue {
   hydrated: boolean;
@@ -31,6 +32,7 @@ interface StudentDemoContextValue {
   programDateKey: string | null;
   dueReviewCount: number;
   metrics: StudentProgressMetrics | null;
+  vecr7: Vecr7Metric | null;
   completeOnboarding(
     profile: Omit<OnboardingProfile, "completedAt">,
   ): Promise<void>;
@@ -40,7 +42,12 @@ interface StudentDemoContextValue {
     entryId: string,
     patch: Partial<AnswerDraft>,
   ): Promise<void>;
-  submitEntry(missionId: string, entryId: string): Promise<void>;
+  submitEntry(
+    missionId: string,
+    entryId: string,
+    elapsedSeconds?: number,
+  ): Promise<void>;
+  completeProbe(diagnosisId: string, selectedOptionId: string): Promise<void>;
   advanceMission(missionId: string): Promise<StudentStudyState | null>;
   saveElapsedSeconds(missionId: string, seconds: number): Promise<void>;
   prepareNextMission(): Promise<void>;
@@ -119,9 +126,23 @@ export function StudentDemoProvider({
   );
 
   const submitEntry = useCallback(
-    async (missionId: string, entryId: string) => {
+    async (missionId: string, entryId: string, elapsedSeconds = 0) => {
       await runOperation((service) =>
-        service.submitEntry(demoIds.student, missionId, entryId),
+        service.submitEntry(
+          demoIds.student,
+          missionId,
+          entryId,
+          elapsedSeconds,
+        ),
+      );
+    },
+    [runOperation],
+  );
+
+  const completeProbe = useCallback(
+    async (diagnosisId: string, selectedOptionId: string) => {
+      await runOperation((service) =>
+        service.completeProbe(demoIds.student, diagnosisId, selectedOptionId),
       );
     },
     [runOperation],
@@ -162,10 +183,12 @@ export function StudentDemoProvider({
       programDateKey: state ? service.getProgramDateKey(state) : null,
       dueReviewCount: state ? service.getDueReviews(state).length : 0,
       metrics: state ? service.getProgressMetrics(state) : null,
+      vecr7: state ? service.getVecr7(state) : null,
       completeOnboarding,
       startMission,
       saveDraft,
       submitEntry,
+      completeProbe,
       advanceMission,
       saveElapsedSeconds,
       prepareNextMission,
@@ -173,6 +196,7 @@ export function StudentDemoProvider({
     };
   }, [
     advanceMission,
+    completeProbe,
     completeOnboarding,
     hydrated,
     prepareNextMission,
