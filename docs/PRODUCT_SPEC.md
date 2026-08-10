@@ -4,7 +4,7 @@
 
 - **Brand:** TraceTutor
 - **Product label:** TOEFL Reading Correction Sprint
-- **Phase:** 5 — local release candidate
+- **Phase:** 6 — authenticated data architecture, with the local release candidate preserved
 - **Primary promise:** Practice less randomly. Correct what keeps repeating.
 
 TraceTutor is not a question bank. It is a tutor-verified daily mistake-correction product for the 2026 TOEFL Reading experience. The student completes one focused correction sprint; the tutor sees the repeated reasoning pattern before the next lesson.
@@ -22,7 +22,7 @@ TraceTutor is not a question bank. It is a tutor-verified daily mistake-correcti
 4. **Transfer** — apply the correction in a new context.
 5. **Retain** — revisit the correction after time has passed.
 
-Phase 5 closes the local product loop with an ethical 14-day engagement arc, a personalized mixed weekly challenge, honest offline behavior, installable PWA metadata, and release-candidate accessibility and trust polish. Tutor adjudication remains the verification boundary.
+Phase 6 adds a production data and account boundary without removing Phase 5. The complete fictional demo remains an independent browser-local sales and fallback experience. When public Supabase configuration is present and Demo Mode was not explicitly selected, the app uses cookie-based server authentication, database-owned roles, invite-only student membership, relational records, RLS, and validated commands. Tutor adjudication remains the verification boundary.
 
 ## 2026 Reading task coverage
 
@@ -188,17 +188,49 @@ The landing page communicates the method, contrasts volume practice with mistake
 - Demo Mode indicator and demo-only role switching
 - Student and tutor views backed by the same local workspace state
 
+## Phase 6 authenticated workspace
+
+### Account and membership model
+
+- Email/password signup plus an existing-account magic-link option use Supabase Auth’s PKCE-compatible cookie flow.
+- Server and Proxy checks verify identity with `getClaims()`; authorization is repeated in the data/mutation layer.
+- A newly verified account makes one permanent role choice. Tutor profiles can create a workspace; student profiles require a valid, unexpired, one-time class invitation.
+- The stored profile role is immutable to the client. A student cannot create or promote a tutor role after account setup.
+- Invitations store only a SHA-256 token hash. The raw token is displayed to the tutor once and redeemed transactionally by the invited student.
+- Tutor/student visibility is based on an active `tutor_student_links` row inside the organization and class, not email domain, URL IDs, user metadata, or a client-submitted role.
+
+### Authenticated learning workflow
+
+- A tutor creates one organization and initial class, optionally copies only the original TraceTutor demo content, invites a student, and assigns a published item.
+- Demo content copy never creates a fictional user, attempt, diagnosis, or history in the real workspace.
+- A student completes the five onboarding preferences in their authenticated profile, sees only their assigned work, and submits answer, confidence, and evidence through one idempotent database command.
+- The response command validates assignment ownership, option/evidence membership, identifiers, timing bounds, response shape, and duplicate submission IDs before writing attempts and response events.
+- A tutor dashboard sees only attempts for explicitly linked students. High-confidence wrong is a transparent observed queue signal, not a psychological claim.
+- Future answers, correct typed responses, distractor tags, and designated-evidence flags are not granted through the student-facing Data API columns.
+
+### Data integrity and trust
+
+- Content uses stable stimuli/items with immutable versions. A reviewed version must have exactly one correct choice and designated evidence before publication.
+- Machine suggestions and tutor adjudications remain separate. Tutor adjudications and audit logs are append-only.
+- Every public table has RLS enabled and at least one explicit policy. Sensitive writes are revoked from direct clients and exposed only through role-checking functions.
+- TraceTutor still makes no official score claim, and every included practice item remains original independent material.
+
+### Runtime selection
+
+- With no public Supabase variables, TraceTutor starts in Demo Mode and requires no secret.
+- With public Supabase variables, authenticated routes use Supabase unless the user explicitly enters the local demo. A short-lived HTTP-only cookie preserves that choice across demo role switching.
+- Authenticated student, tutor, and auth responses are `private, no-store`; the service worker does not persist them. The local demo’s existing PWA behavior remains separate.
+
 ## Trust and trademark boundary
 
 TraceTutor is independent practice software and is not endorsed by or affiliated with ETS. TOEFL is a registered trademark of ETS. Tutor verification refers to the intended workflow in which a tutor reviews mistake patterns and evidence traces; it does not imply ETS verification. Practice feedback, progress indicators, goals, and future product signals are not official TOEFL scores or score predictions.
 
-## Out of scope for Phase 5
+## Out of scope after Phase 6
 
-- Authentication and real user accounts
-- Supabase or another remote backend
 - External AI diagnosis or generated content
-- Real multi-tutor or multi-student account access and permissions
 - PDF file generation; the lesson brief uses the browser print workflow
 - Payments, subscriptions, or deployment
 - Official score estimation
 - Push notifications or manipulative engagement loops
+- Service-role browser access, automatic fake-history migration, and claims of multi-device offline sync
+- Production SMTP, custom domains, monitoring, backups, and deployment configuration

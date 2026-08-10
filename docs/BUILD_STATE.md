@@ -2,7 +2,7 @@
 
 ## Current phase
 
-**Phase 5: complete and verified as a local release candidate.**
+**Phase 6: implemented as a production-ready local data/authentication release candidate. The Phase 5 browser-local demo remains complete and independent.**
 
 ## Implemented
 
@@ -59,20 +59,33 @@
 - Student and tutor segment loading/error states and shared in-product independent-practice disclaimers
 - Deterministic demo-mode clock control for immediate D2 and D7 review demonstration
 - Axe-core Playwright audit coverage for public, student, roadmap, and tutor surfaces
+- Opt-in Supabase runtime selected only when both public environment variables are valid; otherwise TraceTutor remains in Demo Mode
+- Explicit demo-entry cookie routes that keep the complete fictional student and tutor sales demo available even when account mode is configured
+- Official `@supabase/ssr` browser/server clients, Next.js Proxy session refresh, async cookie handling, and server-side `getClaims()` authentication
+- Email/password registration, existing-account magic-link sign-in, confirmation/PKCE callback handling, sign out, expired-link recovery, and onboarding continuation
+- Database-owned immutable tutor/student role selection with no client-metadata authorization and no post-creation self-escalation
+- Tutor organization/class creation, cryptographically random one-time student invitation, invite-only student linking, and protected role-specific application routes
+- Authenticated tutor workspace for content copy, linked-student visibility, assignment creation, and recent response review
+- Authenticated student workspace for onboarding, assigned work, evidence/confidence response submission, resume-safe duplicate submission handling, and honest progress surfaces
+- Storage-agnostic repository factory with a Supabase `LearningRepository` read adapter and narrow validated relational commands for writes
+- Three versioned SQL migrations covering 35 RLS-protected public tables, security-definer commands, taxonomy seed data, indexes, constraints, immutable publication history, soft retirement, audit records, and idempotency records
+- Separate machine hypotheses and immutable tutor adjudications for future evaluation
+- Column-level protection for correct responses, distractor labels, designated evidence, tutor-only notes, invite hashes, and audit data
+- Static RLS coverage/secret verification scripts, a pgTAP cross-user policy test, and a gated connected Supabase E2E workflow
+- Optional retry-safe copy of original demo content into a tutor workspace without copying fictional students, attempts, or history
+- Authenticated responses marked `private, no-store`; the service worker does not cache authenticated pages or API responses
+- Public-only `.env.example`, local Supabase/email template configuration, and a credential-safe setup guide
 
 ## Deferred by design
 
-- Authentication and authorization
-- Remote data and Supabase
 - External AI diagnosis or generated content
-- Real authentication, tutor/student permissions, and remote multi-student synchronization
 - PDF generation (browser print is implemented)
 - Payments, remote notifications, and deployment
 - Official score estimates or predictions
 - Push notifications, public rankings, XP, fake scarcity, or attendance-only rewards
 - Background sync, true server reconciliation, and multi-device guarantees
 
-## Known Phase 5 limitations
+## Known Phase 6 limitations
 
 - Browser storage and service-worker caches are device- and browser-profile-local; clearing site data removes the demo.
 - “Reconciled” offline events only mean the local queue has been processed after reconnect. No remote server receives them in this phase.
@@ -80,22 +93,30 @@
 - There is no push notification service, account recovery, conflict resolution, or multi-device sync.
 - The Weekly Boss uses reviewed deterministic rule data rather than generated content or external AI.
 - Lesson brief export remains browser print; no PDF file generator is included.
+- No Supabase project is connected in this checkout, so the migrations and pgTAP suite have not yet been executed against a real Postgres instance.
+- The connected registration/invitation/assignment E2E is present and gated, but cannot run until the public Project URL and publishable key are supplied locally.
+- Authenticated account pages intentionally use `private, no-store`; browser-local offline mission reconciliation remains a Demo Mode capability until a server conflict protocol is designed and verified.
+- Supabase-generated TypeScript types should replace the checked relational interface after the first migration is applied to the selected project.
+- Production SMTP, domain configuration, backups, monitoring, deployment, payments, and external AI remain unconfigured.
 
 ## Exact next backend phase
 
-**Phase 6: authenticated Supabase backend and synchronization adapter, including schema migrations, row-level security, authenticated tutor/student ownership, and an explicit offline conflict policy. External AI, payments, and deployment remain separate opt-in work and must not start automatically.**
+**Connect a selected Supabase project, apply and verify the committed migrations, regenerate database types, run the connected auth/RLS E2E, and add operational backup/monitoring plus a tested authenticated offline conflict protocol. External AI, payments, and deployment remain separate opt-in work and must not start automatically.**
 
 ## Verification
 
+- Dependency install: passed with `@supabase/ssr` 0.12.4, `@supabase/supabase-js` 2.112.2, and Zod 4.4.3; no secret or service-role dependency was added
 - Prettier write and format check: passed
 - ESLint: passed with zero warnings or errors
 - Strict TypeScript and Next.js route type generation: passed
-- Prettier write and format check: passed
-- ESLint: passed with zero warnings or errors
-- Strict TypeScript and Next.js route type generation: passed
-- Vitest repeated stability run: 13 files and 54 tests passed in each of two consecutive runs
-- Playwright development run: 20 passed, 2 intentionally skipped production-only offline cases
-- Playwright production run: 21 passed, 1 intentionally skipped duplicate mobile offline case; desktop Chromium verified the full offline mission resume
-- Accessibility: six representative desktop/mobile axe audits passed with zero serious or critical violations
-- Production build: passed; 23 route entries generated, including 4 dynamic routes
-- Browser QA: passed at 1440×900, 834×1112, and 375×812 with no horizontal overflow, broken navigation, or application console warnings/errors
+- Vitest repeated stability run: 18 files and 66 tests passed in each of two consecutive full runs
+- Static RLS verification: passed for all 35 exposed tables; each is RLS-enabled and policy-covered, with sensitive direct mutations revoked
+- pgTAP policy suite: 8 cross-user assertions committed but not run because no local Supabase/Postgres runtime is installed or connected
+- Playwright development run: 20 passed, 4 intentionally skipped (two production-only offline cases and two credential-gated Supabase lifecycle cases)
+- Playwright production run: 21 passed, 3 intentionally skipped (one duplicate mobile offline case and two credential-gated Supabase lifecycle cases)
+- Focused production PWA regression check: 1 passed after separating demo-cache and authenticated no-store behavior
+- Connected Supabase lifecycle E2E: implemented for tutor registration → invite → student join → assignment → response → linked-tutor visibility, but intentionally skipped until public project configuration and a local test inbox are available
+- Accessibility: six representative production desktop/mobile axe audits passed with zero serious or critical violations
+- Production build: passed; 29 static pages generated alongside 8 dynamic app routes and Next.js Proxy
+- Secret scan: passed across 178 tracked/untracked repository files with zero findings
+- Browser QA: passed at 1280×720 and 375×812 for demo selection, student Today, tutor queue, role switching, console output, and horizontal overflow

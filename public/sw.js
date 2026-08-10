@@ -1,8 +1,7 @@
-const CACHE_VERSION = "tracetutor-shell-v2";
+const CACHE_VERSION = "tracetutor-shell-v5";
 const SHELL_ROUTES = [
   "/",
   "/demo",
-  "/student/today",
   "/offline",
   "/manifest.webmanifest",
   "/icons/icon.svg",
@@ -38,6 +37,17 @@ function isSafeGet(request, url) {
   return request.method === "GET" && url.origin === self.location.origin;
 }
 
+function canStore(response) {
+  const cacheControl = response.headers.get("cache-control") || "";
+  const cacheableDemo =
+    response.headers.get("x-tracetutor-cacheable-demo") === "1";
+  return (
+    response.ok &&
+    (cacheableDemo ||
+      (!cacheControl.includes("private") && !cacheControl.includes("no-store")))
+  );
+}
+
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -52,11 +62,15 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          if (response.ok) {
+          if (canStore(response)) {
             const copy = response.clone();
             void caches
               .open(CACHE_VERSION)
               .then((cache) => cache.put(request, copy));
+          } else {
+            void caches
+              .open(CACHE_VERSION)
+              .then((cache) => cache.delete(request));
           }
           return response;
         })
@@ -80,7 +94,7 @@ self.addEventListener("fetch", (event) => {
         (cached) =>
           cached ||
           fetch(request).then((response) => {
-            if (response.ok) {
+            if (canStore(response)) {
               const copy = response.clone();
               void caches
                 .open(CACHE_VERSION)
@@ -101,7 +115,7 @@ self.addEventListener("message", (event) => {
   if (url.origin !== self.location.origin) return;
   event.waitUntil(
     fetch(url.toString(), { credentials: "same-origin" }).then((response) => {
-      if (!response.ok) return undefined;
+      if (!canStore(response)) return undefined;
       return caches
         .open(CACHE_VERSION)
         .then((cache) => cache.put(url.toString(), response));

@@ -21,6 +21,7 @@ type ButtonActionProps = SharedButtonProps &
 type ButtonLinkProps = SharedButtonProps & {
   href: Route;
   "aria-label"?: string;
+  nativeNavigation?: boolean;
 };
 
 const variantStyles: Record<ButtonVariant, string> = {
@@ -63,7 +64,18 @@ export function Button(props: ButtonActionProps | ButtonLinkProps) {
   const size = props.size ?? "md";
 
   if (isButtonLink(props)) {
-    const { children, className, href } = props;
+    const { children, className, href, nativeNavigation } = props;
+    if (nativeNavigation) {
+      return (
+        <a
+          href={href}
+          className={getButtonClassName(variant, size, className)}
+          aria-label={props["aria-label"]}
+        >
+          {children}
+        </a>
+      );
+    }
     return (
       <Link
         href={href}

@@ -144,7 +144,9 @@ export function AppShell({
               </span>
               <div className="min-w-0">
                 <p className="truncate text-sm font-bold">{userName}</p>
-                <p className="text-xs text-ink-muted capitalize">{role} demo</p>
+                <p className="text-xs text-ink-muted capitalize">
+                  {role} {demoMode ? "demo" : "account"}
+                </p>
               </div>
             </div>
           </div>

@@ -224,3 +224,29 @@ export function createInitialStudyState(): StudentStudyState {
     updatedAt: DEMO_NOW_ISO,
   };
 }
+
+export function createEmptyStudyState(
+  studentId: string,
+  now = new Date().toISOString(),
+): StudentStudyState {
+  return {
+    version: 4,
+    studentId,
+    onboarding: null,
+    correctionStreak: 0,
+    recoveryPasses: 1,
+    recoveryPassUses: [],
+    celebratedMilestones: [],
+    offlineEvents: [],
+    activeMission: null,
+    parkedMission: null,
+    attempts: [],
+    reviewSchedules: [],
+    diagnoses: [],
+    probeResponses: [],
+    retentionSchedules: [],
+    missionHistory: [],
+    patterns: [],
+    updatedAt: now,
+  };
+}

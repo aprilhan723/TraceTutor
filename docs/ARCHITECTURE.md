@@ -11,25 +11,60 @@
 
 The official Webpack opt-in is used for local development and production builds because this managed environment blocks the loopback worker port used by Turbopack’s PostCSS evaluation. No custom Webpack configuration is present.
 
-Next.js currently requires Node.js 20.9 or newer. The project is verified with Node.js 24.14.0.
+Next.js currently requires Node.js 20.9 or newer. The installed official Supabase client requires Node.js 22 or newer, so TraceTutor declares Node 22 as its combined minimum and is verified with Node.js 24.14.0.
 
 ## Application boundaries
 
 ```text
 App Router pages and client experience components
     ↓
-StudentDemoProvider / TutorDemoProvider
+Runtime mode selector
     ↓
-LearningService
+Demo: StudentDemoProvider / TutorDemoProvider → LearningService
+Authenticated: Server Components / validated Server Actions
     ↓
 LearningRepository interface
     ↓
-LocalDemoLearningRepository (Phase 5)
+LocalDemoLearningRepository | SupabaseLearningRepository
     ↓
-Browser localStorage / typed seeded fallback
+localStorage | cookie-authenticated Supabase with RLS
 ```
 
-Route components do not depend on the storage implementation. The student and tutor providers own browser service instances, serialize mutations, and republish typed snapshots. Both providers use the same repository keys, so tutor adjudication appears in the student weekly report after navigation or refresh. A later Supabase adapter can implement `LearningRepository` and be injected into `LearningService` without changing either UI.
+Route components do not import mock records. The repository factory selects `LocalDemoLearningRepository` whenever public configuration is absent or the request explicitly enters Demo Mode, and selects `SupabaseLearningRepository` only with authenticated Supabase context. Existing demo providers and their storage keys are unchanged. Authenticated relational mutations use narrow server actions and database functions instead of accepting a client-authored aggregate; this preserves the repository read contract while preventing students from writing final outcomes or tutor decisions.
+
+## Supabase SSR and authorization
+
+`@supabase/ssr` creates separate browser and server clients from only `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Next.js 16 `src/proxy.ts` refreshes the cookie session with `getClaims()`. Server layouts call `requireAccountRole`, which verifies claims again, loads the authoritative `profiles.role`, and redirects incomplete or wrong-role accounts. Every Server Action and security-definer database function repeats its own role/ownership check; Proxy is never treated as the authorization boundary.
+
+The local demo and authenticated product coexist in one build. `/demo/student` and `/demo/tutor` use full document navigation to set a short-lived HTTP-only demo-mode cookie. Successful sign-in, signup, email confirmation, and sign-out clear that cookie. No Supabase session, account data, or service key is stored in local demo records.
+
+## Relational data model
+
+Three ordered migrations under `supabase/migrations/` create:
+
+- identity and ownership: profiles, organizations, memberships, classes, tutor/student links, and one-time invite hashes;
+- immutable content: stimuli/items plus versions, option/evidence rows, taxonomy versions, skills, and version mappings;
+- work and observations: assignments, assignment items, attempts, responses, response events, confidence, and evidence selections;
+- verification and retention: diagnostic sessions, machine hypotheses, append-only tutor adjudications, transfer links, review schedules/attempts, and learner error states;
+- communication and accountability: questions, messages, tutor-only notes, append-only audit logs, and idempotency records.
+
+Indexes cover every common ownership, due-date, assignment, review, and policy join. Published content and its children are trigger-protected. Publication validates complete options, exactly one key, and designated evidence. Client column privileges hide correct responses, correct-option flags, distractor tags, explanations, and designated-evidence flags from the student Data API surface.
+
+## RLS design
+
+All 35 exposed tables enable RLS. Private security-definer helpers answer narrowly scoped questions such as organization tutoring, explicit tutor/student linkage, assignment ownership, and item/diagnostic readability. They use empty search paths and indexed relations. Anonymous table access is revoked.
+
+Students can select only their own assignments, attempts, responses, diagnoses, reviews, messages, and assigned content. Tutors can select or mutate only records in an active linked organization/class relationship. Tutor notes never have a student policy. Direct mutations of memberships, links, invitations, attempts, final responses, diagnostics, hypotheses, adjudications, retention state, audit logs, and idempotency rows are revoked from authenticated clients.
+
+The repeatable static verifier checks that every exposed table is RLS-enabled and policy-covered. `supabase/tests/rls.test.sql` adds pgTAP cross-user fixtures for assignment isolation, linked-tutor visibility, tutor-note privacy, role escalation denial, and adjudication denial when a local Supabase runtime is available.
+
+## Server validation and idempotency
+
+Zod schemas validate every form and command identifier, bounded text, dates, response shape, confidence, evidence arrays, timing, and answer-change counts. Database functions then re-check the authenticated role and relational ownership, making URL or hidden-input tampering insufficient. `client_submission_id` makes student responses idempotent. Tutor assignment and adjudication commands use actor/scope/idempotency records; adjudications append revisions and preserve the original machine suggestion.
+
+## Offline conflict policy
+
+The Phase 5 local demo queue remains wholly browser-local and never claims remote sync. Proxy marks only known demo application responses as cache-safe; authenticated pages are deliberately private/no-store, purge a same-URL demo cache entry after an online account navigation, and are never service-worker cached. A connected student submission is accepted once by its client submission ID; a retry returns the original attempt. True authenticated offline assignment snapshots, conflict merging, and multi-device synchronization remain disabled until a backend phase explicitly designs server reconciliation for them.
 
 ## Student study aggregate
 
@@ -152,6 +187,6 @@ Marketing layouts are mobile-first and progressively move to two- or three-colum
 - Playwright coverage for onboarding and full mission completion, high-confidence wrong diagnosis and transfer, demo-clock D2/D7 review, tutor queue → diagnosis → transfer → lesson brief, offline-safe resume, and representative axe-core accessibility audits in desktop Chromium and Pixel 7 profiles
 - ESLint, strict TypeScript, Prettier, and production build checks
 
-## Future adapter notes
+## Next backend notes
 
-A future Supabase adapter should map database rows into both aggregates at the adapter boundary and replace demo-wide storage with authenticated row ownership. Authentication, row-level access, migrations, remote synchronization, and external AI inference remain intentionally absent. UI code must continue to call `LearningService` rather than importing seeded records or browser storage directly.
+Phase 6 intentionally uses no service-role key, external AI, payments, deployment, or production SMTP. The next backend phase should verify the migrations against the selected hosted/local project, add operational monitoring/backups and an explicit authenticated offline reconciliation protocol, then consider external diagnosis evaluation separately. UI code must continue to use repository/services or validated server commands rather than importing seeds or trusting client-authored ownership.

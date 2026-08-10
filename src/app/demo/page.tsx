@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { BrandMark } from "@/components/brand-mark";
 import { Button } from "@/components/ui/button";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export const metadata: Metadata = {
   title: "Choose a demo",
@@ -13,7 +14,7 @@ const roles = [
     eyebrow: "Ten-minute correction sprint",
     description:
       "Set a personal pace, complete an evidence-first Today Mission, and trace real local progress built around retention—not volume.",
-    href: "/student/today" as const,
+    href: "/demo/student" as const,
     action: "Enter as Student",
     tone: "coral",
     symbol: "01",
@@ -23,7 +24,7 @@ const roles = [
     eyebrow: "Pre-lesson diagnostic view",
     description:
       "See the intervention queue, demo student list, and content shell that make repeated reasoning patterns visible.",
-    href: "/tutor/dashboard" as const,
+    href: "/demo/tutor" as const,
     action: "Enter as Tutor",
     tone: "violet",
     symbol: "02",
@@ -31,6 +32,8 @@ const roles = [
 ] as const;
 
 export default function DemoPage() {
+  const accountsAvailable = isSupabaseConfigured();
+
   return (
     <main className="relative min-h-dvh overflow-hidden bg-cream px-4 py-6 sm:px-6 sm:py-10">
       <div
@@ -38,11 +41,18 @@ export default function DemoPage() {
         aria-hidden="true"
       />
       <div className="relative mx-auto max-w-6xl">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3">
           <BrandMark />
-          <Button href="/" variant="ghost" size="sm">
-            Back home
-          </Button>
+          <div className="flex items-center gap-2">
+            {accountsAvailable ? (
+              <Button href="/auth/sign-in" variant="secondary" size="sm">
+                Account sign in
+              </Button>
+            ) : null}
+            <Button href="/" variant="ghost" size="sm">
+              Back home
+            </Button>
+          </div>
         </div>
 
         <header className="mx-auto max-w-3xl pt-18 text-center sm:pt-24">
@@ -84,6 +94,7 @@ export default function DemoPage() {
                 </p>
                 <Button
                   href={role.href}
+                  nativeNavigation
                   variant={role.tone === "coral" ? "primary" : "violet"}
                   className="mt-8 w-full"
                   size="lg"
