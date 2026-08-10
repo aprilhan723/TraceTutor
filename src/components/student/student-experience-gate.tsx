@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { OnboardingFlow } from "@/components/student/onboarding-flow";
+import { ProductTour } from "@/components/student/product-tour";
 import { useStudentDemo } from "@/components/student/student-demo-provider";
 
 export function StudentExperienceGate({ children }: { children: ReactNode }) {
@@ -24,6 +25,7 @@ export function StudentExperienceGate({ children }: { children: ReactNode }) {
     <>
       {children}
       {!state?.onboarding ? <OnboardingFlow /> : null}
+      {state?.onboarding ? <ProductTour /> : null}
     </>
   );
 }

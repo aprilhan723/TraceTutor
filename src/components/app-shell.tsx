@@ -195,6 +195,39 @@ export function AppShell({
           )}
         >
           {children}
+          {!practiceMode ? (
+            <footer className="no-print mt-14 border-t border-ink/10 pt-6 text-xs leading-5 text-ink-muted">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <p className="max-w-2xl">
+                  TraceTutor is independent practice software, not endorsed by
+                  ETS. Practice feedback is not an official TOEFL score.
+                </p>
+                <nav
+                  className="flex flex-wrap gap-x-4 gap-y-2"
+                  aria-label="Product policies"
+                >
+                  <Link href="/trust" className="font-semibold hover:text-ink">
+                    Trust
+                  </Link>
+                  <Link
+                    href="/privacy"
+                    className="font-semibold hover:text-ink"
+                  >
+                    Privacy
+                  </Link>
+                  <Link
+                    href="/content-standards"
+                    className="font-semibold hover:text-ink"
+                  >
+                    Content standards
+                  </Link>
+                  <Link href="/method" className="font-semibold hover:text-ink">
+                    Method
+                  </Link>
+                </nav>
+              </div>
+            </footer>
+          ) : null}
         </main>
       </div>
 

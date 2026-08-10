@@ -206,7 +206,7 @@ export default function HomePage() {
                   className="relative h-full min-h-48 overflow-hidden"
                 >
                   <span
-                    className="font-editorial text-5xl text-ink/10"
+                    className="font-editorial text-5xl text-ink/60"
                     aria-hidden="true"
                   >
                     {number}
@@ -401,6 +401,7 @@ export default function HomePage() {
                   <span
                     className="size-2.5 rounded-full bg-coral"
                     aria-label="High priority"
+                    role="img"
                   />
                 </div>
                 <p className="mt-5 border-l-2 border-violet pl-4 text-sm leading-6 text-ink-muted">
@@ -459,7 +460,7 @@ export default function HomePage() {
                   className="group min-h-72 p-7 transition-transform duration-300 hover:-translate-y-1 sm:p-8"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-editorial text-5xl text-violet/20">
+                    <span className="font-editorial text-5xl text-violet/75">
                       0{index + 1}
                     </span>
                     <span
@@ -554,9 +555,18 @@ export default function HomePage() {
             <Link className="hover:text-ink" href="/demo">
               Demo
             </Link>
-            <a className="hover:text-ink" href="#method">
+            <Link className="hover:text-ink" href="/method">
               Method
-            </a>
+            </Link>
+            <Link className="hover:text-ink" href="/trust">
+              Trust
+            </Link>
+            <Link className="hover:text-ink" href="/privacy">
+              Privacy
+            </Link>
+            <Link className="hover:text-ink" href="/content-standards">
+              Content standards
+            </Link>
             <span>© 2026 TraceTutor</span>
           </div>
         </div>

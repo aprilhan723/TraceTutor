@@ -12,6 +12,7 @@ import { demoStudent, demoTutor } from "@/data/mock-data";
 import type { LearningRepository } from "@/domain/repositories/learning-repository";
 import type {
   AnswerDraft,
+  MilestoneId,
   OnboardingProfile,
   PracticeItem,
   StudentPatternRecord,
@@ -34,7 +35,12 @@ import {
   type RetentionSchedule,
 } from "@/domain/mistake-intelligence";
 import type { Clock } from "@/lib/clock";
-import { FixedClock } from "@/lib/clock";
+import {
+  addDays,
+  FixedClock,
+  LocalDemoClock,
+  type AdjustableClock,
+} from "@/lib/clock";
 import { evaluatePracticeItem } from "@/services/answer-evaluation";
 import { analyzeCompleteWordsResponse } from "@/services/complete-words-analysis";
 import {
@@ -53,6 +59,15 @@ import {
   transitionPatternStatus,
 } from "@/services/retention-engine";
 import { calculateProgressMetrics } from "@/services/study-analytics";
+import {
+  buildSprintRoadmap,
+  buildWeeklyBossPreview,
+  createLightDayMission,
+  createWeeklyBossMission,
+  deriveMilestones,
+  getRecoveryPassAvailability,
+  getStreakReason,
+} from "@/services/engagement-engine";
 import {
   applyTutorAdjudication,
   buildContentLibrary,
@@ -307,6 +322,7 @@ export class LearningService {
     missionId: string,
     entryId: string,
     elapsedSeconds = 0,
+    offline = false,
   ) {
     const state = await this.repository.getStudyState(studentId);
     const mission = state.activeMission;
@@ -326,12 +342,10 @@ export class LearningService {
 
     const evaluation = evaluatePracticeItem(item, draft);
     const attemptId = `attempt-${mission.id}-${entryId}`;
-    const diagnosisResult = this.createDiagnosisResult(
-      state,
-      item,
-      draft,
-      elapsedSeconds,
-    );
+    const diagnosisResult =
+      mission.mode === "weekly-boss"
+        ? null
+        : this.createDiagnosisResult(state, item, draft, elapsedSeconds);
     const diagnosisId = diagnosisResult ? `diagnosis-${attemptId}` : null;
     const attempt: StudyAttempt = {
       id: attemptId,
@@ -395,7 +409,9 @@ export class LearningService {
         : schedule,
     );
     const newRetentionSchedules =
-      diagnosis?.primaryHypothesis && diagnosis.outcome !== "secure"
+      mission.mode !== "weekly-boss" &&
+      diagnosis?.primaryHypothesis &&
+      diagnosis.outcome !== "secure"
         ? createRetentionSchedules(diagnosis, mission.dateKey, item.taskType, [
             ...mission.items.map((missionItem) => missionItem.itemId),
           ])
@@ -425,14 +441,17 @@ export class LearningService {
       });
     }
 
-    const patterns = this.updatePatterns({
-      state,
-      item,
-      attempt,
-      diagnosis,
-      retentionSchedules,
-      completedRetentionScheduleId: entry.retentionScheduleId ?? null,
-    });
+    const patterns =
+      mission.mode === "weekly-boss"
+        ? state.patterns
+        : this.updatePatterns({
+            state,
+            item,
+            attempt,
+            diagnosis,
+            retentionSchedules,
+            completedRetentionScheduleId: entry.retentionScheduleId ?? null,
+          });
 
     const nextState: StudentStudyState = {
       ...state,
@@ -441,6 +460,19 @@ export class LearningService {
       retentionSchedules,
       reviewSchedules,
       patterns,
+      offlineEvents: offline
+        ? [
+            ...state.offlineEvents,
+            {
+              id: `offline-${attemptId}`,
+              attemptId,
+              missionId,
+              status: "queued" as const,
+              queuedAt: this.clock.now().toISOString(),
+              reconciledAt: null,
+            },
+          ]
+        : state.offlineEvents,
       activeMission: {
         ...mission,
         items: missionItems,
@@ -564,9 +596,10 @@ export class LearningService {
       (attempt) => attempt.missionId === mission.id,
     );
     const completedAt = this.clock.now().toISOString();
+    const streakReason = getStreakReason(mission);
     const nextState: StudentStudyState = {
       ...state,
-      correctionStreak: state.correctionStreak + 1,
+      correctionStreak: state.correctionStreak + (streakReason ? 1 : 0),
       missionHistory: [
         ...state.missionHistory,
         {
@@ -580,6 +613,9 @@ export class LearningService {
           ).length,
           attemptCount: missionAttempts.length,
           estimatedMinutes: mission.estimatedMinutes,
+          mode: mission.mode,
+          correctionStreakEarned: streakReason !== null,
+          streakReason,
         },
       ],
       activeMission: { ...mission, completedAt, lastSavedAt: completedAt },
@@ -591,7 +627,133 @@ export class LearningService {
 
   async prepareNextMission(studentId: string) {
     const state = await this.repository.getStudyState(studentId);
+    if (
+      state.activeMission?.mode === "weekly-boss" &&
+      state.activeMission.completedAt &&
+      state.parkedMission
+    ) {
+      const restored: StudentStudyState = {
+        ...state,
+        activeMission: state.parkedMission,
+        parkedMission: null,
+        updatedAt: this.clock.now().toISOString(),
+      };
+      await this.repository.saveStudyState(restored);
+      return restored;
+    }
     return this.prepareNextMissionFromState({ ...state, activeMission: null });
+  }
+
+  async useLightDay(studentId: string) {
+    const state = await this.repository.getStudyState(studentId);
+    if (!state.activeMission) return state;
+    const activeMission = createLightDayMission(
+      state.activeMission,
+      this.clock.now().toISOString(),
+    );
+    const next: StudentStudyState = {
+      ...state,
+      activeMission,
+      updatedAt: this.clock.now().toISOString(),
+    };
+    await this.repository.saveStudyState(next);
+    return next;
+  }
+
+  async useRecoveryPass(studentId: string) {
+    const state = await this.repository.getStudyState(studentId);
+    const availability = getRecoveryPassAvailability(state);
+    if (!availability.available) return state;
+    const protectedDate = addDays(this.getProgramDateKey(state), -1);
+    const next: StudentStudyState = {
+      ...state,
+      recoveryPasses: 0,
+      recoveryPassUses: [
+        ...state.recoveryPassUses,
+        {
+          period: availability.period,
+          protectedDate,
+          usedAt: this.clock.now().toISOString(),
+        },
+      ],
+      updatedAt: this.clock.now().toISOString(),
+    };
+    await this.repository.saveStudyState(next);
+    return next;
+  }
+
+  async startWeeklyBoss(studentId: string) {
+    const state = await this.repository.getStudyState(studentId);
+    if (
+      state.activeMission?.mode === "weekly-boss" &&
+      !state.activeMission.completedAt
+    ) {
+      return state;
+    }
+    const boss = createWeeklyBossMission(state, this.clock);
+    const next: StudentStudyState = {
+      ...state,
+      parkedMission:
+        state.activeMission?.mode === "weekly-boss"
+          ? state.parkedMission
+          : state.activeMission,
+      activeMission: boss,
+      updatedAt: this.clock.now().toISOString(),
+    };
+    await this.repository.saveStudyState(next);
+    return next;
+  }
+
+  async celebrateMilestone(studentId: string, milestoneId: MilestoneId) {
+    const state = await this.repository.getStudyState(studentId);
+    if (state.celebratedMilestones.includes(milestoneId)) return state;
+    const next: StudentStudyState = {
+      ...state,
+      celebratedMilestones: [...state.celebratedMilestones, milestoneId],
+      updatedAt: this.clock.now().toISOString(),
+    };
+    await this.repository.saveStudyState(next);
+    return next;
+  }
+
+  async reconcileOfflineEvents(studentId: string) {
+    const state = await this.repository.getStudyState(studentId);
+    if (!state.offlineEvents.some((event) => event.status === "queued")) {
+      return state;
+    }
+    const reconciledAt = this.clock.now().toISOString();
+    const next: StudentStudyState = {
+      ...state,
+      offlineEvents: state.offlineEvents.map((event) =>
+        event.status === "queued"
+          ? { ...event, status: "reconciled" as const, reconciledAt }
+          : event,
+      ),
+      updatedAt: reconciledAt,
+    };
+    await this.repository.saveStudyState(next);
+    return next;
+  }
+
+  async setDemoProgramDate(studentId: string, dateKey: string) {
+    const state = await this.repository.getStudyState(studentId);
+    if (!this.isAdjustableClock(this.clock)) return state;
+    const completedDays = state.missionHistory.filter(
+      (mission) => mission.dayNumber > 0 && mission.mode !== "weekly-boss",
+    ).length;
+    this.clock.setDateKey(addDays(dateKey, -completedDays));
+    if (
+      state.onboarding &&
+      state.activeMission &&
+      !state.activeMission.startedAt &&
+      !state.activeMission.completedAt
+    ) {
+      return this.prepareNextMissionFromState({
+        ...state,
+        activeMission: null,
+      });
+    }
+    return state;
   }
 
   async resetStudyState(studentId: string) {
@@ -621,6 +783,22 @@ export class LearningService {
 
   getVecr7(state: StudentStudyState) {
     return calculateVecr7(state, getProgramDateKey(state, this.clock));
+  }
+
+  getSprintRoadmap(state: StudentStudyState) {
+    return buildSprintRoadmap(state);
+  }
+
+  getRecoveryPassAvailability(state: StudentStudyState) {
+    return getRecoveryPassAvailability(state);
+  }
+
+  getWeeklyBossPreview(state: StudentStudyState) {
+    return buildWeeklyBossPreview(state);
+  }
+
+  getMilestones(state: StudentStudyState, verifiedCorrectionCount: number) {
+    return deriveMilestones(state, verifiedCorrectionCount);
   }
 
   private createDiagnosisResult(
@@ -879,6 +1057,10 @@ export class LearningService {
     return cadence === "D2" ? "d2" : "d7";
   }
 
+  private isAdjustableClock(clock: Clock): clock is AdjustableClock {
+    return "setDateKey" in clock && typeof clock.setDateKey === "function";
+  }
+
   private async prepareNextMissionFromState(state: StudentStudyState) {
     const mission = createMissionForState(
       { ...state, activeMission: null },
@@ -897,7 +1079,7 @@ export class LearningService {
 export function createBrowserLearningService(storage: KeyValueStore) {
   return new LearningService(
     new LocalDemoLearningRepository(storage),
-    new FixedClock(),
+    new LocalDemoClock(storage),
   );
 }
 

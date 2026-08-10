@@ -9,13 +9,17 @@ import { createInitialStudyState } from "@/data/seed-study-state";
 import { createInitialTutorWorkspaceState } from "@/data/seed-tutor-workspace";
 import type { LearningRepository } from "@/domain/repositories/learning-repository";
 import type {
+  MissionHistoryRecord,
   StudentPatternRecord,
   StudentStudyState,
   StudyAttempt,
+  StudyMission,
 } from "@/domain/study";
 import type { TutorWorkspaceState } from "@/domain/tutor";
+import { DEMO_CLOCK_STORAGE_KEY } from "@/lib/clock";
 
-export const DEMO_STUDY_STORAGE_KEY = "tracetutor.demo.study.v3";
+export const DEMO_STUDY_STORAGE_KEY = "tracetutor.demo.study.v4";
+export const LEGACY_DEMO_STUDY_V3_STORAGE_KEY = "tracetutor.demo.study.v3";
 export const LEGACY_DEMO_STUDY_STORAGE_KEY = "tracetutor.demo.study.v2";
 export const DEMO_TUTOR_STORAGE_KEY = "tracetutor.demo.tutor.v1";
 
@@ -48,6 +52,54 @@ function isStudyState(value: unknown): value is StudentStudyState {
 
   const candidate = value as Partial<StudentStudyState>;
   return (
+    candidate.version === 4 &&
+    typeof candidate.studentId === "string" &&
+    Array.isArray(candidate.attempts) &&
+    Array.isArray(candidate.reviewSchedules) &&
+    Array.isArray(candidate.diagnoses) &&
+    Array.isArray(candidate.probeResponses) &&
+    Array.isArray(candidate.retentionSchedules) &&
+    Array.isArray(candidate.missionHistory) &&
+    Array.isArray(candidate.patterns) &&
+    Array.isArray(candidate.recoveryPassUses) &&
+    Array.isArray(candidate.celebratedMilestones) &&
+    Array.isArray(candidate.offlineEvents)
+  );
+}
+
+type LegacyMission = Omit<StudyMission, "mode"> &
+  Partial<Pick<StudyMission, "mode">>;
+
+type LegacyHistory = Omit<
+  MissionHistoryRecord,
+  "mode" | "correctionStreakEarned" | "streakReason"
+> &
+  Partial<
+    Pick<
+      MissionHistoryRecord,
+      "mode" | "correctionStreakEarned" | "streakReason"
+    >
+  >;
+
+interface Phase3StudyState extends Omit<
+  StudentStudyState,
+  | "version"
+  | "recoveryPassUses"
+  | "celebratedMilestones"
+  | "offlineEvents"
+  | "parkedMission"
+  | "activeMission"
+  | "missionHistory"
+> {
+  version: 3;
+  activeMission: LegacyMission | null;
+  missionHistory: LegacyHistory[];
+}
+
+function isPhase3StudyState(value: unknown): value is Phase3StudyState {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Partial<Phase3StudyState>;
+  return (
     candidate.version === 3 &&
     typeof candidate.studentId === "string" &&
     Array.isArray(candidate.attempts) &&
@@ -58,6 +110,42 @@ function isStudyState(value: unknown): value is StudentStudyState {
     Array.isArray(candidate.missionHistory) &&
     Array.isArray(candidate.patterns)
   );
+}
+
+function upgradeMission(mission: LegacyMission | null) {
+  return mission ? { ...mission, mode: mission.mode ?? "standard" } : null;
+}
+
+function upgradeHistory(history: LegacyHistory[]): MissionHistoryRecord[] {
+  return history.map((mission) => {
+    const baseline = mission.dayNumber === 0;
+    return {
+      ...mission,
+      mode: mission.mode ?? (baseline ? "tutor-assigned" : "standard"),
+      correctionStreakEarned: mission.correctionStreakEarned ?? true,
+      streakReason:
+        mission.streakReason ??
+        (baseline ? "tutor-assigned" : "full-correction-loop"),
+    };
+  });
+}
+
+function migratePhase3State(legacy: Phase3StudyState): StudentStudyState {
+  const missionHistory = upgradeHistory(legacy.missionHistory);
+  return {
+    ...legacy,
+    version: 4,
+    correctionStreak: missionHistory.filter(
+      (mission) => mission.correctionStreakEarned,
+    ).length,
+    recoveryPasses: 1,
+    recoveryPassUses: [],
+    celebratedMilestones: [],
+    offlineEvents: [],
+    activeMission: upgradeMission(legacy.activeMission),
+    parkedMission: null,
+    missionHistory,
+  };
 }
 
 type LegacyAttempt = Omit<
@@ -92,7 +180,7 @@ type LegacyPattern = Omit<
   >;
 
 interface LegacyStudyState extends Omit<
-  StudentStudyState,
+  Phase3StudyState,
   | "version"
   | "attempts"
   | "patterns"
@@ -120,7 +208,7 @@ function isLegacyStudyState(value: unknown): value is LegacyStudyState {
 
 function migrateLegacyState(legacy: LegacyStudyState): StudentStudyState {
   const seedPatterns = createInitialStudyState().patterns;
-  return {
+  const phase3: Phase3StudyState = {
     ...legacy,
     version: 3,
     attempts: legacy.attempts.map((attempt) => ({
@@ -152,6 +240,7 @@ function migrateLegacyState(legacy: LegacyStudyState): StudentStudyState {
     probeResponses: [],
     retentionSchedules: [],
   };
+  return migratePhase3State(phase3);
 }
 
 function isTutorWorkspace(value: unknown): value is TutorWorkspaceState {
@@ -203,6 +292,7 @@ export class LocalDemoLearningRepository implements LearningRepository {
 
     const serialized =
       this.storage.getItem(DEMO_STUDY_STORAGE_KEY) ??
+      this.storage.getItem(LEGACY_DEMO_STUDY_V3_STORAGE_KEY) ??
       this.storage.getItem(LEGACY_DEMO_STUDY_STORAGE_KEY);
     if (!serialized) {
       return createInitialStudyState();
@@ -211,6 +301,11 @@ export class LocalDemoLearningRepository implements LearningRepository {
     try {
       const parsed: unknown = JSON.parse(serialized);
       if (isStudyState(parsed)) return parsed;
+      if (isPhase3StudyState(parsed)) {
+        const migrated = migratePhase3State(parsed);
+        await this.saveStudyState(migrated);
+        return migrated;
+      }
       if (isLegacyStudyState(parsed)) {
         const migrated = migrateLegacyState(parsed);
         await this.saveStudyState(migrated);
@@ -228,8 +323,10 @@ export class LocalDemoLearningRepository implements LearningRepository {
 
   async resetStudyState(studentId: string) {
     this.storage.removeItem(DEMO_STUDY_STORAGE_KEY);
+    this.storage.removeItem(LEGACY_DEMO_STUDY_V3_STORAGE_KEY);
     this.storage.removeItem(LEGACY_DEMO_STUDY_STORAGE_KEY);
     this.storage.removeItem(DEMO_TUTOR_STORAGE_KEY);
+    this.storage.removeItem(DEMO_CLOCK_STORAGE_KEY);
     const initialState = createInitialStudyState();
     if (studentId === demoStudent.id) {
       await this.saveStudyState(initialState);

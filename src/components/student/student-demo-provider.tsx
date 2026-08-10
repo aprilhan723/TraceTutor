@@ -13,6 +13,7 @@ import {
 import type { Student } from "@/domain/models";
 import type {
   AnswerDraft,
+  MilestoneId,
   OnboardingProfile,
   StudentProgressMetrics,
   StudentStudyState,
@@ -24,6 +25,11 @@ import {
   type LearningService,
 } from "@/services/learning-service";
 import type { Vecr7Metric } from "@/services/retention-engine";
+import type {
+  MilestoneMoment,
+  SprintRoadmapDay,
+  WeeklyBossPreview,
+} from "@/services/engagement-engine";
 
 interface StudentDemoContextValue {
   hydrated: boolean;
@@ -33,6 +39,16 @@ interface StudentDemoContextValue {
   dueReviewCount: number;
   metrics: StudentProgressMetrics | null;
   vecr7: Vecr7Metric | null;
+  isOffline: boolean;
+  queuedOfflineCount: number;
+  sprintRoadmap: SprintRoadmapDay[];
+  recoveryPass: {
+    period: 1 | 2;
+    available: boolean;
+    protectedDate: string | null;
+  } | null;
+  weeklyBoss: WeeklyBossPreview | null;
+  getMilestones(verifiedCorrectionCount: number): MilestoneMoment[];
   completeOnboarding(
     profile: Omit<OnboardingProfile, "completedAt">,
   ): Promise<void>;
@@ -51,6 +67,11 @@ interface StudentDemoContextValue {
   advanceMission(missionId: string): Promise<StudentStudyState | null>;
   saveElapsedSeconds(missionId: string, seconds: number): Promise<void>;
   prepareNextMission(): Promise<void>;
+  useLightDay(): Promise<void>;
+  useRecoveryPass(): Promise<void>;
+  startWeeklyBoss(): Promise<StudentStudyState | null>;
+  celebrateMilestone(milestoneId: MilestoneId): Promise<void>;
+  setDemoProgramDate(dateKey: string): Promise<void>;
   resetDemo(): Promise<void>;
 }
 
@@ -65,6 +86,7 @@ export function StudentDemoProvider({
 }) {
   const [state, setState] = useState<StudentStudyState | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [isOffline, setIsOffline] = useState(false);
   const [service] = useState<LearningService>(() =>
     typeof window === "undefined"
       ? demoLearningService
@@ -133,6 +155,7 @@ export function StudentDemoProvider({
           missionId,
           entryId,
           elapsedSeconds,
+          typeof navigator !== "undefined" && !navigator.onLine,
         ),
       );
     },
@@ -171,6 +194,57 @@ export function StudentDemoProvider({
     );
   }, [runOperation]);
 
+  const useLightDay = useCallback(async () => {
+    await runOperation((service) => service.useLightDay(demoIds.student));
+  }, [runOperation]);
+
+  const useRecoveryPass = useCallback(async () => {
+    await runOperation((service) => service.useRecoveryPass(demoIds.student));
+  }, [runOperation]);
+
+  const startWeeklyBoss = useCallback(
+    () => runOperation((service) => service.startWeeklyBoss(demoIds.student)),
+    [runOperation],
+  );
+
+  const celebrateMilestone = useCallback(
+    async (milestoneId: MilestoneId) => {
+      await runOperation((service) =>
+        service.celebrateMilestone(demoIds.student, milestoneId),
+      );
+    },
+    [runOperation],
+  );
+
+  const setDemoProgramDate = useCallback(
+    async (dateKey: string) => {
+      await runOperation((service) =>
+        service.setDemoProgramDate(demoIds.student, dateKey),
+      );
+    },
+    [runOperation],
+  );
+
+  useEffect(() => {
+    function markOffline() {
+      setIsOffline(true);
+    }
+    function markOnline() {
+      setIsOffline(false);
+      void runOperation((service) =>
+        service.reconcileOfflineEvents(demoIds.student),
+      );
+    }
+    if (!navigator.onLine) markOffline();
+    else markOnline();
+    window.addEventListener("online", markOnline);
+    window.addEventListener("offline", markOffline);
+    return () => {
+      window.removeEventListener("online", markOnline);
+      window.removeEventListener("offline", markOffline);
+    };
+  }, [runOperation]);
+
   const resetDemo = useCallback(async () => {
     await runOperation((service) => service.resetStudyState(demoIds.student));
   }, [runOperation]);
@@ -184,6 +258,15 @@ export function StudentDemoProvider({
       dueReviewCount: state ? service.getDueReviews(state).length : 0,
       metrics: state ? service.getProgressMetrics(state) : null,
       vecr7: state ? service.getVecr7(state) : null,
+      isOffline,
+      queuedOfflineCount:
+        state?.offlineEvents.filter((event) => event.status === "queued")
+          .length ?? 0,
+      sprintRoadmap: state ? service.getSprintRoadmap(state) : [],
+      recoveryPass: state ? service.getRecoveryPassAvailability(state) : null,
+      weeklyBoss: state ? service.getWeeklyBossPreview(state) : null,
+      getMilestones: (verifiedCorrectionCount) =>
+        state ? service.getMilestones(state, verifiedCorrectionCount) : [],
       completeOnboarding,
       startMission,
       saveDraft,
@@ -192,6 +275,11 @@ export function StudentDemoProvider({
       advanceMission,
       saveElapsedSeconds,
       prepareNextMission,
+      useLightDay,
+      useRecoveryPass,
+      startWeeklyBoss,
+      celebrateMilestone,
+      setDemoProgramDate,
       resetDemo,
     };
   }, [
@@ -199,15 +287,21 @@ export function StudentDemoProvider({
     completeProbe,
     completeOnboarding,
     hydrated,
+    isOffline,
     prepareNextMission,
     resetDemo,
     saveDraft,
     saveElapsedSeconds,
     service,
     startMission,
+    startWeeklyBoss,
     state,
     student,
     submitEntry,
+    celebrateMilestone,
+    setDemoProgramDate,
+    useLightDay,
+    useRecoveryPass,
   ]);
 
   return (

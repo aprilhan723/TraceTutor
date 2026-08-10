@@ -1,7 +1,10 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const productionE2E = process.env.E2E_PRODUCTION === "1";
+
 export default defineConfig({
   testDir: "./e2e",
+  timeout: 60_000,
   fullyParallel: false,
   workers: 1,
   forbidOnly: Boolean(process.env.CI),
@@ -22,9 +25,11 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "node node_modules/next/dist/bin/next dev --webpack -p 3000",
+    command: productionE2E
+      ? "node node_modules/next/dist/bin/next start -p 3000"
+      : "node node_modules/next/dist/bin/next dev --webpack -p 3000",
     url: "http://localhost:3000",
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: !process.env.CI && !productionE2E,
     timeout: 120_000,
   },
 });

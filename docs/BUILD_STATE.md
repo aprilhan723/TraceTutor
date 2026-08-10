@@ -2,7 +2,7 @@
 
 ## Current phase
 
-**Phase 4: complete and verified.**
+**Phase 5: complete and verified as a local release candidate.**
 
 ## Implemented
 
@@ -50,6 +50,15 @@
 - Shared local persistence so tutor decisions are reflected in the student weekly report after navigation or refresh
 - Unit coverage for queue ranking, adjudication audit trails, content validation/versioning, lesson-brief selection, weekly calculations, and tutor persistence/reset
 - E2E tutor journey from queue through diagnosis change/approval, transfer assignment, lesson-brief inclusion, and student weekly-report consistency
+- Ethical 14-day roadmap with target-date countdown, transparent streak reasons, one Recovery Pass per seven-day period, two-minute Light Day, and four meaningful milestone moments
+- Original “Half-Truth Hydra” weekly mixed challenge derived deterministically from frequent reviewed distractor relations and error causes, with per-item selection explanations and a hard safeguard against Boss-only pattern resolution
+- Version 4 student study aggregate with non-destructive v2/v3 migration, parked missions, Recovery Pass ledger, milestone acknowledgements, and offline event queue
+- Valid manifest, original SVG/PNG install icons, theme metadata, service-worker app shell/visited-mission caching, offline fallback, and local reconnect reconciliation
+- Skippable/replayable product tour and dedicated Trust, Privacy, Content Standards, and Method pages
+- Consistent SEO/social metadata with original 1200×630 TraceTutor preview artwork
+- Student and tutor segment loading/error states and shared in-product independent-practice disclaimers
+- Deterministic demo-mode clock control for immediate D2 and D7 review demonstration
+- Axe-core Playwright audit coverage for public, student, roadmap, and tutor surfaces
 
 ## Deferred by design
 
@@ -60,13 +69,33 @@
 - PDF generation (browser print is implemented)
 - Payments, remote notifications, and deployment
 - Official score estimates or predictions
+- Push notifications, public rankings, XP, fake scarcity, or attendance-only rewards
+- Background sync, true server reconciliation, and multi-device guarantees
+
+## Known Phase 5 limitations
+
+- Browser storage and service-worker caches are device- and browser-profile-local; clearing site data removes the demo.
+- “Reconciled” offline events only mean the local queue has been processed after reconnect. No remote server receives them in this phase.
+- Install prompts and offline capabilities depend on browser PWA support and a secure context; localhost is treated as secure for development.
+- There is no push notification service, account recovery, conflict resolution, or multi-device sync.
+- The Weekly Boss uses reviewed deterministic rule data rather than generated content or external AI.
+- Lesson brief export remains browser print; no PDF file generator is included.
+
+## Exact next backend phase
+
+**Phase 6: authenticated Supabase backend and synchronization adapter, including schema migrations, row-level security, authenticated tutor/student ownership, and an explicit offline conflict policy. External AI, payments, and deployment remain separate opt-in work and must not start automatically.**
 
 ## Verification
 
 - Prettier write and format check: passed
 - ESLint: passed with zero warnings or errors
 - Strict TypeScript and Next.js route type generation: passed
-- Vitest: 12 files passed, 47 tests passed
-- Playwright: 10 tests passed across desktop Chromium and Pixel 7 profiles
-- Production build: passed; 15 route entries generated, including 4 dynamic routes
-- Browser QA: passed for queue, diagnosis review, content authoring/validation, student detail, lesson brief, and weekly report at 1440×900, 834×1112, and 375×812, with no horizontal overflow or application console errors
+- Prettier write and format check: passed
+- ESLint: passed with zero warnings or errors
+- Strict TypeScript and Next.js route type generation: passed
+- Vitest repeated stability run: 13 files and 54 tests passed in each of two consecutive runs
+- Playwright development run: 20 passed, 2 intentionally skipped production-only offline cases
+- Playwright production run: 21 passed, 1 intentionally skipped duplicate mobile offline case; desktop Chromium verified the full offline mission resume
+- Accessibility: six representative desktop/mobile axe audits passed with zero serious or critical violations
+- Production build: passed; 23 route entries generated, including 4 dynamic routes
+- Browser QA: passed at 1440×900, 834×1112, and 375×812 with no horizontal overflow, broken navigation, or application console warnings/errors

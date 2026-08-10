@@ -7,9 +7,9 @@
   --color-ink: #25211f;
   --color-ink-muted: #6b635f;
   --color-coral: #ff806b;
-  --color-coral-deep: #c84f43;
+  --color-coral-deep: #a73c34;
   --color-coral-soft: #ffe2da;
-  --color-violet: #7455d9;
+  --color-violet: #6846c5;
   --color-violet-deep: #4c318f;
   --color-violet-soft: #eee8ff;
   --color-mint: #d9f4e4;
@@ -94,6 +94,56 @@ a {
 
 .soft-float-delayed {
   animation: soft-float 5s 1.2s ease-in-out infinite;
+}
+
+.hydra-trace {
+  position: absolute;
+  inset: auto -2rem -3rem 1rem;
+  height: 15rem;
+  opacity: 0.55;
+}
+
+.hydra-trace::before,
+.hydra-trace::after,
+.hydra-trace span {
+  position: absolute;
+  content: "";
+  border: 12px solid var(--color-violet);
+  border-radius: 999px 999px 0 0;
+  border-bottom: 0;
+  width: 7rem;
+  height: 11rem;
+  bottom: 0;
+  transform-origin: bottom;
+}
+
+.hydra-trace::before {
+  left: 2rem;
+  transform: rotate(-28deg);
+}
+.hydra-trace::after {
+  left: 10rem;
+  transform: rotate(28deg);
+}
+.hydra-trace span:nth-child(1) {
+  left: 6rem;
+  height: 14rem;
+}
+.hydra-trace span:nth-child(2) {
+  left: 0;
+  width: 3rem;
+  height: 3rem;
+  border: 0;
+  background: var(--color-coral);
+  bottom: 8rem;
+}
+.hydra-trace span:nth-child(3) {
+  left: 15rem;
+  width: 3rem;
+  height: 3rem;
+  border: 0;
+  background: var(--color-mint-deep);
+  bottom: 8rem;
 }
 
 @keyframes orbit {

@@ -105,6 +105,16 @@ export function PracticeExperience({ missionId }: { missionId: string }) {
     return () => window.clearInterval(interval);
   }, [activeMissionId, missionCompletedAt, missionId]);
 
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    void navigator.serviceWorker.ready.then(() => {
+      navigator.serviceWorker.controller?.postMessage({
+        type: "CACHE_URL",
+        url: window.location.href,
+      });
+    });
+  }, [missionId]);
+
   if (!hydrated || !state?.onboarding) {
     return null;
   }
@@ -195,6 +205,11 @@ export function PracticeExperience({ missionId }: { missionId: string }) {
             {entry.reviewCadence ? (
               <Badge tone="neutral">{entry.reviewCadence} return</Badge>
             ) : null}
+            {mission.mode === "weekly-boss" ? (
+              <Badge tone="coral">The Half-Truth Hydra</Badge>
+            ) : mission.mode === "light" ? (
+              <Badge tone="mint">Light Day</Badge>
+            ) : null}
           </div>
           <div className="flex items-center gap-4 text-xs font-bold text-ink-muted">
             <span
@@ -255,6 +270,21 @@ export function PracticeExperience({ missionId }: { missionId: string }) {
               Use the text signal before trusting what merely sounds plausible.
             </p>
           </Card>
+          {entry.selectionReason ? (
+            <Card tone="mint">
+              <p className="text-xs font-bold tracking-wide text-mint-deep uppercase">
+                Why this item
+              </p>
+              <p className="mt-3 text-xs leading-5 text-ink-muted">
+                {entry.selectionReason}
+              </p>
+              {mission.mode === "weekly-boss" ? (
+                <p className="mt-3 text-xs leading-5 font-bold text-ink">
+                  Boss completion alone cannot resolve a pattern.
+                </p>
+              ) : null}
+            </Card>
+          ) : null}
           <Card>
             <p className="text-xs font-bold tracking-wide text-coral-deep uppercase">
               Content status

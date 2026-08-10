@@ -24,7 +24,7 @@ LearningService
     ↓
 LearningRepository interface
     ↓
-LocalDemoLearningRepository (Phase 4)
+LocalDemoLearningRepository (Phase 5)
     ↓
 Browser localStorage / typed seeded fallback
 ```
@@ -34,16 +34,35 @@ Route components do not depend on the storage implementation. The student and tu
 ## Student study aggregate
 
 - `StudentOnboarding` stores the five personalization inputs.
-- `StudentStudyState` version 3 is the aggregate for onboarding, attempts, reviews, mission history, diagnosis records, probe responses, retention schedules, mistake patterns, streak, Recovery Pass, and the active mission.
+- `StudentStudyState` version 4 is the aggregate for onboarding, attempts, reviews, mission history, diagnosis records, probe responses, retention schedules, mistake patterns, the ethical streak ledger, Recovery Pass uses, celebrated milestones, offline events, and active/parked missions.
 - `StudentMission` contains deterministic entry references, drafts, current position, timing, and completion state.
 - `PracticeItem` is a discriminated union for Complete the Words, evidence-based reading questions, and transfer checks.
 - `StudyAttempt` records the submitted answer, confidence, evidence IDs, elapsed seconds, answer changes, diagnosis link, and transparent Secure/Unstable/Diagnose result.
 - `DiagnosisRecord` snapshots all known observations and the current bounded hypothesis, including taxonomy version, probe link, tutor-review flag, and remediation target.
 - `RetentionSchedule` links one diagnosis to a unique Immediate, D2, or D7 transfer item and its eventual attempt outcome.
 - `StudentPatternRecord` aggregates a cause/process pair without erasing its diagnosis evidence, distinct transfer surfaces, retention cadence state, or recurrence history.
-- `Clock` isolates the deterministic demo date from real wall-clock behavior so mission selection and tests remain stable.
+- `MissionMode` distinguishes standard, Light Day, Weekly Boss, and tutor-assigned work. History snapshots the exact qualifying streak reason.
+- `Clock` isolates the deterministic demo date from real wall-clock behavior. `LocalDemoClock` persists a demo-only date override so D2 and D7 can be demonstrated without waiting.
 
-The local adapter serializes the aggregate under `tracetutor.demo.study.v3`. A validated v2 aggregate is migrated in place so Phase 2 onboarding, drafts, attempts, and mission progress survive the upgrade. The adapter safely falls back to an original seed state if storage is unavailable or malformed.
+The local adapter serializes the aggregate under `tracetutor.demo.study.v4`. Validated v2 and v3 aggregates are migrated in place so onboarding, drafts, attempts, mission progress, and Phase 3 diagnosis data survive the upgrade. The adapter safely falls back to an original seed state if storage is unavailable or malformed.
+
+## Engagement and offline pipeline
+
+```text
+Versioned local study state + deterministic clock
+    ↓
+Pure roadmap / streak / Light Day / milestone / Weekly Boss selectors
+    ↓
+LearningService mutation and safeguard checks
+    ↓
+LocalDemoLearningRepository
+    ↓
+localStorage + service-worker cached shell/visited mission
+```
+
+`engagement-engine.ts` is deterministic and contains no browser APIs. Weekly Boss attempts are explicitly excluded from diagnosis creation, retention scheduling, and pattern mutation. `LearningService` can park the normal mission while a Boss runs and restore it afterward.
+
+The service worker caches only same-origin GET navigation responses and static assets. The practice experience explicitly requests caching for the active, already-downloaded mission. Attempt payloads remain in localStorage; no credentials or secrets are cached. An offline attempt appends an `OfflineAttemptEvent`, which changes from `queued` to `reconciled` when the browser reconnects. In Phase 5 reconciliation is local bookkeeping, not a remote sync claim.
 
 ## Tutor workspace aggregate
 
@@ -55,7 +74,7 @@ The local adapter serializes the aggregate under `tracetutor.demo.study.v3`. A v
 - `TutorContentVersion` snapshots each authored version. Published edits append a version instead of mutating an item used by earlier attempts.
 - `TutorStudentProfile` supports multiple records even though Phase 4 seeds one student.
 
-Reset removes the study and tutor aggregates, including legacy study keys, only after explicit confirmation.
+Reset removes the study, tutor, demo-clock, and legacy study aggregates only after explicit confirmation.
 
 ## Tutor operations
 
@@ -102,11 +121,11 @@ Timing, answer changes, selected evidence, and reported confidence are observati
 - `src/services/` — pure diagnosis, Complete the Words analysis, transfer/retention logic, mission selection, tutor operations, evaluation, analytics, persistence orchestration, and UI data assembly
 - `src/content/` — typed static marketing content
 - `src/test/` — shared unit test setup
-- `e2e/` — Playwright student journeys, tutor adjudication journey, and shell smoke tests
+- `e2e/` — Playwright student, diagnosis, spaced-review, tutor, offline/PWA, responsive, and accessibility journeys
 
 ## Rendering strategy
 
-Pages and layouts remain Server Components by default. Student learning flows and tutor workspaces are Client Components because onboarding, autosave, review actions, filters, editing, and browser persistence require interaction. `StudentDemoProvider` and `TutorDemoProvider` keep persistence concerns outside route components. Repository reads and writes remain asynchronous even though the Phase 4 adapter is local, preserving the contract expected by a remote adapter.
+Pages and layouts remain Server Components by default. Student learning flows and tutor workspaces are Client Components because onboarding, autosave, review actions, filters, editing, and browser persistence require interaction. Manifest, metadata, trust pages, loading states, and policy content remain Server Components. A tiny registration component is the only root-level client runtime added for the service worker. `StudentDemoProvider` and `TutorDemoProvider` keep persistence concerns outside route components. Repository reads and writes remain asynchronous even though the Phase 5 adapter is local, preserving the contract expected by a remote adapter.
 
 ## Accessibility
 
@@ -121,6 +140,7 @@ Pages and layouts remain Server Components by default. Student learning flows an
 - Native search, select, textarea, details, and print controls in tutor workflows
 - Accessible progressbar values and labels
 - Reduced-motion support
+- Automated axe-core assertions for zero serious or critical violations on representative public, student, roadmap, and tutor surfaces
 
 ## Responsive layout
 
@@ -129,7 +149,7 @@ Marketing layouts are mobile-first and progressively move to two- or three-colum
 ## Testing and quality
 
 - Vitest + Testing Library for taxonomy boundaries, diagnosis rules, Complete the Words layers, mission selection, persistence, transfer/retention, queue ranking, adjudication audit history, content validation/versioning, lesson-brief selection, report calculations, service integration, and components
-- Playwright coverage for the full student diagnosis path and tutor queue → diagnosis change/approval → transfer assignment → lesson brief path in desktop Chromium and Pixel 7 profiles
+- Playwright coverage for onboarding and full mission completion, high-confidence wrong diagnosis and transfer, demo-clock D2/D7 review, tutor queue → diagnosis → transfer → lesson brief, offline-safe resume, and representative axe-core accessibility audits in desktop Chromium and Pixel 7 profiles
 - ESLint, strict TypeScript, Prettier, and production build checks
 
 ## Future adapter notes

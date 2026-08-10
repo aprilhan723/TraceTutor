@@ -4,7 +4,7 @@
 
 - **Brand:** TraceTutor
 - **Product label:** TOEFL Reading Correction Sprint
-- **Phase:** 4 — tutor verification workspace
+- **Phase:** 5 — local release candidate
 - **Primary promise:** Practice less randomly. Correct what keeps repeating.
 
 TraceTutor is not a question bank. It is a tutor-verified daily mistake-correction product for the 2026 TOEFL Reading experience. The student completes one focused correction sprint; the tutor sees the repeated reasoning pattern before the next lesson.
@@ -22,7 +22,7 @@ TraceTutor is not a question bank. It is a tutor-verified daily mistake-correcti
 4. **Transfer** — apply the correction in a new context.
 5. **Retain** — revisit the correction after time has passed.
 
-Phase 4 closes the loop with tutor adjudication. Rule-derived suggestions remain transparent and immutable while the tutor can verify, change, or mark a diagnosis ambiguous, then connect the correction to a transfer item and the next lesson.
+Phase 5 closes the local product loop with an ethical 14-day engagement arc, a personalized mixed weekly challenge, honest offline behavior, installable PWA metadata, and release-candidate accessibility and trust polish. Tutor adjudication remains the verification boundary.
 
 ## 2026 Reading task coverage
 
@@ -44,7 +44,11 @@ The first student demo entry collects a target test date, current Reading confid
 - Due D2 and D7 retention reviews placed before new practice
 - A standard ten-minute mission contains one due review when available, three Complete the Words items, one Daily Life or Academic item, and a transfer check when triggered
 - Five- and fifteen-minute preferences produce shorter or expanded deterministic missions
-- Correction Streak and Recovery Pass language instead of XP or game currency
+- A visible day-by-day roadmap with two weekly mixed checkpoints and target-date countdown
+- Correction Streak credit only for a due review, full correction loop, transfer check, or tutor-assigned mission; speed-item volume alone earns nothing
+- One Recovery Pass per seven-day period protects a missed day without deleting due work
+- A two-minute Light Day selects a due review or transfer when possible and states when no streak-eligible work exists
+- Milestones for first tutor-verified correction, first secure D2, first secure D7, and three resolved patterns
 - Autosaved drafts, elapsed time, attempts, mission completion, and refresh-safe resume
 
 ### Practice behavior
@@ -147,6 +151,31 @@ The next-lesson brief selects one to three verified priorities, cites evidence, 
 
 One fictional student has a deterministic ten-day history with mixed adherence, review outcomes, diagnoses, verification states, interventions, feedback, and content coverage. All tutor data remains locally persisted and can be reset with the shared confirmed demo reset.
 
+## Phase 5 local release candidate
+
+### Weekly Boss
+
+“The Half-Truth Hydra” is an original geometric theme for a deterministic mixed challenge. It selects from the student’s most frequent reviewed distractor relations and current error causes, spans different task surfaces, and explains why every item was chosen. It is never treated as a personality label or mascot. Boss attempts do not generate diagnoses, mutate pattern status, or resolve a pattern; the normal distinct-transfer and D2/D7 criteria remain authoritative.
+
+### Ethical engagement
+
+The product deliberately excludes XP farming, fake scarcity, public rankings, punitive notifications, and shame. The Correction Streak represents qualifying correction work only. The roadmap, Recovery Pass, Light Day, and milestone moments make the work legible without claiming that attendance or challenge completion equals mastery.
+
+### PWA and offline behavior
+
+- Standards-based web app manifest, original SVG/PNG icons, theme metadata, and installable standalone behavior
+- Service worker caches the app shell, static assets, already-visited pages, and an explicitly downloaded active mission
+- Offline mission drafts and attempts continue to use the same browser-local repository
+- Offline attempt events are queued in the study aggregate and reconciled locally after reconnecting
+- Offline copy clearly states that this phase has no account, server, or multi-device synchronization
+
+### Product trust and polish
+
+- Skippable, replayable three-step product tour
+- Dedicated Trust, Privacy, Content Standards, and Method pages
+- Consistent site metadata and original social preview artwork
+- Segment loading/error states, visible independent-product disclaimers, reduced-motion behavior, keyboard focus, screen-reader labels, and serious/critical automated accessibility coverage
+
 ## Preserved foundation surfaces
 
 ### Public landing page
@@ -163,7 +192,7 @@ The landing page communicates the method, contrasts volume practice with mistake
 
 TraceTutor is independent practice software and is not endorsed by or affiliated with ETS. TOEFL is a registered trademark of ETS. Tutor verification refers to the intended workflow in which a tutor reviews mistake patterns and evidence traces; it does not imply ETS verification. Practice feedback, progress indicators, goals, and future product signals are not official TOEFL scores or score predictions.
 
-## Out of scope for Phase 4
+## Out of scope for Phase 5
 
 - Authentication and real user accounts
 - Supabase or another remote backend
@@ -172,3 +201,4 @@ TraceTutor is independent practice software and is not endorsed by or affiliated
 - PDF file generation; the lesson brief uses the browser print workflow
 - Payments, subscriptions, or deployment
 - Official score estimation
+- Push notifications or manipulative engagement loops

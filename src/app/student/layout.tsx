@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { ResetDemoControl } from "@/components/student/reset-demo-control";
 import { StudentDemoProvider } from "@/components/student/student-demo-provider";
+import { ConnectivityNotice } from "@/components/student/connectivity-notice";
 import { StudentExperienceGate } from "@/components/student/student-experience-gate";
 import { TutorDemoProvider } from "@/components/tutor/tutor-demo-provider";
 import { demoIds, demoLearningService } from "@/services/learning-service";
@@ -21,6 +22,7 @@ export default async function StudentLayout({
   return (
     <TutorDemoProvider>
       <StudentDemoProvider student={home.student}>
+        <ConnectivityNotice />
         <AppShell
           role="student"
           userName={home.student.name}

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useStudentDemo } from "@/components/student/student-demo-provider";
 import { cn } from "@/lib/cn";
+import { replayProductTour } from "@/components/student/product-tour";
 
 export function ResetDemoControl({ compact = false }: { compact?: boolean }) {
   const [open, setOpen] = useState(false);
@@ -18,6 +19,11 @@ export function ResetDemoControl({ compact = false }: { compact?: boolean }) {
     setResetting(false);
     setOpen(false);
     router.push("/student/today");
+  }
+
+  function handleReplayTour() {
+    setOpen(false);
+    replayProductTour();
   }
 
   return (
@@ -58,6 +64,13 @@ export function ResetDemoControl({ compact = false }: { compact?: boolean }) {
               This removes onboarding choices and all work completed on this
               device, then restores the original tutor-verified baseline.
             </p>
+            <button
+              type="button"
+              onClick={handleReplayTour}
+              className="mt-5 min-h-11 w-full rounded-xl border border-violet/20 bg-violet-soft px-4 text-sm font-bold text-violet-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet"
+            >
+              Replay the product tour
+            </button>
             <div className="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <Button
                 variant="secondary"

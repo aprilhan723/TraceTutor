@@ -105,6 +105,19 @@ export type PracticeItem =
 
 export type MissionPartKind = "review" | "speed" | "thinking" | "transfer";
 export type ReviewCadence = "D2" | "D7";
+export type MissionMode =
+  "standard" | "light" | "weekly-boss" | "tutor-assigned";
+export type StreakReason =
+  "due-review" | "full-correction-loop" | "transfer-check" | "tutor-assigned";
+
+export const milestoneIds = [
+  "first-verified-correction",
+  "first-d2-pass",
+  "first-d7-pass",
+  "three-resolved-patterns",
+] as const;
+
+export type MilestoneId = (typeof milestoneIds)[number];
 
 export interface MissionItemRef {
   entryId: string;
@@ -115,6 +128,7 @@ export interface MissionItemRef {
   retentionScheduleId?: string;
   retentionCadence?: RetentionCadence;
   sourceDiagnosisId?: string;
+  selectionReason?: string;
 }
 
 export interface AnswerDraft {
@@ -134,7 +148,8 @@ export interface StudyMission {
   title: string;
   primaryTarget: MistakeCategory;
   primaryTargetLabel: string;
-  estimatedMinutes: DailyStudyMinutes;
+  estimatedMinutes: number;
+  mode: MissionMode;
   items: MissionItemRef[];
   currentIndex: number;
   drafts: Record<string, AnswerDraft>;
@@ -182,6 +197,24 @@ export interface MissionHistoryRecord {
   secureCount: number;
   attemptCount: number;
   estimatedMinutes: number;
+  mode: MissionMode;
+  correctionStreakEarned: boolean;
+  streakReason: StreakReason | null;
+}
+
+export interface RecoveryPassUse {
+  period: 1 | 2;
+  protectedDate: string;
+  usedAt: string;
+}
+
+export interface OfflineAttemptEvent {
+  id: string;
+  attemptId: string;
+  missionId: string;
+  status: "queued" | "reconciled";
+  queuedAt: string;
+  reconciledAt: string | null;
 }
 
 export interface StudentPatternRecord {
@@ -210,12 +243,16 @@ export interface StudentPatternRecord {
 }
 
 export interface StudentStudyState {
-  version: 3;
+  version: 4;
   studentId: string;
   onboarding: OnboardingProfile | null;
   correctionStreak: number;
   recoveryPasses: number;
+  recoveryPassUses: RecoveryPassUse[];
+  celebratedMilestones: MilestoneId[];
+  offlineEvents: OfflineAttemptEvent[];
   activeMission: StudyMission | null;
+  parkedMission: StudyMission | null;
   attempts: StudyAttempt[];
   reviewSchedules: ReviewSchedule[];
   diagnoses: DiagnosisRecord[];

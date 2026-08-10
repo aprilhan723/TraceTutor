@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { Progress } from "@/components/ui/progress";
 import { useStudentDemo } from "@/components/student/student-demo-provider";
+import { useTutorDemo } from "@/components/tutor/tutor-demo-provider";
 import type { MissionPartKind } from "@/domain/study";
 import { differenceInDays } from "@/lib/clock";
 import { cn } from "@/lib/cn";
@@ -54,7 +55,14 @@ export function TodayDashboard() {
     programDateKey,
     dueReviewCount,
     prepareNextMission,
+    recoveryPass,
+    getMilestones,
+    celebrateMilestone,
+    useLightDay: switchToLightDay,
+    useRecoveryPass: applyRecoveryPass,
+    setDemoProgramDate,
   } = useStudentDemo();
+  const { bundle } = useTutorDemo();
 
   if (!hydrated || !state || !state.onboarding || !programDateKey) {
     return null;
@@ -64,6 +72,13 @@ export function TodayDashboard() {
   const daysUntilTest = differenceInDays(
     state.onboarding.targetTestDate,
     programDateKey,
+  );
+  const verifiedCorrectionCount =
+    bundle?.workspace.diagnosisCases.filter((item) =>
+      ["approved", "changed"].includes(item.adjudication.status),
+    ).length ?? 0;
+  const milestone = getMilestones(verifiedCorrectionCount).find(
+    (item) => item.achieved && !state.celebratedMilestones.includes(item.id),
   );
 
   if (!mission) {
@@ -105,8 +120,16 @@ export function TodayDashboard() {
       <div>
         <PageHeader
           eyebrow={`${formatProgramDate(mission.dateKey)} · Day ${mission.dayNumber}`}
-          title="Correction complete"
-          description="The work is saved locally. Move to the next demo day when you are ready."
+          title={
+            mission.mode === "weekly-boss"
+              ? "Mixed challenge complete"
+              : "Correction complete"
+          }
+          description={
+            mission.mode === "weekly-boss"
+              ? "The Boss result is saved without changing resolution criteria. Return to the parked daily mission when you are ready."
+              : "The work is saved locally. Move to the next demo day when you are ready."
+          }
           action={
             <Badge tone="mint">
               Correction Streak · {state.correctionStreak}
@@ -128,7 +151,9 @@ export function TodayDashboard() {
             </p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <Button onClick={() => void prepareNextMission()}>
-                Prepare Day {Math.min(14, mission.dayNumber + 1)}
+                {mission.mode === "weekly-boss"
+                  ? "Return to today’s mission"
+                  : `Prepare Day ${Math.min(14, mission.dayNumber + 1)}`}
               </Button>
               <Button href="/student/progress" variant="secondary">
                 See progress
@@ -176,6 +201,40 @@ export function TodayDashboard() {
         }
       />
 
+      {milestone ? (
+        <section
+          className="mt-6 flex flex-col gap-4 rounded-[1.5rem] border border-mint-deep/20 bg-mint p-5 sm:flex-row sm:items-center sm:justify-between"
+          aria-labelledby="milestone-title"
+        >
+          <div className="flex gap-4">
+            <span
+              className="grid size-11 shrink-0 place-items-center rounded-full bg-mint-deep font-bold text-white"
+              aria-hidden="true"
+            >
+              ✓
+            </span>
+            <div>
+              <p className="text-xs font-bold tracking-[0.14em] text-mint-deep uppercase">
+                Milestone reached
+              </p>
+              <h2 id="milestone-title" className="mt-1 font-editorial text-2xl">
+                {milestone.title}
+              </h2>
+              <p className="mt-1 text-sm leading-6 text-ink-muted">
+                {milestone.detail}
+              </p>
+            </div>
+          </div>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => void celebrateMilestone(milestone.id)}
+          >
+            Mark the moment
+          </Button>
+        </section>
+      ) : null}
+
       {dueReviewCount > 0 ? (
         <section
           className="mt-6 flex flex-col gap-4 rounded-[1.5rem] border border-violet/20 bg-violet-soft p-5 sm:flex-row sm:items-center sm:justify-between"
@@ -204,7 +263,8 @@ export function TodayDashboard() {
           <div className="border-b border-ink/10 bg-coral-soft p-5 sm:p-8">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <Badge tone="coral">
-                Today Mission · {mission.estimatedMinutes} min
+                {mission.mode === "light" ? "Light Day" : "Today Mission"} ·{" "}
+                {mission.estimatedMinutes} min
               </Badge>
               <span className="text-xs font-bold text-coral-deep">
                 {mission.startedAt ? "Autosaved · Resume ready" : "Ready today"}
@@ -289,6 +349,15 @@ export function TodayDashboard() {
                 : "Start today’s correction"}
               <span aria-hidden="true">→</span>
             </Button>
+            {!mission.startedAt && mission.mode === "standard" ? (
+              <button
+                type="button"
+                onClick={() => void switchToLightDay()}
+                className="mt-4 min-h-11 rounded-full px-4 text-sm font-bold text-violet underline decoration-violet/35 underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet"
+              >
+                Make today a two-minute Light Day
+              </button>
+            ) : null}
             <p className="mt-4 text-xs leading-5 text-ink-muted">
               Original practice content — not official ETS material.
             </p>
@@ -302,14 +371,32 @@ export function TodayDashboard() {
             </p>
             <div className="mt-4 flex items-end justify-between gap-4">
               <p className="font-editorial text-5xl font-bold">
-                {state.recoveryPasses}
+                {recoveryPass?.available ? 1 : 0}
               </p>
-              <Badge tone="violet">Available</Badge>
+              <Badge tone="violet">
+                {recoveryPass?.available
+                  ? `Week ${recoveryPass.period} available`
+                  : "Used"}
+              </Badge>
             </div>
             <p className="mt-4 text-sm leading-6 text-ink-muted">
               Protects your Correction Streak if one sprint day is missed. It
               does not replace the missed review.
             </p>
+            {recoveryPass?.available ? (
+              <Button
+                variant="secondary"
+                size="sm"
+                className="mt-4 w-full"
+                onClick={() => void applyRecoveryPass()}
+              >
+                Use for one missed day
+              </Button>
+            ) : recoveryPass?.protectedDate ? (
+              <p className="mt-3 text-xs font-bold text-violet-deep">
+                Protected {recoveryPass.protectedDate}
+              </p>
+            ) : null}
           </Card>
 
           <Card tone="mint">
@@ -323,6 +410,50 @@ export function TodayDashboard() {
             <p className="mt-3 text-sm leading-6 text-ink-muted capitalize">
               {state.onboarding.readingConfidence} confidence ·{" "}
               {state.onboarding.mainStruggle.replaceAll("-", " ")} focus
+            </p>
+          </Card>
+
+          <Card>
+            <p className="text-xs font-bold tracking-wide text-violet uppercase">
+              Sprint map
+            </p>
+            <p className="mt-3 font-editorial text-2xl">
+              See all fourteen days.
+            </p>
+            <p className="mt-2 text-xs leading-5 text-ink-muted">
+              Correction, transfer, D2/D7 return, and the two transparent mixed
+              challenges.
+            </p>
+            <Button
+              href="/student/sprint"
+              variant="secondary"
+              size="sm"
+              className="mt-5 w-full"
+            >
+              Open the roadmap
+            </Button>
+          </Card>
+
+          <Card tone="violet">
+            <p className="text-xs font-bold tracking-wide text-violet uppercase">
+              Demo clock · demo mode only
+            </p>
+            <label
+              className="mt-4 block text-xs font-bold text-ink-muted"
+              htmlFor="demo-program-date"
+            >
+              Program date
+            </label>
+            <input
+              id="demo-program-date"
+              type="date"
+              value={programDateKey}
+              onChange={(event) => void setDemoProgramDate(event.target.value)}
+              className="mt-2 min-h-11 w-full rounded-xl border border-violet/20 bg-white px-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet"
+            />
+            <p className="mt-3 text-xs leading-5 text-ink-muted">
+              Use the date to demonstrate due D2/D7 work without waiting.
+              Started mission progress is preserved.
             </p>
           </Card>
 

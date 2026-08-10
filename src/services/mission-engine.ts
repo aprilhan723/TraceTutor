@@ -173,6 +173,7 @@ export function createMissionForState(
     primaryTarget: target.category,
     primaryTargetLabel: target.label,
     estimatedMinutes: state.onboarding.dailyStudyMinutes,
+    mode: "standard",
     items,
     currentIndex: 0,
     drafts: {},

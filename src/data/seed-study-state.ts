@@ -4,12 +4,16 @@ import { demoStudent } from "@/data/mock-data";
 
 export function createInitialStudyState(): StudentStudyState {
   return {
-    version: 3,
+    version: 4,
     studentId: demoStudent.id,
     onboarding: null,
-    correctionStreak: 4,
+    correctionStreak: 1,
     recoveryPasses: 1,
+    recoveryPassUses: [],
+    celebratedMilestones: [],
+    offlineEvents: [],
     activeMission: null,
+    parkedMission: null,
     attempts: [
       {
         id: "attempt-baseline-ctw",
@@ -97,6 +101,9 @@ export function createInitialStudyState(): StudentStudyState {
         secureCount: 1,
         attemptCount: 3,
         estimatedMinutes: 10,
+        mode: "tutor-assigned",
+        correctionStreakEarned: true,
+        streakReason: "tutor-assigned",
       },
     ],
     patterns: [
