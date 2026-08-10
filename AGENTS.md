@@ -35,4 +35,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Phase 1 established the presentation shells and storage-agnostic repository boundary.
 - Phase 2 added the complete local student sprint, deterministic original content, rule-based feedback, and browser persistence.
 - Phase 3 adds typed Mistake Intelligence, structured probes, layered language-form analysis, distinct-surface transfer, retention scheduling, and tutor-reviewable pattern evidence. Preserve the observation-versus-hypothesis boundary and keep every causal label probabilistic.
-- Keep authentication, payments, Supabase, external AI diagnosis, tutor mutations, official score estimates, and deployment out until a later phase explicitly requests them.
+- Phase 4 adds the local tutor workspace, transparent intervention ranking, immutable machine suggestions, audited tutor adjudication, versioned original content, lesson briefs, and student weekly reports. Preserve the separation between machine output and tutor decisions; never rewrite historical published content or audit records.
+- Keep authentication, payments, Supabase, external AI diagnosis, official score estimates, and deployment out until a later phase explicitly requests them.

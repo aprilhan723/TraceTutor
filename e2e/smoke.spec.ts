@@ -158,7 +158,53 @@ test("tutor shell navigation is reachable", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: /intervention queue/i }),
   ).toBeVisible();
-  await page.getByRole("link", { name: "Students" }).first().click();
+  await page.locator('a[href="/tutor/students"]:visible').click();
   await expect(page).toHaveURL(/\/tutor\/students$/);
   await expect(page.getByRole("heading", { name: /students/i })).toBeVisible();
+});
+
+test("tutor adjudicates a diagnosis and carries it into the lesson brief", async ({
+  page,
+}) => {
+  await page.goto("/tutor/dashboard");
+  await expect(
+    page.getByRole("heading", { name: /today’s intervention queue/i }),
+  ).toBeVisible();
+
+  await page
+    .getByRole("link", { name: /review diagnosis/i })
+    .first()
+    .click();
+  await expect(page).toHaveURL(/\/tutor\/review\/case-scope-expansion$/);
+  await expect(
+    page.getByRole("heading", { name: /seed exchange · action/i }),
+  ).toBeVisible();
+
+  await page
+    .getByLabel("Primary cause")
+    .selectOption("outside-knowledge-added");
+  await page.getByRole("button", { name: "Approve diagnosis" }).click();
+  await expect(page.getByText("changed", { exact: true })).toBeVisible();
+
+  await page
+    .getByLabel("Different transfer item")
+    .selectOption("transfer-evidence-01");
+  await page.getByRole("button", { name: "Assign transfer" }).click();
+  await expect(page.getByText(/assigned transfer-evidence-01/i)).toBeVisible();
+
+  await page.getByRole("button", { name: "Add to next lesson" }).click();
+  await expect(
+    page.getByRole("button", { name: "Added to lesson brief" }),
+  ).toBeDisabled();
+  await page.getByRole("link", { name: /open next lesson brief/i }).click();
+  await expect(page).toHaveURL(/\/lesson-brief$/);
+  await expect(page.getByRole("heading", { name: "Jamie Park" })).toBeVisible();
+  await expect(page.getByText("Outside knowledge added")).toBeVisible();
+
+  await page.goto("/student/weekly-report");
+  await expect(
+    page.getByRole("heading", { name: /jamie, here’s what changed/i }),
+  ).toBeVisible();
+  await expect(page.getByText("Outside knowledge added")).toBeVisible();
+  await expect(page.getByText(/not an official TOEFL score/i)).toBeVisible();
 });

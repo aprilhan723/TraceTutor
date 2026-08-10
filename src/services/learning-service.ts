@@ -18,6 +18,11 @@ import type {
   StudentStudyState,
   StudyAttempt,
 } from "@/domain/study";
+import type {
+  ContentEditorDraft,
+  TutorAdjudicationCommand,
+  TutorWorkspaceState,
+} from "@/domain/tutor";
 import {
   errorCauseLabels,
   processStageLabels,
@@ -48,6 +53,18 @@ import {
   transitionPatternStatus,
 } from "@/services/retention-engine";
 import { calculateProgressMetrics } from "@/services/study-analytics";
+import {
+  applyTutorAdjudication,
+  buildContentLibrary,
+  buildContentEditorDrafts,
+  buildLessonBrief,
+  buildTutorDiagnosisDetail,
+  buildTutorDashboard,
+  calculateWeeklyReport,
+  saveContentVersion,
+  updateLessonNotes,
+  updateTutorStudentNotes,
+} from "@/services/tutor-operations";
 
 export class LearningService {
   constructor(
@@ -81,6 +98,103 @@ export class LearningService {
     }
 
     return { tutor, students, interventions };
+  }
+
+  async getTutorWorkspaceBundle(tutorId: string, studentId: string) {
+    const [tutor, students, workspace, studyState] = await Promise.all([
+      this.repository.getTutor(tutorId),
+      this.repository.getStudentsForTutor(tutorId),
+      this.repository.getTutorWorkspace(tutorId),
+      this.repository.getStudyState(studentId),
+    ]);
+    if (!tutor) return null;
+    const todayKey = this.clock.now().toISOString().slice(0, 10);
+    return {
+      tutor,
+      students,
+      workspace,
+      studyState,
+      todayKey,
+      dashboard: buildTutorDashboard(workspace, studyState, todayKey),
+      caseDetails: workspace.diagnosisCases.map(buildTutorDiagnosisDetail),
+      contentLibrary: buildContentLibrary(workspace),
+      contentEditorDrafts: buildContentEditorDrafts(workspace),
+      lessonBrief: buildLessonBrief(
+        workspace,
+        studentId,
+        this.clock.now().toISOString(),
+      ),
+      weeklyReport: calculateWeeklyReport(workspace, studentId),
+    };
+  }
+
+  async adjudicateDiagnosis(
+    tutorId: string,
+    caseId: string,
+    command: TutorAdjudicationCommand,
+  ) {
+    const workspace = await this.repository.getTutorWorkspace(tutorId);
+    const next = applyTutorAdjudication(
+      workspace,
+      caseId,
+      command,
+      tutorId,
+      this.clock.now().toISOString(),
+    );
+    await this.repository.saveTutorWorkspace(next);
+    return next;
+  }
+
+  async saveTutorContent(tutorId: string, draft: ContentEditorDraft) {
+    const workspace = await this.repository.getTutorWorkspace(tutorId);
+    const result = saveContentVersion(
+      workspace.contentVersions,
+      draft,
+      tutorId,
+      this.clock.now().toISOString(),
+    );
+    if (Object.keys(result.errors).length > 0) {
+      return { workspace, errors: result.errors };
+    }
+    const next: TutorWorkspaceState = {
+      ...workspace,
+      contentVersions: result.versions,
+      updatedAt: this.clock.now().toISOString(),
+    };
+    await this.repository.saveTutorWorkspace(next);
+    return { workspace: next, errors: result.errors };
+  }
+
+  async saveLessonBriefNotes(
+    tutorId: string,
+    studentId: string,
+    tutorNotes: string,
+  ) {
+    const workspace = await this.repository.getTutorWorkspace(tutorId);
+    const next = updateLessonNotes(
+      workspace,
+      studentId,
+      tutorNotes,
+      this.clock.now().toISOString(),
+    );
+    await this.repository.saveTutorWorkspace(next);
+    return next;
+  }
+
+  async saveTutorStudentNotes(
+    tutorId: string,
+    studentId: string,
+    tutorNotes: string,
+  ) {
+    const workspace = await this.repository.getTutorWorkspace(tutorId);
+    const next = updateTutorStudentNotes(
+      workspace,
+      studentId,
+      tutorNotes,
+      this.clock.now().toISOString(),
+    );
+    await this.repository.saveTutorWorkspace(next);
+    return next;
   }
 
   async getStudyState(studentId: string) {
@@ -481,7 +595,13 @@ export class LearningService {
   }
 
   async resetStudyState(studentId: string) {
-    return this.repository.resetStudyState(studentId);
+    const state = await this.repository.resetStudyState(studentId);
+    await this.repository.resetTutorWorkspace(demoTutor.id);
+    return state;
+  }
+
+  async resetTutorWorkspace(tutorId: string) {
+    return this.repository.resetTutorWorkspace(tutorId);
   }
 
   getProgressMetrics(state: StudentStudyState) {

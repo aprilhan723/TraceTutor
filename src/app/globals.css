@@ -122,3 +122,32 @@ a {
     transition-duration: 0.01ms !important;
   }
 }
+
+@media print {
+  body {
+    background: white;
+  }
+
+  body > div,
+  main {
+    background: white !important;
+  }
+
+  .app-shell-sidebar,
+  .app-shell-header,
+  .app-shell-mobile-nav,
+  .no-print,
+  button {
+    display: none !important;
+  }
+
+  .lesson-brief-print {
+    max-width: none !important;
+    color: #000;
+  }
+
+  .lesson-brief-print > * {
+    break-inside: avoid;
+    box-shadow: none !important;
+  }
+}

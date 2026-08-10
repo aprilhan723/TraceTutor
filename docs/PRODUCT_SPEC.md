@@ -4,7 +4,7 @@
 
 - **Brand:** TraceTutor
 - **Product label:** TOEFL Reading Correction Sprint
-- **Phase:** 3 — rule-first Mistake Intelligence
+- **Phase:** 4 — tutor verification workspace
 - **Primary promise:** Practice less randomly. Correct what keeps repeating.
 
 TraceTutor is not a question bank. It is a tutor-verified daily mistake-correction product for the 2026 TOEFL Reading experience. The student completes one focused correction sprint; the tutor sees the repeated reasoning pattern before the next lesson.
@@ -22,7 +22,7 @@ TraceTutor is not a question bank. It is a tutor-verified daily mistake-correcti
 4. **Transfer** — apply the correction in a new context.
 5. **Retain** — revisit the correction after time has passed.
 
-Phase 3 makes the loop diagnostic and retention-aware. Feedback remains rule-first and transparent: it separates observed answer behavior from a bounded, probabilistic hypothesis and never claims to know the student's private reasoning.
+Phase 4 closes the loop with tutor adjudication. Rule-derived suggestions remain transparent and immutable while the tutor can verify, change, or mark a diagnosis ambiguous, then connect the correction to a transfer item and the next lesson.
 
 ## 2026 Reading task coverage
 
@@ -116,30 +116,59 @@ Typed responses use a separate six-layer analysis: intended lemma, inflection/te
 
 Each pattern shows its causal hypothesis and process stage, recent observable evidence, Immediate/D2/D7 state, secure-return count, recurrence, and tutor-review status. The map describes rule-derived signals and does not present an official score or an AI-generated interpretation.
 
-## Preserved Phase 1 surfaces
+## Phase 4 tutor workspace
+
+### Action-first dashboard
+
+- Today's Intervention Queue ranks only unresolved work and explains every contributing signal in plain language.
+- The transparent score combines high-confidence wrong answers, recurrence, failed Day 7 retention, diagnosis ambiguity, test-date proximity, and unresolved student questions. It is an instructional sorting aid, not a psychological measure.
+- Compact operational metrics cover unresolved diagnoses, high-confidence wrong answers, due or failed D2/D7 reviews, recently corrected errors, and median tutor review time.
+- A ten-day adherence and accuracy trend supplies context without turning the page into a chart dashboard.
+
+### Diagnosis verification
+
+The review view keeps the original machine suggestion separate from tutor adjudication. Tutors can inspect the original stimulus, question, selected and correct options, selected and designated evidence, confidence, timing, answer changes, rule observations, probe response, alternate hypotheses, and transfer/retention history. They can approve or change the primary cause, manage secondary causes, assign a transfer item, request a follow-up, flag ambiguity, add the pattern to the next lesson, and send concise feedback. Every mutation appends a dated audit event.
+
+### Student workspace
+
+- Searchable roster with review-status filters, test dates, recent mission adherence, current patterns, task coverage, evidence accuracy, and confidence calibration
+- Student detail with a ten-day review calendar, intervention history, tutor-only notes, and a student-facing weekly-summary preview
+- Current patterns are presented as changeable learning signals, never as fixed personality labels
+
+### Content library
+
+The library exposes every original demo stimulus and item with task and skill filters, designated evidence, option-level distractor labels, and Draft, Reviewed, Published, or Retired status. The safe editor validates four complete options, exactly one keyed answer, source-backed evidence, and distractor tags. Editing published content creates a new immutable version so historical attempts keep their original content context.
+
+### Lesson brief and weekly report
+
+The next-lesson brief selects one to three verified priorities, cites evidence, proposes a 10–15 minute intervention, links two prompts, identifies mastered topics to skip, carries unresolved questions, and supports tutor notes and a clean print view. The student weekly report shows missions completed, verified corrections, improving/recurring/waiting patterns, confidence-calibration change, and next-week focus with no score estimate.
+
+### Demo history
+
+One fictional student has a deterministic ten-day history with mixed adherence, review outcomes, diagnoses, verification states, interventions, feedback, and content coverage. All tutor data remains locally persisted and can be reset with the shared confirmed demo reset.
+
+## Preserved foundation surfaces
 
 ### Public landing page
 
 The landing page communicates the method, contrasts volume practice with mistake correction, explains student and tutor value, covers the three Reading task families, states trust boundaries, and routes into both demos.
 
-### Tutor demo
+### Shared demo shell
 
-- Responsive application shell
-- Intervention queue with one fictional priority student
-- Student list placeholder
-- Content library empty state
-- Demo Mode indicator and student role switch
+- Responsive desktop sidebar and mobile bottom navigation
+- Demo Mode indicator and demo-only role switching
+- Student and tutor views backed by the same local workspace state
 
 ## Trust and trademark boundary
 
 TraceTutor is independent practice software and is not endorsed by or affiliated with ETS. TOEFL is a registered trademark of ETS. Tutor verification refers to the intended workflow in which a tutor reviews mistake patterns and evidence traces; it does not imply ETS verification. Practice feedback, progress indicators, goals, and future product signals are not official TOEFL scores or score predictions.
 
-## Out of scope for Phase 3
+## Out of scope for Phase 4
 
 - Authentication and real user accounts
 - Supabase or another remote backend
-- Tutor content authoring
-- Tutor intervention mutations and verification workflow
 - External AI diagnosis or generated content
+- Real multi-tutor or multi-student account access and permissions
+- PDF file generation; the lesson brief uses the browser print workflow
 - Payments, subscriptions, or deployment
 - Official score estimation

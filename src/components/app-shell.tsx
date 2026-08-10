@@ -31,6 +31,7 @@ const navigation: Record<AppRole, NavigationItem[]> = {
     { href: "/student/today", label: "Today", symbol: "○" },
     { href: "/student/mistake-map", label: "Mistake Map", symbol: "⌁" },
     { href: "/student/progress", label: "Progress", symbol: "↗" },
+    { href: "/student/weekly-report", label: "Weekly", symbol: "▤" },
   ],
   tutor: [
     { href: "/tutor/dashboard", label: "Dashboard", symbol: "◇" },
@@ -49,7 +50,8 @@ function NavigationLinks({
   const pathname = usePathname();
 
   return navigation[role].map((item) => {
-    const active = pathname === item.href;
+    const active =
+      pathname === item.href || pathname.startsWith(`${item.href}/`);
     return (
       <Link
         key={item.href}
@@ -104,7 +106,7 @@ export function AppShell({
       </a>
 
       {!practiceMode ? (
-        <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 flex-col border-r border-ink/10 bg-white px-5 py-6 lg:flex">
+        <aside className="app-shell-sidebar fixed inset-y-0 left-0 z-30 hidden w-72 flex-col border-r border-ink/10 bg-white px-5 py-6 lg:flex">
           <div className="px-2">
             <BrandMark
               href={role === "student" ? "/student/today" : "/tutor/dashboard"}
@@ -150,7 +152,7 @@ export function AppShell({
       ) : null}
 
       <div className={practiceMode ? "" : "lg:pl-72"}>
-        <header className="sticky top-0 z-20 flex min-h-16 items-center justify-between border-b border-ink/10 bg-cream/90 px-4 backdrop-blur-xl sm:px-6 lg:px-10">
+        <header className="app-shell-header sticky top-0 z-20 flex min-h-16 items-center justify-between border-b border-ink/10 bg-cream/90 px-4 backdrop-blur-xl sm:px-6 lg:px-10">
           {practiceMode ? (
             <Link
               href="/student/today"
@@ -198,7 +200,7 @@ export function AppShell({
 
       {!practiceMode ? (
         <nav
-          className="fixed inset-x-0 bottom-0 z-40 flex border-t border-ink/10 bg-white/95 px-2 pt-1 pb-[max(0.25rem,env(safe-area-inset-bottom))] shadow-[0_-10px_30px_rgba(36,31,28,0.08)] backdrop-blur-xl lg:hidden"
+          className="app-shell-mobile-nav fixed inset-x-0 bottom-0 z-40 flex border-t border-ink/10 bg-white/95 px-2 pt-1 pb-[max(0.25rem,env(safe-area-inset-bottom))] shadow-[0_-10px_30px_rgba(36,31,28,0.08)] backdrop-blur-xl lg:hidden"
           aria-label={`${role} mobile navigation`}
         >
           <NavigationLinks role={role} mobile />

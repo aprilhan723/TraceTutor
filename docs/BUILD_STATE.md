@@ -2,7 +2,7 @@
 
 ## Current phase
 
-**Phase 3: complete and verified.**
+**Phase 4: complete and verified.**
 
 ## Implemented
 
@@ -36,13 +36,28 @@
 - In-practice observation, probe, likely diagnosis, trap explanation, transfer, and correction-schedule experience
 - Mistake Map intelligence with recent evidence, cadence states, recurrence, secure returns, and tutor-review visibility
 - Non-destructive browser-storage migration from the Phase 2 v2 aggregate to the Phase 3 v3 aggregate
+- Versioned local tutor workspace aggregate that preserves the Phase 3 student study contract
+- Believable ten-day demo history for one student, including adherence, diagnoses, review outcomes, interventions, feedback, calibration, and task coverage
+- Action-first tutor dashboard with Today's Intervention Queue, five operational metrics, recent corrected errors, and a compact student trend
+- Transparent priority ranking from high-confidence wrong answers, recurrence, failed D7 reviews, diagnosis ambiguity, test-date proximity, and unresolved student questions, with every applied factor explained
+- Complete diagnosis review view with stimulus, answer/evidence comparison, confidence, time, changes, observations, probe, hypotheses, transfer and retention history
+- Audited tutor actions for diagnosis approval/change, secondary causes, transfer assignment, follow-up, ambiguity, lesson-brief inclusion, and concise feedback
+- Immutable separation between the original machine suggestion and tutor adjudication
+- Searchable/filterable student roster and detail route with current patterns, adherence, coverage, calibration, evidence accuracy, review calendar, interventions, private notes, and weekly-summary preview
+- Original content library with task/skill filters, distractor labels, evidence spans, lifecycle status, safe authoring validation, and immutable version creation for published edits
+- Verified-data next-lesson brief with one to three priorities, cited evidence, 10–15 minute plan, two linked prompts, mastered topics to skip, unresolved questions, editable notes, and print styling
+- Student-facing weekly report with missions, verified corrections, pattern movement, calibration change, next focus, and no score estimate
+- Shared local persistence so tutor decisions are reflected in the student weekly report after navigation or refresh
+- Unit coverage for queue ranking, adjudication audit trails, content validation/versioning, lesson-brief selection, weekly calculations, and tutor persistence/reset
+- E2E tutor journey from queue through diagnosis change/approval, transfer assignment, lesson-brief inclusion, and student weekly-report consistency
 
 ## Deferred by design
 
 - Authentication and authorization
 - Remote data and Supabase
-- Tutor editing and verification actions
 - External AI diagnosis or generated content
+- Real authentication, tutor/student permissions, and remote multi-student synchronization
+- PDF generation (browser print is implemented)
 - Payments, remote notifications, and deployment
 - Official score estimates or predictions
 
@@ -51,7 +66,7 @@
 - Prettier write and format check: passed
 - ESLint: passed with zero warnings or errors
 - Strict TypeScript and Next.js route type generation: passed
-- Vitest: 11 files passed, 40 tests passed
-- Playwright: 8 tests passed across desktop Chromium and Pixel 7 profiles
-- Production build: passed; 11 routes generated, including the dynamic student mission route
-- Browser QA: passed for onboarding → diagnosis → probe → transfer → schedule and Mistake Map at 1440×900 and 375×812, with no horizontal overflow or console errors
+- Vitest: 12 files passed, 47 tests passed
+- Playwright: 10 tests passed across desktop Chromium and Pixel 7 profiles
+- Production build: passed; 15 route entries generated, including 4 dynamic routes
+- Browser QA: passed for queue, diagnosis review, content authoring/validation, student detail, lesson brief, and weekly report at 1440×900, 834×1112, and 375×812, with no horizontal overflow or application console errors

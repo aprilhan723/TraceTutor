@@ -6,15 +6,18 @@ import {
   demoTutor,
 } from "@/data/mock-data";
 import { createInitialStudyState } from "@/data/seed-study-state";
+import { createInitialTutorWorkspaceState } from "@/data/seed-tutor-workspace";
 import type { LearningRepository } from "@/domain/repositories/learning-repository";
 import type {
   StudentPatternRecord,
   StudentStudyState,
   StudyAttempt,
 } from "@/domain/study";
+import type { TutorWorkspaceState } from "@/domain/tutor";
 
 export const DEMO_STUDY_STORAGE_KEY = "tracetutor.demo.study.v3";
 export const LEGACY_DEMO_STUDY_STORAGE_KEY = "tracetutor.demo.study.v2";
+export const DEMO_TUTOR_STORAGE_KEY = "tracetutor.demo.tutor.v1";
 
 export interface KeyValueStore {
   getItem(key: string): string | null;
@@ -151,6 +154,19 @@ function migrateLegacyState(legacy: LegacyStudyState): StudentStudyState {
   };
 }
 
+function isTutorWorkspace(value: unknown): value is TutorWorkspaceState {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Partial<TutorWorkspaceState>;
+  return (
+    candidate.version === 1 &&
+    typeof candidate.tutorId === "string" &&
+    Array.isArray(candidate.diagnosisCases) &&
+    Array.isArray(candidate.studentProfiles) &&
+    Array.isArray(candidate.contentVersions) &&
+    Array.isArray(candidate.lessonBriefs)
+  );
+}
+
 export class LocalDemoLearningRepository implements LearningRepository {
   constructor(
     private readonly storage: KeyValueStore = new MemoryKeyValueStore(),
@@ -213,10 +229,36 @@ export class LocalDemoLearningRepository implements LearningRepository {
   async resetStudyState(studentId: string) {
     this.storage.removeItem(DEMO_STUDY_STORAGE_KEY);
     this.storage.removeItem(LEGACY_DEMO_STUDY_STORAGE_KEY);
+    this.storage.removeItem(DEMO_TUTOR_STORAGE_KEY);
     const initialState = createInitialStudyState();
     if (studentId === demoStudent.id) {
       await this.saveStudyState(initialState);
     }
+    return initialState;
+  }
+
+  async getTutorWorkspace(tutorId: string) {
+    if (tutorId !== demoTutor.id) return createInitialTutorWorkspaceState();
+    const serialized = this.storage.getItem(DEMO_TUTOR_STORAGE_KEY);
+    if (!serialized) return createInitialTutorWorkspaceState();
+    try {
+      const parsed: unknown = JSON.parse(serialized);
+      return isTutorWorkspace(parsed)
+        ? parsed
+        : createInitialTutorWorkspaceState();
+    } catch {
+      return createInitialTutorWorkspaceState();
+    }
+  }
+
+  async saveTutorWorkspace(state: TutorWorkspaceState) {
+    this.storage.setItem(DEMO_TUTOR_STORAGE_KEY, JSON.stringify(state));
+  }
+
+  async resetTutorWorkspace(tutorId: string) {
+    this.storage.removeItem(DEMO_TUTOR_STORAGE_KEY);
+    const initialState = createInitialTutorWorkspaceState();
+    if (tutorId === demoTutor.id) await this.saveTutorWorkspace(initialState);
     return initialState;
   }
 }

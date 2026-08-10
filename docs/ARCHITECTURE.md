@@ -18,20 +18,20 @@ Next.js currently requires Node.js 20.9 or newer. The project is verified with N
 ```text
 App Router pages and client experience components
     ↓
-StudentDemoProvider
+StudentDemoProvider / TutorDemoProvider
     ↓
 LearningService
     ↓
 LearningRepository interface
     ↓
-LocalDemoLearningRepository (Phase 3)
+LocalDemoLearningRepository (Phase 4)
     ↓
 Browser localStorage / typed seeded fallback
 ```
 
-Route components do not depend on the storage implementation. `StudentDemoProvider` owns the browser service instance, serializes mutations, and republishes typed snapshots. A later Supabase adapter can implement `LearningRepository` and be injected into `LearningService` without changing the student or tutor UI.
+Route components do not depend on the storage implementation. The student and tutor providers own browser service instances, serialize mutations, and republish typed snapshots. Both providers use the same repository keys, so tutor adjudication appears in the student weekly report after navigation or refresh. A later Supabase adapter can implement `LearningRepository` and be injected into `LearningService` without changing either UI.
 
-## Phase 3 domain model
+## Student study aggregate
 
 - `StudentOnboarding` stores the five personalization inputs.
 - `StudentStudyState` version 3 is the aggregate for onboarding, attempts, reviews, mission history, diagnosis records, probe responses, retention schedules, mistake patterns, streak, Recovery Pass, and the active mission.
@@ -43,7 +43,35 @@ Route components do not depend on the storage implementation. `StudentDemoProvid
 - `StudentPatternRecord` aggregates a cause/process pair without erasing its diagnosis evidence, distinct transfer surfaces, retention cadence state, or recurrence history.
 - `Clock` isolates the deterministic demo date from real wall-clock behavior so mission selection and tests remain stable.
 
-The local adapter serializes the aggregate under `tracetutor.demo.study.v3`. A validated v2 aggregate is migrated in place so Phase 2 onboarding, drafts, attempts, and mission progress survive the upgrade. The adapter safely falls back to an original seed state if storage is unavailable or malformed. Reset removes both current and legacy aggregates only after an explicit confirmation.
+The local adapter serializes the aggregate under `tracetutor.demo.study.v3`. A validated v2 aggregate is migrated in place so Phase 2 onboarding, drafts, attempts, and mission progress survive the upgrade. The adapter safely falls back to an original seed state if storage is unavailable or malformed.
+
+## Tutor workspace aggregate
+
+`TutorWorkspaceState` version 1 is deliberately separate from the Phase 3 student aggregate. It stores diagnosis review cases, immutable machine snapshots, mutable tutor adjudications, append-only audit events, student profiles and ten-day adherence, tutor-only notes, content versions, and lesson-brief notes under `tracetutor.demo.tutor.v1`.
+
+- `TutorDiagnosisCase` joins a frozen attempt snapshot, evidence comparison, observations, probe response, retention history, student question, machine suggestion, tutor adjudication, and audit trail.
+- `MachineDiagnosisSnapshot` is never overwritten by tutor actions, preserving future evaluation data.
+- `TutorAdjudication` contains the verified primary and secondary causes, review status, transfer assignment, follow-up, ambiguity flag, lesson-brief inclusion, feedback, and review duration.
+- `TutorContentVersion` snapshots each authored version. Published edits append a version instead of mutating an item used by earlier attempts.
+- `TutorStudentProfile` supports multiple records even though Phase 4 seeds one student.
+
+Reset removes the study and tutor aggregates, including legacy study keys, only after explicit confirmation.
+
+## Tutor operations
+
+```text
+Tutor workspace + deterministic clock
+    ↓
+Pure queue scoring / metrics / reports / brief selectors
+    ↓
+LearningService command
+    ↓
+Immutable aggregate update + audit event
+    ↓
+LearningRepository persistence
+```
+
+`tutor-operations.ts` contains deterministic selectors and transformations for queue ranking, dashboard metrics, adjudication, content validation and versioning, student summaries, lesson briefs, and weekly reports. The queue score exposes all applied factors and is described as an instructional sorting aid. `LearningService` supplies the timestamp and actor ID and persists the returned aggregate.
 
 ## Mistake Intelligence pipeline
 
@@ -70,15 +98,15 @@ Timing, answer changes, selected evidence, and reported confidence are observati
 - `src/app/` — routes, layouts, metadata, and framework states
 - `src/components/` — shared product and UI components
 - `src/domain/` — storage-independent entities, versioned taxonomies, and repository contracts
-- `src/data/` — original practice content, reviewed diagnostic metadata, six structured probes, transfer bank, seed state, and local repository adapter
-- `src/services/` — pure diagnosis, Complete the Words analysis, transfer/retention logic, mission selection, evaluation, analytics, persistence orchestration, and UI data assembly
+- `src/data/` — original practice content, reviewed diagnostic metadata, six structured probes, transfer bank, student and tutor seed state, and local repository adapter
+- `src/services/` — pure diagnosis, Complete the Words analysis, transfer/retention logic, mission selection, tutor operations, evaluation, analytics, persistence orchestration, and UI data assembly
 - `src/content/` — typed static marketing content
 - `src/test/` — shared unit test setup
-- `e2e/` — Playwright student journeys and shell smoke tests
+- `e2e/` — Playwright student journeys, tutor adjudication journey, and shell smoke tests
 
 ## Rendering strategy
 
-Pages and layouts remain Server Components by default. The student gate and dashboards are Client Components because onboarding, autosave, timer, probes, and resume behavior require browser storage and interaction. `StudentDemoProvider` keeps persistence concerns outside route components. Repository reads and writes remain asynchronous even though the Phase 3 adapter is local, preserving the contract expected by a remote adapter.
+Pages and layouts remain Server Components by default. Student learning flows and tutor workspaces are Client Components because onboarding, autosave, review actions, filters, editing, and browser persistence require interaction. `StudentDemoProvider` and `TutorDemoProvider` keep persistence concerns outside route components. Repository reads and writes remain asynchronous even though the Phase 4 adapter is local, preserving the contract expected by a remote adapter.
 
 ## Accessibility
 
@@ -90,19 +118,20 @@ Pages and layouts remain Server Components by default. The student gate and dash
 - Native fieldsets, radio groups, labels, and disabled sequencing controls
 - `aria-pressed` evidence segments with visible text labels
 - Modal focus placement, dialog semantics, and explicit reset confirmation
+- Native search, select, textarea, details, and print controls in tutor workflows
 - Accessible progressbar values and labels
 - Reduced-motion support
 
 ## Responsive layout
 
-Marketing layouts are mobile-first and progressively move to two- or three-column grids. The application uses a fixed desktop sidebar at the `lg` breakpoint and a safe-area-aware bottom navigation below it. Practice mode suppresses app navigation to preserve focus and uses a compact header that remains usable at approximately 375 px.
+Marketing layouts are mobile-first and progressively move to two- or three-column grids. The application uses a fixed desktop sidebar at the `lg` breakpoint and a safe-area-aware bottom navigation below it. Practice mode suppresses app navigation to preserve focus and uses a compact header that remains usable at approximately 375 px. Tutor queues collapse to one column on mobile, detail and editor grids progressively expand, and the lesson brief has dedicated print rules that remove application chrome and actions.
 
 ## Testing and quality
 
-- Vitest + Testing Library for taxonomy boundaries, table-driven diagnosis rules, contradictory evidence, Complete the Words layers, mission selection, persistence migration, resume behavior, transfer scheduling, state transitions, VECR-7, service integration, and components
-- Playwright coverage for onboarding/resume and wrong-certain → evidence → probe → likely diagnosis → immediate transfer → retention schedule in desktop Chromium and Pixel 7 profiles
+- Vitest + Testing Library for taxonomy boundaries, diagnosis rules, Complete the Words layers, mission selection, persistence, transfer/retention, queue ranking, adjudication audit history, content validation/versioning, lesson-brief selection, report calculations, service integration, and components
+- Playwright coverage for the full student diagnosis path and tutor queue → diagnosis change/approval → transfer assignment → lesson brief path in desktop Chromium and Pixel 7 profiles
 - ESLint, strict TypeScript, Prettier, and production build checks
 
 ## Future adapter notes
 
-A future Supabase adapter should map database rows into the Phase 3 domain types at the adapter boundary. Authentication, row-level access, migrations, remote synchronization, external AI inference, and tutor mutations remain intentionally absent. UI code must continue to call `LearningService` rather than importing seeded records or browser storage directly.
+A future Supabase adapter should map database rows into both aggregates at the adapter boundary and replace demo-wide storage with authenticated row ownership. Authentication, row-level access, migrations, remote synchronization, and external AI inference remain intentionally absent. UI code must continue to call `LearningService` rather than importing seeded records or browser storage directly.

@@ -6,6 +6,7 @@ import type {
   Tutor,
 } from "@/domain/models";
 import type { StudentStudyState } from "@/domain/study";
+import type { TutorWorkspaceState } from "@/domain/tutor";
 
 export interface LearningRepository {
   getStudent(studentId: string): Promise<Student | null>;
@@ -17,4 +18,7 @@ export interface LearningRepository {
   getStudyState(studentId: string): Promise<StudentStudyState>;
   saveStudyState(state: StudentStudyState): Promise<void>;
   resetStudyState(studentId: string): Promise<StudentStudyState>;
+  getTutorWorkspace(tutorId: string): Promise<TutorWorkspaceState>;
+  saveTutorWorkspace(state: TutorWorkspaceState): Promise<void>;
+  resetTutorWorkspace(tutorId: string): Promise<TutorWorkspaceState>;
 }

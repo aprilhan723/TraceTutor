@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   DEMO_STUDY_STORAGE_KEY,
+  DEMO_TUTOR_STORAGE_KEY,
   LEGACY_DEMO_STUDY_STORAGE_KEY,
   LocalDemoLearningRepository,
   MemoryKeyValueStore,
@@ -115,5 +116,39 @@ describe("LocalDemoLearningRepository", () => {
     expect(migrated.attempts[0]?.answerChanges).toBe(0);
     expect(migrated.patterns[0]?.recentEvidence).toEqual([]);
     expect(storage.getItem(DEMO_STUDY_STORAGE_KEY)).not.toBeNull();
+  });
+
+  it("persists tutor adjudication separately and resets the whole local demo", async () => {
+    const storage = new MemoryKeyValueStore();
+    const service = new LearningService(
+      new LocalDemoLearningRepository(storage),
+      new FixedClock(),
+    );
+    await service.adjudicateDiagnosis(demoIds.tutor, "case-scope-expansion", {
+      type: "change-primary",
+      cause: "outside-knowledge-added",
+    });
+
+    const reloaded = await new LearningService(
+      new LocalDemoLearningRepository(storage),
+      new FixedClock(),
+    ).getTutorWorkspaceBundle(demoIds.tutor, demoIds.student);
+    expect(
+      reloaded?.workspace.diagnosisCases.find(
+        (item) => item.id === "case-scope-expansion",
+      )?.adjudication.primaryCause,
+    ).toBe("outside-knowledge-added");
+    expect(storage.getItem(DEMO_TUTOR_STORAGE_KEY)).not.toBeNull();
+
+    await service.resetStudyState(demoIds.student);
+    const reset = await service.getTutorWorkspaceBundle(
+      demoIds.tutor,
+      demoIds.student,
+    );
+    expect(
+      reset?.workspace.diagnosisCases.find(
+        (item) => item.id === "case-scope-expansion",
+      )?.adjudication.status,
+    ).toBe("pending");
   });
 });

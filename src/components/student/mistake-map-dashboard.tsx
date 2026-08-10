@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { useStudentDemo } from "@/components/student/student-demo-provider";
+import { useTutorDemo } from "@/components/tutor/tutor-demo-provider";
+import { Button } from "@/components/ui/button";
 import type { PatternStatus } from "@/domain/study";
 import {
   errorCauseLabels,
@@ -66,6 +68,7 @@ const retentionOutcomeCopy = {
 
 export function MistakeMapDashboard() {
   const { hydrated, state, vecr7 } = useStudentDemo();
+  const { bundle } = useTutorDemo();
   if (!hydrated || !state?.onboarding) {
     return null;
   }
@@ -98,6 +101,33 @@ export function MistakeMapDashboard() {
           </p>
         </div>
       </Card>
+
+      {bundle ? (
+        <Card tone="mint" className="mt-5 sm:p-7">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-bold tracking-[0.13em] text-mint-deep uppercase">
+                Tutor verification
+              </p>
+              <p className="mt-2 font-editorial text-2xl font-bold">
+                {
+                  bundle.workspace.diagnosisCases.filter((item) =>
+                    ["approved", "changed"].includes(item.adjudication.status),
+                  ).length
+                }{" "}
+                corrections reviewed
+              </p>
+              <p className="mt-2 text-sm leading-6 text-ink-muted">
+                Tutor decisions stay separate from the original rule suggestion
+                and appear in your weekly summary.
+              </p>
+            </div>
+            <Button href="/student/weekly-report" variant="secondary">
+              Open weekly report →
+            </Button>
+          </div>
+        </Card>
+      ) : null}
 
       <div className="mt-5 grid gap-5 lg:grid-cols-2">
         {state.patterns.map((pattern, index) => {
