@@ -79,7 +79,7 @@ Verify the actual Preview URL, not a local server:
 - browser console and failed network requests;
 - `vercel logs --deployment <deployment-id> --level error` for server errors.
 
-Because Demo Mode stores state in browser storage, use a fresh browser profile when a clean seed is required. Do not describe that state as multi-device or remote synchronization. A Preview protected by Vercel Authentication can be checked through a signed-in browser and `vercel curl`; unauthenticated Playwright will see the Vercel login page unless access protection is deliberately changed.
+Because Demo Mode stores state in browser storage, use a fresh browser profile when a clean seed is required. Do not describe that state as multi-device or remote synchronization. When a Preview is protected by Vercel Authentication, verify it through a signed-in browser and `vercel curl`. When an owner explicitly authorizes public demo access, disable only Vercel Authentication, keep source/build-log protection enabled, and verify the exact URL with an ordinary unauthenticated HTTP client.
 
 ## Phase 8 deployment record
 
@@ -88,7 +88,7 @@ Because Demo Mode stores state in browser storage, use a fresh browser profile w
 - Verified target/status: `preview` / `Ready`
 - Verified URL: `https://project-qiel2-q374ocqnt-1-8746.vercel.app`
 - Application variables: none
-- Access: Vercel Authentication protected
+- Access: public after explicit owner authorization; Vercel Authentication disabled project-wide
 - Supabase/OpenAI: disabled; no application credential uploaded
 
 The empty project's first upload was automatically marked Production by Vercel even though `--target=preview` was supplied. It was never manually promoted and was left unmodified to honor the no-delete/no-reset rule. Two early uploads returned 404 while the empty project retained its `Other` framework preset. The checked `vercel.json` corrected the preset before the verified Preview above.
@@ -100,10 +100,11 @@ The empty project's first upload was automatically marked Production by Vercel e
 - Verified target/status: `preview` / `Ready`
 - Verified URL: `https://project-qiel2-4er1c3j4k-1-8746.vercel.app`
 - Application variables: none
-- Access: Vercel Authentication protected
+- Access: public after explicit owner authorization; Vercel Authentication disabled project-wide
 - Supabase/OpenAI: disabled; no application credential uploaded
 - HTTP smoke: 12 of 12 routes returned 200 through authenticated `vercel curl`
 - Browser QA: student correction/resume, 90-minute study plan/resume, progress, tutor adjudication, tutor recommendation acceptance, and 390/768/1440 px layouts passed with zero console warnings/errors
+- Public-access smoke: landing, student Today, and tutor dashboard returned 200 without Vercel authentication, cookies, or an automation bypass
 - Production changed: no
 
 ## Phase 9 release rule
