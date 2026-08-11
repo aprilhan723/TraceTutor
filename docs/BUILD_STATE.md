@@ -175,6 +175,7 @@
 - Preview route smoke: 12 of 12 authenticated HTTP checks returned 200; Vercel reported no runtime error logs
 - Preview browser QA: personalized onboarding, one correction plus refresh/resume, a 90-minute block plan plus pause/resume, progress, tutor adjudication/transfer/lesson actions, and learner-controlled recommendation acceptance passed; 390/768/1440 px surfaces had zero horizontal overflow and browser warnings/errors were zero
 - Verified Preview: `https://project-qiel2-4er1c3j4k-1-8746.vercel.app` (`dpl_CsgqnBSWEBwHTUN5G9aZrCAGYswB`, target `preview`, status `Ready`)
+- Proof Sprout refresh Preview: `https://project-qiel2-64h015xfs-1-8746.vercel.app` (`dpl_HQRBiJ3xEcTC2assGscNqiMWWpqb`, target `preview`, status `Ready`); unauthenticated landing, student Today, and tutor dashboard checks returned 200, and 1280/390 px browser QA found no horizontal overflow
 - Production changed: no; no promotion, Production deployment command, domain, paid environment, application variable, or remote-data mutation was performed
 
 Local builds use `.next.nosync` because this checkout is under macOS Documents storage, where file-provider conflict copies previously contaminated `.next`. Vercel keeps the conventional `.next` output because `VERCEL=1`; this changes only generated output location, not application behavior or route contracts.

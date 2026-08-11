@@ -111,6 +111,17 @@ The empty project's first upload was automatically marked Production by Vercel e
 
 Deploy only after the complete formatter/lint/type/unit/RLS/E2E/build/audit/secret preflight passes and the local checkpoint tag `before-personalized-learning-modes` remains resolvable. The Phase 9 preview must expose zero application variables unless a separately selected non-production Supabase project is connected. Smoke Home, Study, Reviews, Progress, Settings, a 30-minute pause/resume, a 90-minute block plan, tutor engagement/recommendation, and 390/768/1440 px layouts before recording the new immutable preview URL.
 
+## Proof Sprout preview refresh
+
+- Vercel scope/project: `1-8746/project-qiel2`
+- Verified deployment ID: `dpl_HQRBiJ3xEcTC2assGscNqiMWWpqb`
+- Verified target/status: `preview` / `Ready`
+- Verified URL: `https://project-qiel2-64h015xfs-1-8746.vercel.app`
+- Application variables: none; Demo Mode remains the safe fallback
+- Access: public after explicit owner authorization; unauthenticated landing, student Today, and tutor dashboard checks returned 200
+- Browser QA: the accessible Proof Sprout and its text growth signals rendered without horizontal overflow at 1280 px and 390 px
+- Production changed: no
+
 ## Release decision
 
 The preview is ready to share only when all available checks pass and every unavailable connected check is listed as a limitation. Phase 9 never promotes the preview to Production.
