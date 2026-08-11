@@ -93,6 +93,19 @@ Because Demo Mode stores state in browser storage, use a fresh browser profile w
 
 The empty project's first upload was automatically marked Production by Vercel even though `--target=preview` was supplied. It was never manually promoted and was left unmodified to honor the no-delete/no-reset rule. Two early uploads returned 404 while the empty project retained its `Other` framework preset. The checked `vercel.json` corrected the preset before the verified Preview above.
 
+## Phase 9 deployment record
+
+- Vercel scope/project: `1-8746/project-qiel2`
+- Verified deployment ID: `dpl_CsgqnBSWEBwHTUN5G9aZrCAGYswB`
+- Verified target/status: `preview` / `Ready`
+- Verified URL: `https://project-qiel2-4er1c3j4k-1-8746.vercel.app`
+- Application variables: none
+- Access: Vercel Authentication protected
+- Supabase/OpenAI: disabled; no application credential uploaded
+- HTTP smoke: 12 of 12 routes returned 200 through authenticated `vercel curl`
+- Browser QA: student correction/resume, 90-minute study plan/resume, progress, tutor adjudication, tutor recommendation acceptance, and 390/768/1440 px layouts passed with zero console warnings/errors
+- Production changed: no
+
 ## Phase 9 release rule
 
 Deploy only after the complete formatter/lint/type/unit/RLS/E2E/build/audit/secret preflight passes and the local checkpoint tag `before-personalized-learning-modes` remains resolvable. The Phase 9 preview must expose zero application variables unless a separately selected non-production Supabase project is connected. Smoke Home, Study, Reviews, Progress, Settings, a 30-minute pause/resume, a 90-minute block plan, tutor engagement/recommendation, and 390/768/1440 px layouts before recording the new immutable preview URL.

@@ -25,4 +25,4 @@ If a secret is suspected to be exposed, stop sharing the preview, disable the af
 
 ## Current rollback target
 
-The Phase 9 pre-change checkpoint is annotated tag `before-personalized-learning-modes` at commit `fa356617b7f4d366f80dc1229a727f157d83ff70`. The currently verified Phase 8 Preview is `https://project-qiel2-q374ocqnt-1-8746.vercel.app`; rollback creates a new Preview from the checkpoint rather than mutating that immutable deployment or any database.
+The Phase 9 pre-change checkpoint is annotated tag `before-personalized-learning-modes` at commit `fa356617b7f4d366f80dc1229a727f157d83ff70`. The verified Phase 9 Preview is `https://project-qiel2-4er1c3j4k-1-8746.vercel.app`; rollback creates a new Preview from the checkpoint rather than mutating that immutable deployment or any database. The verified Phase 8 Preview remains available at `https://project-qiel2-q374ocqnt-1-8746.vercel.app` as an additional immutable reference.

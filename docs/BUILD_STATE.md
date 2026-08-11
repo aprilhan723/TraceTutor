@@ -171,7 +171,9 @@
 - Secret scan: passed across 226 repository files with zero findings; 382 generated browser/server build files also had zero credential-pattern findings
 - Static RLS verification: all 42 exposed tables passed; the 22 connected pgTAP assertions remain gated because Supabase is not configured
 - Migration inventory: all five ordered SQL migrations are present; remote migration status is unavailable because no Supabase project is connected
-- Preview route smoke and browser QA: pending creation of the immutable Phase 9 Preview after the local commit
-- Verified Preview: pending Phase 9 Preview deployment; the Phase 8 artifact remains available at `https://project-qiel2-q374ocqnt-1-8746.vercel.app`
+- Preview route smoke: 12 of 12 authenticated HTTP checks returned 200; Vercel reported no runtime error logs
+- Preview browser QA: personalized onboarding, one correction plus refresh/resume, a 90-minute block plan plus pause/resume, progress, tutor adjudication/transfer/lesson actions, and learner-controlled recommendation acceptance passed; 390/768/1440 px surfaces had zero horizontal overflow and browser warnings/errors were zero
+- Verified Preview: `https://project-qiel2-4er1c3j4k-1-8746.vercel.app` (`dpl_CsgqnBSWEBwHTUN5G9aZrCAGYswB`, target `preview`, status `Ready`)
+- Production changed: no; no promotion, Production deployment command, domain, paid environment, application variable, or remote-data mutation was performed
 
 Local builds use `.next.nosync` because this checkout is under macOS Documents storage, where file-provider conflict copies previously contaminated `.next`. Vercel keeps the conventional `.next` output because `VERCEL=1`; this changes only generated output location, not application behavior or route contracts.
