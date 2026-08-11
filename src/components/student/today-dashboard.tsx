@@ -6,6 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { Progress } from "@/components/ui/progress";
+import {
+  getProofSproutStage,
+  ProofSprout,
+  proofSproutStageLabels,
+} from "@/components/student/proof-sprout";
 import { useStudentDemo } from "@/components/student/student-demo-provider";
 import { useTutorDemo } from "@/components/tutor/tutor-demo-provider";
 import type { MissionPartKind } from "@/domain/study";
@@ -155,6 +160,19 @@ export function TodayDashboard() {
   const milestone = getMilestones(verifiedCorrectionCount).find(
     (item) => item.achieved && !state.celebratedMilestones.includes(item.id),
   );
+  const d2Passed = state.retentionSchedules.some(
+    (schedule) => schedule.cadence === "D2" && schedule.outcome === "secure",
+  );
+  const d7Passed = state.retentionSchedules.some(
+    (schedule) => schedule.cadence === "D7" && schedule.outcome === "secure",
+  );
+  const resolvedPatternCount = state.patterns.filter(
+    (pattern) => pattern.status === "resolved",
+  ).length;
+  const proofSproutStage = getProofSproutStage({
+    streak: state.streakStats.current,
+    d7Passed,
+  });
 
   if (!mission) {
     return (
@@ -291,20 +309,52 @@ export function TodayDashboard() {
       />
 
       <section
-        className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
+        className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-5"
         aria-label="Today priorities"
       >
-        <Card tone="coral">
-          <p className="text-xs font-bold tracking-[0.13em] text-coral-deep uppercase">
-            Correction Streak
-          </p>
-          <p className="mt-3 font-editorial text-5xl">
-            {state.streakStats.current} <span className="text-2xl">days</span>
-          </p>
-          <p className="mt-2 text-xs leading-5 text-ink-muted">
-            Longest {state.streakStats.longest}. Earned by meaningful correction
-            work, never by opening the app.
-          </p>
+        <Card
+          tone="coral"
+          className="relative overflow-hidden sm:col-span-2 xl:col-span-2"
+        >
+          <div className="grid grid-cols-[minmax(0,1fr)_6.5rem] items-center gap-3 sm:grid-cols-[minmax(0,1fr)_8rem]">
+            <div className="min-w-0">
+              <p className="text-xs font-bold tracking-[0.13em] text-coral-deep uppercase">
+                Proof Sprout · {proofSproutStageLabels[proofSproutStage]}
+              </p>
+              <p className="mt-3 font-editorial text-5xl">
+                {state.streakStats.current}{" "}
+                <span className="text-2xl">days</span>
+              </p>
+              <p className="mt-2 text-xs leading-5 text-ink-muted">
+                Longest {state.streakStats.longest}. Proof Sprout grows only
+                from meaningful correction work—opening the app never feeds it.
+              </p>
+            </div>
+            <ProofSprout
+              streak={state.streakStats.current}
+              d2Passed={d2Passed}
+              d7Passed={d7Passed}
+              resolvedPatternCount={resolvedPatternCount}
+              recoveryPassAvailable={recoveryPass?.available ?? false}
+              className="justify-self-end"
+            />
+          </div>
+          <div
+            className="mt-4 flex flex-wrap gap-2"
+            aria-label="Proof Sprout growth signals"
+          >
+            <span className="rounded-full border border-violet/15 bg-white/70 px-2.5 py-1 text-[0.65rem] font-bold text-violet-deep">
+              {d2Passed ? "D2 leaf earned" : "D2 leaf waiting"}
+            </span>
+            <span className="rounded-full border border-mint-deep/15 bg-white/70 px-2.5 py-1 text-[0.65rem] font-bold text-mint-deep">
+              {d7Passed ? "D7 bloom earned" : "D7 bloom waiting"}
+            </span>
+            <span className="rounded-full border border-ink/10 bg-white/70 px-2.5 py-1 text-[0.65rem] font-bold text-ink-muted">
+              {recoveryPass?.available
+                ? "Recovery dew ready"
+                : "Recovery dew used"}
+            </span>
+          </div>
         </Card>
         <Card tone="paper">
           <div className="flex items-center justify-between gap-3">

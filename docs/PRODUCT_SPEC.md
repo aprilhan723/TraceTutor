@@ -161,6 +161,8 @@ One fictional student has a deterministic ten-day history with mixed adherence, 
 
 The product deliberately excludes XP farming, fake scarcity, public rankings, punitive notifications, and shame. The Correction Streak represents qualifying correction work only. The roadmap, Recovery Pass, Light Day, and milestone moments make the work legible without claiming that attendance or challenge completion equals mastery.
 
+Proof Sprout is the original visual companion for this system. It begins as a resting coral seed, grows a stem and leaves from meaningful Correction Streak days, gains a violet Day 2 evidence vein, forms a bud after a seven-day streak, and opens a mint bloom only after a secure Day 7 return. Three resolved patterns add small proof sparks, while an available Recovery Pass appears as a separate violet dew drop. Opening the app, speed-item volume, or a Weekly Boss result alone cannot grow it. Every visual state has an equivalent text label and reduced-motion behavior.
+
 ### PWA and offline behavior
 
 - Standards-based web app manifest, original SVG/PNG icons, theme metadata, and installable standalone behavior

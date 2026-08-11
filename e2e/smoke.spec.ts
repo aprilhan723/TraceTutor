@@ -246,6 +246,10 @@ test("student navigation and personalized study fit a 390px viewport", async ({
   await page.goto("/student/today");
   await completeStudentOnboarding(page);
   await expect(
+    page.getByRole("img", { name: /Proof Sprout, .* stage/i }),
+  ).toBeVisible();
+  await expect(page.getByText(/D2 leaf (earned|waiting)/i)).toBeVisible();
+  await expect(
     page.locator('nav[aria-label="student mobile navigation"]'),
   ).toBeVisible();
   await page.goto("/student/study");

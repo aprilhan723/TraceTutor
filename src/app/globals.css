@@ -96,6 +96,30 @@ a {
   animation: soft-float 5s 1.2s ease-in-out infinite;
 }
 
+.proof-sprout-bob {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: proof-sprout-bob 4.8s ease-in-out infinite;
+}
+
+.proof-sprout-leaf {
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: proof-sprout-leaf 4.8s 0.35s ease-in-out infinite;
+}
+
+.proof-sprout-bloom {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: proof-sprout-bloom 5.6s ease-in-out infinite;
+}
+
+.proof-sprout-dew {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: proof-sprout-dew 3.8s 0.6s ease-in-out infinite;
+}
+
 .hydra-trace {
   position: absolute;
   inset: auto -2rem -3rem 1rem;
@@ -159,6 +183,46 @@ a {
   }
   50% {
     transform: translateY(-8px) rotate(var(--float-rotation, 0deg));
+  }
+}
+
+@keyframes proof-sprout-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-0.6deg);
+  }
+  50% {
+    transform: translateY(-3px) rotate(0.8deg);
+  }
+}
+
+@keyframes proof-sprout-leaf {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+
+@keyframes proof-sprout-bloom {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.035);
+  }
+}
+
+@keyframes proof-sprout-dew {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(3px);
   }
 }
 

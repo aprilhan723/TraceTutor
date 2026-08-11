@@ -103,6 +103,7 @@
 - The Today Mission is now the approximately ten-minute Daily Core. Due D2/D7 work stays first; high-confidence mistakes, unresolved patterns, learner priority, balanced coverage, and fresh content follow deterministically.
 - Daily Core completion is earned only when all required Core entry IDs have submitted attempts. It marks one learner-local calendar day eligible exactly once. Login and idle time never earn streak credit.
 - The high-visibility Home surface shows current/longest Correction Streak, active minutes today, weekly goal, target-date countdown, seven-day consistency, due work, current target, recent verified corrections, a context-aware primary action, and 15/30/60/90/120/custom Study More entry points.
+- The original SVG Proof Sprout gives the Correction Streak a restrained visual companion: seed, sprout, leafing, seven-day bud, D7 bloom, D2 evidence vein, resolved-pattern sparks, and Recovery dew are derived only from already-verified learning state. The Home card and compact header include equivalent text and screen-reader labels, and opening the app never grows the character.
 - The new Study workspace builds Quick, Focused, Deep, Intensive, Full Block, or custom 10–120 minute sessions across Adaptive Mix, Complete the Words, Daily Life, Academic, Mistake Review, Due Reviews, and Timed Mixed topics.
 - The deterministic planner protects Daily Core first, avoids ordinary unseen repetition for seven days, prioritizes explicit review/retention work, adds 5–10 minute breaks to long plans, and returns an honest shorter plan when reviewed content is insufficient.
 - Study sessions persist planned/available time, blocks, progress, pause/resume state, supported answer metrics, and end-after-block choices. Completed work survives early exit or refresh.
@@ -162,13 +163,13 @@
 ## Phase 9 verification
 
 - Formatting, ESLint, Next.js route generation, and strict TypeScript: passed with zero errors
-- Vitest: 30 files and 108 unit/integration tests passed
+- Vitest: 31 files and 111 unit/integration tests passed
 - Playwright development: 30 passed and 4 expected skips out of 34
 - Playwright production: 31 passed and 3 expected skips out of 34
 - Accessibility: 12 representative development/production axe audits passed with zero serious or critical violations
 - Production build: passed with all 33 generation units completed
 - Dependency audit: 615 packages audited with zero vulnerabilities at every severity
-- Secret scan: passed across 226 repository files with zero findings; 382 generated browser/server build files also had zero credential-pattern findings
+- Secret scan: passed across 228 repository files with zero findings; generated browser/server build files also had zero credential-pattern findings
 - Static RLS verification: all 42 exposed tables passed; the 22 connected pgTAP assertions remain gated because Supabase is not configured
 - Migration inventory: all five ordered SQL migrations are present; remote migration status is unavailable because no Supabase project is connected
 - Preview route smoke: 12 of 12 authenticated HTTP checks returned 200; Vercel reported no runtime error logs
