@@ -271,3 +271,17 @@ TraceTutor is independent practice software and is not endorsed by or affiliated
 - A disabled Supabase connection means account creation and connected RLS lifecycle checks remain documented limitations, not simulated production behavior.
 - The preview must not be promoted to Production, attached to a purchased/custom domain, or described as a production service.
 - Rollback is non-destructive: deploy the previous verified commit as another immutable Preview and stop sharing the failing URL.
+
+## Phase 9 personalized learning modes
+
+The minimum viable study day is a personalized Daily Core of about ten active minutes; it is never the maximum a learner may study. Daily Rhythm suggests 10–30 minute defaults, while Deep Focus suggests 45–120 minute structured sessions. Both are editable preferences, and both expose every short, long, topic, review, and timed option.
+
+Daily Core selection is deterministic: due D2/D7 reviews, high-confidence wrong answers, unresolved/recurring patterns, the learner’s Reading priority, balanced task coverage, then new original material. All required Core entries must be submitted before `daily_core_completed` and learner-local streak eligibility are recorded. Login, an open tab, and elapsed time alone never earn credit.
+
+Long study plans preserve the Core first and then allocate distinct reviewed items into Complete the Words, Daily Life, Academic, correction, transfer, timed, break, and summary blocks. Ordinary unseen items do not repeat within seven days unless the item is an explicit review/retention check. A short reviewed pool produces a shorter honest plan and tutor warning, never duplicate filler.
+
+Active study time counts only while the session is active, the page is visible, and interaction occurred within 90 seconds. The browser batches 15-second heartbeats. Paused, completed, hidden, and idle periods do not count. Daily and session records retain the goal at the time so a later plan change does not rewrite history.
+
+Progress reports current/longest streak, today/week active time, active days, question and task coverage, supported accuracy trends, evidence accuracy, confidence calibration, high-confidence wrong rate, review completion, immediate/D2/D7 retention, VECR-7, recurring/corrected patterns, study history, and target context. Every unsupported metric says what must happen before it becomes available. No practice level or progress metric is an official TOEFL score.
+
+Tutors may read engagement summaries only for explicitly linked learners. They may recommend weekly minutes, a Reading priority, or a Focused/Deep session, but the learner must visibly accept the recommendation. Tutors cannot read the private plan row or silently change the learner’s style.

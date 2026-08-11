@@ -42,20 +42,21 @@ The local demo and authenticated product coexist in one build. `/demo/student` a
 
 ## Relational data model
 
-Four ordered migrations under `supabase/migrations/` create:
+Five ordered migrations under `supabase/migrations/` create:
 
 - identity and ownership: profiles, organizations, memberships, classes, tutor/student links, and one-time invite hashes;
 - immutable content: stimuli/items plus versions, option/evidence rows, taxonomy versions, skills, and version mappings;
 - work and observations: assignments, assignment items, attempts, responses, response events, confidence, and evidence selections;
 - verification and retention: diagnostic sessions, machine hypotheses, append-only tutor adjudications, transfer links, review schedules/attempts, and learner error states;
 - communication and accountability: questions, messages, tutor-only notes, append-only audit logs, and idempotency records.
-- optional assistance audit: append-only, tutor-only AI suggestions with input fingerprints, model/prompt/schema versions, policy review, token usage, and estimated cost—never raw prompt bodies or identity.
+- optional assistance audit: append-only, tutor-only AI suggestions with input fingerprints, model/prompt/schema versions, policy review, token usage, and estimated cost—never raw prompt bodies or identity;
+- personalized study: learner plans, study sessions, daily progress, streak summaries, idempotent activity events, and visible tutor recommendations.
 
 Indexes cover every common ownership, due-date, assignment, review, and policy join. Published content and its children are trigger-protected. Publication validates complete options, exactly one key, and designated evidence. Client column privileges hide correct responses, correct-option flags, distractor tags, explanations, and designated-evidence flags from the student Data API surface.
 
 ## RLS design
 
-All 36 exposed tables enable RLS. Private security-definer helpers answer narrowly scoped questions such as organization tutoring, explicit tutor/student linkage, assignment ownership, and item/diagnostic readability. They use empty search paths and indexed relations. Anonymous table access is revoked.
+All 42 exposed tables enable RLS. Private security-definer helpers answer narrowly scoped questions such as organization tutoring, explicit tutor/student linkage, assignment ownership, and item/diagnostic readability. They use empty search paths and indexed relations. Anonymous table access is revoked.
 
 Students can select only their own assignments, attempts, responses, diagnoses, reviews, messages, and assigned content. Tutors can select or mutate only records in an active linked organization/class relationship. Tutor notes never have a student policy. Direct mutations of memberships, links, invitations, attempts, final responses, diagnostics, hypotheses, adjudications, retention state, audit logs, and idempotency rows are revoked from authenticated clients.
 
@@ -72,7 +73,7 @@ The Phase 5 local demo queue remains wholly browser-local and never claims remot
 ## Student study aggregate
 
 - `StudentOnboarding` stores the five personalization inputs.
-- `StudentStudyState` version 4 is the aggregate for onboarding, attempts, reviews, mission history, diagnosis records, probe responses, retention schedules, mistake patterns, the ethical streak ledger, Recovery Pass uses, celebrated milestones, offline events, and active/parked missions.
+- `StudentStudyState` version 5 is the aggregate for learner plans, study sessions, daily progress, onboarding, attempts, reviews, mission history, diagnosis records, probe responses, retention schedules, mistake patterns, the ethical streak ledger, Recovery Pass uses, celebrated milestones, offline events, and active/parked missions.
 - `StudentMission` contains deterministic entry references, drafts, current position, timing, and completion state.
 - `PracticeItem` is a discriminated union for Complete the Words, evidence-based reading questions, and transfer checks.
 - `StudyAttempt` records the submitted answer, confidence, evidence IDs, elapsed seconds, answer changes, diagnosis link, and transparent Secure/Unstable/Diagnose result.
@@ -82,7 +83,7 @@ The Phase 5 local demo queue remains wholly browser-local and never claims remot
 - `MissionMode` distinguishes standard, Light Day, Weekly Boss, and tutor-assigned work. History snapshots the exact qualifying streak reason.
 - `Clock` isolates the deterministic demo date from real wall-clock behavior. `LocalDemoClock` persists a demo-only date override so D2 and D7 can be demonstrated without waiting.
 
-The local adapter serializes the aggregate under `tracetutor.demo.study.v4`. Validated v2 and v3 aggregates are migrated in place so onboarding, drafts, attempts, mission progress, and Phase 3 diagnosis data survive the upgrade. The adapter safely falls back to an original seed state if storage is unavailable or malformed.
+The local adapter serializes the aggregate under `tracetutor.demo.study.v5`. Validated v2, v3, and v4 aggregates are migrated in place so onboarding, drafts, attempts, mission progress, review/retention, and diagnosis data survive the upgrade. Unsupported historical active time stays zero. The adapter safely falls back to an original seed state if storage is unavailable or malformed.
 
 ## Engagement and offline pipeline
 
@@ -219,12 +220,26 @@ Marketing layouts are mobile-first and progressively move to two- or three-colum
 
 ## Next backend notes
 
-Phase 8 still uses no service-role key, payments, Production release, or production SMTP; only the isolated Preview described below exists. The next backend phase should verify all migrations against the selected hosted/local project, regenerate database types, connect durable distributed rate/usage controls, add operational monitoring/backups and an authenticated offline reconciliation protocol, and run a separately approved blinded live evaluation before enabling AI for real learners. UI code must continue to use repository/services or validated server commands rather than importing seeds or trusting client-authored ownership.
+Phase 9 still uses no service-role key, payments, Production release, or production SMTP; only an isolated Preview is permitted. The next backend phase should verify all five migrations against the selected non-production hosted/local project, regenerate database types, connect durable distributed rate/usage controls, add operational monitoring/backups and authenticated offline reconciliation, and run a separately approved blinded live evaluation before enabling AI for real learners. UI code must continue to use repository/services or validated server commands rather than importing seeds or trusting client-authored ownership.
 
 ## Preview deployment boundary
 
-Phase 8 uses Vercel's default Preview environment as staging. TraceTutor never requests or performs a Production promotion, attaches a domain, or enables a paid custom environment. The verified Preview supplies no application environment variables, so runtime selection stays in the complete browser-local Demo Mode and neither Supabase nor OpenAI is contacted. The deployment runbook records Vercel's exceptional automatic classification of an empty project's first upload as Production and the separately inspected Preview that replaced it for staging QA.
+Phase 9 uses Vercel's default Preview environment as staging. TraceTutor never requests or performs a Production promotion, attaches a domain, or enables a paid custom environment. The Preview supplies no application environment variables, so runtime selection stays in the complete browser-local Demo Mode and neither Supabase nor OpenAI is contacted. The deployment runbook records Vercel's exceptional automatic classification of an empty project's first upload as Production and the separately inspected Preview that replaced it for staging QA.
 
 Only the Supabase Project URL and publishable key may ever use `NEXT_PUBLIC_*` names. `OPENAI_API_KEY` and live-AI controls remain server-only behind `server-only` modules; no service-role variable exists in the application contract. Build output and the checked browser-static chunks are scanned for credential patterns before preview creation.
 
 Preview deployment and rollback procedures are operational documentation rather than application runtime dependencies. Preview URLs are treated as immutable artifacts. Rollback creates and verifies a new preview from the previous good commit without deleting a deployment, changing production aliases, or resetting remote state.
+
+Local Next.js output uses the in-project `.next.nosync` directory to prevent macOS file-provider conflict copies from being restored into generated type/build artifacts. This is configured through Next.js `distDir`, remains inside the repository as required by Next.js, and is ignored by Git and ESLint. Vercel sets `VERCEL=1`, so Preview builds continue to use the platform-standard `.next` directory.
+
+## Phase 9 personalized-study architecture
+
+`StudentStudyState` version 5 adds `LearnerStudyPlan`, `StudySession`, `StudyPlanBlock`, `DailyLearnerProgress`, `CorrectionStreakStats`, and `TutorStudyRecommendation` without changing the repository boundary. `LocalDemoLearningRepository` migrates v2/v3/v4 aggregates into the v5 key, preserves verified learning records, assigns zero unsupported historical seconds, and leaves `onboardingCompletedAt` empty for the one-time upgrade.
+
+`mission-engine.ts` owns the Daily Core selection. `session-planner.ts` is a pure deterministic extension planner with duration fitting, topic filtering, deliberate-review exceptions, seven-day unseen-item exclusion, long-session breaks, test-date timed blocks, and content-shortage reporting. `study-session-service.ts` maps plan blocks onto mission entries and performs pure attach, attempt, pause, resume, active-time, end-after-block, and completion transitions. `personalized-learning.ts` owns learner-local dates, weekly activity, consistency, and streak calculations. `study-analytics.ts` derives only metrics supported by stored observations.
+
+Active time is intentionally event-based. A client heartbeat proposes at most 90 seconds per event; the UI currently batches 15 seconds and first checks active session status, document visibility, pause state, and a 90-second interaction threshold. The local service records the same delta into the session and unique learner/local-date record. In Supabase mode, `record_study_activity` accepts idempotent client event IDs, re-checks ownership and active status, and atomically updates server records; direct counter updates are revoked.
+
+The fifth additive migration creates `learner_study_plans`, `study_sessions`, `daily_learner_progress`, `learner_streak_stats`, `study_activity_events`, and `tutor_study_recommendations`. All six enable RLS. Students can read their own rows; linked tutors can read session/daily/streak summaries but not private plan rows or raw activity events; unrelated tutors see none. New client sessions must begin with zero activity, sensitive counters are RPC-owned, IANA timezone names are database-validated, and tutor recommendations require an existing organization link. Existing completed student profiles receive conservative plan defaults only—no historical time, attempts, Core completion, or streak is manufactured.
+
+The Supabase adapter maps the six tables back into the existing aggregate contract. Validated server commands repeat role/ownership checks for plan writes, idempotent activity, tutor recommendations, and learner responses. The local Demo Mode remains the complete offline-safe product and does not depend on Supabase, OpenAI, or a secret.

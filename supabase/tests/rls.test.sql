@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(11);
+select plan(22);
 
 insert into auth.users (id, email, aud, role) values
   ('20000000-0000-4000-8000-000000000001', 'tutor-a@example.test', 'authenticated', 'authenticated'),
@@ -71,6 +71,39 @@ insert into public.ai_diagnosis_suggestions (
 );
 insert into public.tutor_notes (organization_id, tutor_id, student_id, body) values
   ('21000000-0000-4000-8000-000000000001', '20000000-0000-4000-8000-000000000001', '20000000-0000-4000-8000-000000000002', 'Tutor-only note');
+insert into public.learner_study_plans (
+  learner_id, learning_style, default_daily_minutes, weekly_goal_minutes,
+  study_days_per_week, reading_priority, timezone, onboarding_completed_at
+) values (
+  '20000000-0000-4000-8000-000000000002', 'daily_rhythm', 15, 75,
+  5, 'balanced', 'UTC', now()
+);
+insert into public.study_sessions (
+  id, learner_id, session_type, status, source, topic,
+  planned_minutes, available_minutes, active_seconds, plan
+) values (
+  '28000000-0000-4000-8000-000000000001',
+  '20000000-0000-4000-8000-000000000002',
+  'focused', 'active', 'dashboard', 'adaptive_mix', 30, 26, 300, '[]'
+);
+insert into public.daily_learner_progress (
+  learner_id, local_date, active_seconds, questions_answered, correct_answers,
+  daily_core_completed, streak_eligible, goal_minutes
+) values (
+  '20000000-0000-4000-8000-000000000002', '2026-08-11', 300, 3, 2, true, true, 15
+);
+insert into public.learner_streak_stats (
+  learner_id, current_streak, longest_streak, last_eligible_local_date
+) values ('20000000-0000-4000-8000-000000000002', 3, 4, '2026-08-11');
+insert into public.tutor_study_recommendations (
+  organization_id, tutor_id, student_id, weekly_goal_minutes,
+  reading_priority, session_type, note
+) values (
+  '21000000-0000-4000-8000-000000000001',
+  '20000000-0000-4000-8000-000000000001',
+  '20000000-0000-4000-8000-000000000002',
+  120, 'mistake_review', 'focused', 'Try one focused block this week.'
+);
 
 set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"20000000-0000-4000-8000-000000000002","role":"authenticated"}', true);
@@ -94,6 +127,21 @@ select throws_ok(
   $$ insert into public.tutor_adjudications (diagnostic_session_id, tutor_id, revision, decision) values ('27000000-0000-4000-8000-000000000001', '20000000-0000-4000-8000-000000000002', 1, 'approved') $$,
   'student cannot write a tutor adjudication'
 );
+select is((select count(*) from public.learner_study_plans), 1::bigint, 'student reads only their own private study plan');
+select is((select count(*) from public.study_sessions), 1::bigint, 'student reads their own study session');
+select is((select count(*) from public.tutor_study_recommendations), 1::bigint, 'student reads a linked tutor recommendation');
+select throws_ok(
+  $$ update public.daily_learner_progress set active_seconds = 999 where learner_id = '20000000-0000-4000-8000-000000000002' $$,
+  'student cannot directly rewrite server-backed daily progress'
+);
+select throws_ok(
+  $$ update public.study_sessions set active_seconds = 999 where id = '28000000-0000-4000-8000-000000000001' $$,
+  'student cannot directly rewrite server-backed session time'
+);
+select throws_ok(
+  $$ insert into public.study_sessions (learner_id, session_type, source, topic, planned_minutes, available_minutes) values ('20000000-0000-4000-8000-000000000004', 'focused', 'dashboard', 'adaptive_mix', 30, 30) $$,
+  'student cannot create a session for another learner'
+);
 
 select set_config('request.jwt.claims', '{"sub":"20000000-0000-4000-8000-000000000001","role":"authenticated"}', true);
 select results_eq(
@@ -103,10 +151,15 @@ select results_eq(
 );
 select is((select count(*) from public.attempts), 1::bigint, 'linked tutor reads the linked student attempt');
 select is((select count(*) from public.ai_diagnosis_suggestions), 1::bigint, 'linked tutor reads the linked student AI suggestion audit');
+select is((select count(*) from public.learner_study_plans), 0::bigint, 'tutor cannot read learner private schedule fields');
+select is((select count(*) from public.study_sessions), 1::bigint, 'linked tutor reads engagement session summary');
+select is((select count(*) from public.daily_learner_progress), 1::bigint, 'linked tutor reads linked daily progress summary');
 
 select set_config('request.jwt.claims', '{"sub":"20000000-0000-4000-8000-000000000003","role":"authenticated"}', true);
 select is((select count(*) from public.attempts), 0::bigint, 'another tutor cannot read an unlinked student attempt');
 select is((select count(*) from public.ai_diagnosis_suggestions), 0::bigint, 'another tutor cannot read an unlinked AI suggestion audit');
+select is((select count(*) from public.study_sessions), 0::bigint, 'another tutor cannot read an unlinked study session');
+select is((select count(*) from public.daily_learner_progress), 0::bigint, 'another tutor cannot read unlinked daily progress');
 
 select * from finish();
 rollback;

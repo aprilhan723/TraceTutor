@@ -2,7 +2,7 @@
 
 ## Preview-only rollback policy
 
-Vercel Preview deployments are immutable URLs and are not the production site. A Phase 8 rollback therefore means creating a new Preview from the last verified commit, verifying it, and sharing that replacement URL. Do not promote either deployment, change production aliases, delete deployments, or reset remote data.
+Vercel Preview deployments are immutable URLs and are not the production site. A Phase 9 rollback therefore means creating a new Preview from the last verified commit or the annotated `before-personalized-learning-modes` checkpoint, verifying it, and sharing that replacement URL. Do not promote either deployment, change production aliases, delete deployments, or reset remote data.
 
 ## When to roll back
 
@@ -25,4 +25,4 @@ If a secret is suspected to be exposed, stop sharing the preview, disable the af
 
 ## Current rollback target
 
-Before Phase 8 changes, the last fully verified local release commit is `0e0d7cd870911387034fd3f0983d2c22585a8daa`. After Phase 8 is committed, use the Phase 8 commit as the new baseline and retain this hash as the prior application-code fallback. The currently verified Preview is `https://project-qiel2-q374ocqnt-1-8746.vercel.app`; rollback creates a new Preview rather than mutating this immutable deployment.
+The Phase 9 pre-change checkpoint is annotated tag `before-personalized-learning-modes` at commit `fa356617b7f4d366f80dc1229a727f157d83ff70`. The currently verified Phase 8 Preview is `https://project-qiel2-q374ocqnt-1-8746.vercel.app`; rollback creates a new Preview from the checkpoint rather than mutating that immutable deployment or any database.

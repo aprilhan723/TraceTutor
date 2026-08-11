@@ -3,6 +3,7 @@ import {
   DEMO_STUDY_STORAGE_KEY,
   DEMO_TUTOR_STORAGE_KEY,
   LEGACY_DEMO_STUDY_V3_STORAGE_KEY,
+  LEGACY_DEMO_STUDY_V4_STORAGE_KEY,
   LEGACY_DEMO_STUDY_STORAGE_KEY,
   LocalDemoLearningRepository,
   MemoryKeyValueStore,
@@ -80,7 +81,7 @@ describe("LocalDemoLearningRepository", () => {
     ).toBeDefined();
   });
 
-  it("migrates Phase 2 browser data through version 4 without dropping progress", async () => {
+  it("migrates Phase 2 browser data through version 5 without dropping progress", async () => {
     const storage = new MemoryKeyValueStore();
     const current = createInitialStudyState();
     const legacy = {
@@ -112,7 +113,7 @@ describe("LocalDemoLearningRepository", () => {
       storage,
     ).getStudyState(demoIds.student);
 
-    expect(migrated.version).toBe(4);
+    expect(migrated.version).toBe(5);
     expect(migrated.attempts).toHaveLength(current.attempts.length);
     expect(migrated.attempts[0]?.answerChanges).toBe(0);
     expect(migrated.patterns[0]?.recentEvidence).toEqual([]);
@@ -143,10 +144,45 @@ describe("LocalDemoLearningRepository", () => {
     const migrated = await new LocalDemoLearningRepository(
       storage,
     ).getStudyState(demoIds.student);
-    expect(migrated.version).toBe(4);
+    expect(migrated.version).toBe(5);
     expect(migrated.missionHistory[0]?.mode).toBe("tutor-assigned");
     expect(migrated.missionHistory[0]?.correctionStreakEarned).toBe(true);
     expect(migrated.correctionStreak).toBe(1);
+  });
+
+  it("upgrades Phase 4 data without losing attempts, reviews, or history", async () => {
+    const storage = new MemoryKeyValueStore();
+    const current = createInitialStudyState();
+    const {
+      studyPlan,
+      streakStats,
+      activeSessionId,
+      studySessions,
+      dailyProgress,
+      tutorRecommendations,
+      ...phase4
+    } = current;
+    void studyPlan;
+    void streakStats;
+    void activeSessionId;
+    void studySessions;
+    void dailyProgress;
+    void tutorRecommendations;
+    storage.setItem(
+      LEGACY_DEMO_STUDY_V4_STORAGE_KEY,
+      JSON.stringify({ ...phase4, version: 4 }),
+    );
+
+    const migrated = await new LocalDemoLearningRepository(
+      storage,
+    ).getStudyState(demoIds.student);
+
+    expect(migrated.version).toBe(5);
+    expect(migrated.attempts).toHaveLength(current.attempts.length);
+    expect(migrated.reviewSchedules).toEqual(current.reviewSchedules);
+    expect(migrated.missionHistory).toEqual(current.missionHistory);
+    expect(migrated.studyPlan?.onboardingCompletedAt).toBeNull();
+    expect(migrated.dailyProgress[0]?.activeSeconds).toBe(0);
   });
 
   it("persists tutor adjudication separately and resets the whole local demo", async () => {

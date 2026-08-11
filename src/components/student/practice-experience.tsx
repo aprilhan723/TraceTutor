@@ -115,7 +115,7 @@ export function PracticeExperience({ missionId }: { missionId: string }) {
     });
   }, [missionId]);
 
-  if (!hydrated || !state?.onboarding) {
+  if (!hydrated || !state?.studyPlan) {
     return null;
   }
 
@@ -188,9 +188,25 @@ export function PracticeExperience({ missionId }: { missionId: string }) {
     await saveElapsedSeconds(missionId, totalSeconds);
     sessionSecondsRef.current = 0;
     setSessionSeconds(0);
+    if (mission.sessionId) {
+      const session = state.studySessions.find(
+        (candidate) => candidate.id === mission.sessionId,
+      );
+      const block = session?.blocks.find((candidate) =>
+        candidate.missionEntryIds.includes(entry.entryId),
+      );
+      if (block?.status === "completed") {
+        router.push(`/student/study/${mission.sessionId}`);
+        return;
+      }
+    }
     const nextState = await advanceMission(missionId);
     if (nextState?.activeMission?.completedAt) {
-      router.push("/student/today");
+      router.push(
+        nextState.activeMission.sessionId
+          ? `/student/study/${nextState.activeMission.sessionId}`
+          : "/student/today",
+      );
     }
   }
 

@@ -69,7 +69,7 @@ const retentionOutcomeCopy = {
 export function MistakeMapDashboard() {
   const { hydrated, state, vecr7 } = useStudentDemo();
   const { bundle } = useTutorDemo();
-  if (!hydrated || !state?.onboarding) {
+  if (!hydrated || !state?.studyPlan) {
     return null;
   }
 

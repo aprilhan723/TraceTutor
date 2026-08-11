@@ -2,22 +2,36 @@ import { expect, test } from "@playwright/test";
 
 async function completeStudentOnboarding(
   page: import("@playwright/test").Page,
+  style: "Daily Rhythm" | "Deep Focus" = "Daily Rhythm",
 ) {
   await expect(
     page.getByRole("dialog", {
-      name: /give today’s correction a destination/i,
+      name: /build around the way you actually study/i,
     }),
   ).toBeVisible();
-  await page.getByLabel("Target test date").fill("2026-09-15");
+  await page
+    .locator("label")
+    .filter({ hasText: new RegExp(`^${style}`) })
+    .click();
   await page.getByRole("button", { name: "Continue" }).click();
 
-  await page.getByRole("radio", { name: /developing/i }).check();
-  await page.getByRole("radio", { name: "10 minutes" }).check();
+  await page.getByLabel("Current Reading level").selectOption("3.5");
+  await page.getByLabel("Target Reading score").selectOption("5");
+  await page.getByLabel(/Target test date/i).fill("2026-09-15");
   await page.getByRole("button", { name: "Continue" }).click();
 
-  await page.getByLabel("Preferred reminder time").fill("19:30");
-  await page.getByRole("radio", { name: "Finding evidence" }).check();
-  await page.getByRole("button", { name: /build my sprint/i }).click();
+  await page
+    .getByLabel(/Default study time/i)
+    .fill(style === "Deep Focus" ? "60" : "10");
+  await page.getByLabel("Study days per week").selectOption("5");
+  await page.getByLabel(/Preferred time/i).fill("19:30");
+  await page.getByRole("button", { name: "Continue" }).click();
+
+  await page
+    .locator("label")
+    .filter({ hasText: /^Mistake review$/ })
+    .click();
+  await page.getByRole("button", { name: /build my plan/i }).click();
   await expect(
     page.getByRole("heading", { name: /today, jamie/i }),
   ).toBeVisible();
@@ -40,6 +54,21 @@ async function chooseByKeyboard(
   await radio.focus();
   await radio.press("Space");
   await expect(radio).toBeChecked();
+}
+
+async function openTodayPractice(page: import("@playwright/test").Page) {
+  const link = page.getByRole("link", { name: /start today’s correction/i });
+  const href = await link.getAttribute("href");
+  if (!href) throw new Error("Today practice link is missing its destination");
+  await link.click();
+  try {
+    await page.waitForURL(/\/student\/practice\/mission-/, { timeout: 5_000 });
+  } catch (error) {
+    if (process.env.E2E_PRODUCTION === "1") throw error;
+    // Development's first dynamic-route compile can force one reload. The
+    // production suite keeps the strict click-navigation assertion above.
+    await page.goto(href);
+  }
 }
 
 test("student can enter the demo from the landing page", async ({ page }) => {
@@ -98,7 +127,7 @@ test("student onboarding and mission draft resume after refresh", async ({
     .poll(() =>
       page.evaluate(() =>
         localStorage
-          .getItem("tracetutor.demo.study.v4")
+          .getItem("tracetutor.demo.study.v5")
           ?.includes('"typedAnswer":"er"'),
       ),
     )
@@ -108,6 +137,126 @@ test("student onboarding and mission draft resume after refresh", async ({
   await expect(page).toHaveURL(/\/student\/practice\/mission-/);
   await expect(page.getByLabel("Missing ending for low")).toHaveValue("er");
   await expect(page.getByText("2 of 6", { exact: true })).toBeVisible();
+});
+
+test("Deep Focus builds a block plan with breaks and resumes after leaving", async ({
+  page,
+}) => {
+  await page.goto("/student/today");
+  await completeStudentOnboarding(page, "Deep Focus");
+  // Compile the dynamic study route before exercising client navigation. In
+  // development, a first-route Fast Refresh can otherwise cancel the click;
+  // production builds do not have this compiler transition.
+  await page.goto("/student/study/route-warmup");
+  await expect(
+    page.getByRole("heading", { name: "Session not found" }),
+  ).toBeVisible();
+  await page.goto("/student/study");
+  await expect(
+    page.getByRole("heading", { name: /study as long as today allows/i }),
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: "90 min" }).click();
+  await page
+    .locator("label")
+    .filter({ hasText: /^Academic/ })
+    .click();
+  await page
+    .getByRole("button", { name: /build my 90-minute session/i })
+    .click();
+
+  const sessionHeading = page.getByRole("heading", {
+    name: /90-minute study session/i,
+  });
+  await expect(page).toHaveURL(/\/student\/study\/study-/, {
+    timeout: 15_000,
+  });
+  await expect(sessionHeading).toBeVisible();
+  await expect(page.getByText("Recovery break", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Daily Core", { exact: true }).first(),
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: /pause and leave/i }).click();
+  await expect(page).toHaveURL(/\/student\/today$/);
+  await page.goto("/student/study");
+  await expect(
+    page.getByRole("heading", { name: /resume 90-minute plan/i }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: /resume session/i }).click();
+  await expect(page).toHaveURL(/\/student\/study\/study-/);
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: /90-minute study session/i }),
+  ).toBeVisible();
+});
+
+test("Daily Rhythm learner can start a 30-minute Focused Session", async ({
+  page,
+}) => {
+  await page.goto("/student/today");
+  await completeStudentOnboarding(page, "Daily Rhythm");
+  await page.goto("/student/study");
+  await expect(
+    page.getByRole("heading", { name: /study as long as today allows/i }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "30 min" }).click();
+  await page
+    .getByRole("button", { name: /build my 30-minute session/i })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: /30-minute study session/i }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Word-form speed", { exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: /pause and leave/i }).click();
+  await page.goto("/student/study");
+  await expect(
+    page.getByRole("heading", { name: /resume 30-minute plan/i }),
+  ).toBeVisible();
+});
+
+test("tutor recommendation stays advisory and learner-controlled", async ({
+  page,
+}) => {
+  await page.goto("/student/today");
+  await completeStudentOnboarding(page);
+  await page.goto("/tutor/dashboard");
+  await page.getByRole("button", { name: /send recommendation/i }).click();
+  await expect(
+    page.getByRole("button", { name: /recommendation saved/i }),
+  ).toBeVisible();
+
+  await page.goto("/student/settings");
+  await expect(
+    page.getByRole("heading", { name: /suggested adjustment/i }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: /keep my current plan/i }).click();
+  await expect(
+    page.getByRole("heading", { name: /suggested adjustment/i }),
+  ).toBeHidden();
+  await expect(page.getByText(/Weekly goal: 50 active minutes/i)).toBeVisible();
+});
+
+test("student navigation and personalized study fit a 390px viewport", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/student/today");
+  await completeStudentOnboarding(page);
+  await expect(
+    page.locator('nav[aria-label="student mobile navigation"]'),
+  ).toBeVisible();
+  await page.goto("/student/study");
+  await expect(
+    page.getByRole("heading", { name: /study as long/i }),
+  ).toBeVisible();
+  await expect
+    .poll(() =>
+      page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
+    )
+    .toBe(true);
 });
 
 test("new student completes a full correction mission and earns a meaningful streak", async ({
@@ -151,7 +300,7 @@ test("new student completes a full correction mission and earns a meaningful str
   await expect(
     page.getByRole("heading", { name: "Correction complete" }),
   ).toBeVisible();
-  await expect(page.getByText(/Correction Streak · 2/).first()).toBeVisible();
+  await expect(page.getByText(/Correction Streak · 1/).first()).toBeVisible();
 });
 
 test("demo clock exposes spaced Day 2 and Day 7 schedule without waiting", async ({
@@ -163,7 +312,7 @@ test("demo clock exposes spaced Day 2 and Day 7 schedule without waiting", async
   await clock.fill("2026-08-12");
   await expect(clock).toHaveValue("2026-08-12");
   await page.getByRole("button", { name: /two-minute Light Day/i }).click();
-  await page.getByRole("link", { name: /start today’s correction/i }).click();
+  await openTodayPractice(page);
   await expect(page.getByText("D2 return", { exact: true })).toBeVisible();
   await page
     .getByRole("radio", { name: /to infer a sequence of community change/i })
@@ -178,7 +327,7 @@ test("demo clock exposes spaced Day 2 and Day 7 schedule without waiting", async
   await page.getByRole("button", { name: /Prepare Day 2/i }).click();
 
   await page.getByLabel("Program date").fill("2026-08-15");
-  await page.getByRole("link", { name: /start today’s correction/i }).click();
+  await openTodayPractice(page);
   await expect(page.getByText("D7 return", { exact: true })).toBeVisible();
   await expect(
     page.getByText("Original practice content — not official ETS material.", {
@@ -219,7 +368,7 @@ test("PWA keeps an already-open mission draft resumable offline", async ({
     .poll(() =>
       page.evaluate(() =>
         localStorage
-          .getItem("tracetutor.demo.study.v4")
+          .getItem("tracetutor.demo.study.v5")
           ?.includes('"selectedOptionId":"b"'),
       ),
     )

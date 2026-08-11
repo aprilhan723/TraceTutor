@@ -1,11 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import type { Route } from "next";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { useTutorDemo } from "@/components/tutor/tutor-demo-provider";
+import type { ReadingPriority } from "@/domain/study";
+import { addDays } from "@/lib/clock";
 
 function LoadingDashboard() {
   return (
@@ -25,10 +28,36 @@ function LoadingDashboard() {
 }
 
 export function TutorDashboard() {
-  const { hydrated, bundle } = useTutorDemo();
+  const { hydrated, bundle, recommendStudyPlan } = useTutorDemo();
+  const [goal, setGoal] = useState(120);
+  const [priority, setPriority] = useState<ReadingPriority>("mistake-review");
+  const [sessionType, setSessionType] = useState<"focused" | "deep">("focused");
+  const [recommendationSaved, setRecommendationSaved] = useState(false);
   if (!hydrated || !bundle) return <LoadingDashboard />;
 
   const { dashboard } = bundle;
+  const study = bundle.studyState;
+  const weekStart = addDays(bundle.todayKey, -6);
+  const recentProgress = study.dailyProgress.filter(
+    (entry) =>
+      entry.localDate >= weekStart && entry.localDate <= bundle.todayKey,
+  );
+  const activeMinutes = Math.round(
+    recentProgress.reduce((sum, entry) => sum + entry.activeSeconds, 0) / 60,
+  );
+  const coreCompletion = recentProgress.length
+    ? Math.round(
+        (recentProgress.filter((entry) => entry.dailyCoreCompleted).length /
+          7) *
+          100,
+      )
+    : 0;
+  const recentSession = [...study.studySessions]
+    .filter((session) => session.questionsAnswered > 0)
+    .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))[0];
+  const contentWarning = study.studySessions.some(
+    (session) => session.contentShortage,
+  );
   const metrics = [
     {
       label: "Unresolved diagnoses",
@@ -173,6 +202,136 @@ export function TutorDashboard() {
         </section>
 
         <aside className="space-y-5" aria-label="Class and correction trend">
+          <Card tone="violet">
+            <p className="text-xs font-bold tracking-[0.14em] text-violet uppercase">
+              Engagement summary
+            </p>
+            <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <dt className="text-xs text-ink-muted">Learner default</dt>
+                <dd className="mt-1 font-bold">
+                  {study.studyPlan?.defaultDailyMinutes ?? "—"} min ·{" "}
+                  {study.studyPlan?.studyDaysPerWeek ?? "—"} days
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-ink-muted">Weekly goal</dt>
+                <dd className="mt-1 font-bold">
+                  {study.studyPlan?.weeklyGoalMinutes ?? "—"} min
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-ink-muted">Active this week</dt>
+                <dd className="mt-1 font-bold">{activeMinutes} min</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-ink-muted">Correction Streak</dt>
+                <dd className="mt-1 font-bold">
+                  {study.streakStats.current} days
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-ink-muted">Daily Core rate</dt>
+                <dd className="mt-1 font-bold">{coreCompletion}%</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-ink-muted">Best window</dt>
+                <dd className="mt-1 font-bold">Not enough data</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-ink-muted">Overdue reviews</dt>
+                <dd className="mt-1 font-bold">
+                  {dashboard.metrics.dueOrFailedReviews}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs text-ink-muted">Recent session</dt>
+                <dd className="mt-1 font-bold capitalize">
+                  {recentSession
+                    ? `${recentSession.plannedMinutes}m ${recentSession.topic.replaceAll("-", " ")}`
+                    : "No saved session"}
+                </dd>
+              </div>
+            </dl>
+            {contentWarning ? (
+              <div className="mt-5 rounded-2xl border border-coral/25 bg-coral-soft p-4">
+                <p className="text-sm font-bold text-coral-deep">
+                  Reviewed-content sufficiency warning
+                </p>
+                <p className="mt-2 text-xs leading-5 text-ink-muted">
+                  A recent requested plan ended early rather than repeating
+                  unseen items. Add reviewed content through the Content library
+                  before assigning another long block.
+                </p>
+              </div>
+            ) : null}
+            <div className="mt-5 border-t border-violet/15 pt-5">
+              <p className="text-sm font-bold">Recommend—do not override</p>
+              <label className="mt-3 block text-xs font-bold">
+                Weekly minutes
+                <select
+                  value={goal}
+                  onChange={(event) => setGoal(Number(event.target.value))}
+                  className="mt-1 min-h-10 w-full rounded-xl border border-violet/20 bg-white px-3 text-sm"
+                >
+                  <option value="90">90 minutes</option>
+                  <option value="120">120 minutes</option>
+                  <option value="180">180 minutes</option>
+                  <option value="240">240 minutes</option>
+                </select>
+              </label>
+              <label className="mt-3 block text-xs font-bold">
+                Reading priority
+                <select
+                  value={priority}
+                  onChange={(event) =>
+                    setPriority(event.target.value as ReadingPriority)
+                  }
+                  className="mt-1 min-h-10 w-full rounded-xl border border-violet/20 bg-white px-3 text-sm"
+                >
+                  <option value="balanced">Balanced</option>
+                  <option value="complete-words">Complete the Words</option>
+                  <option value="daily-life">Daily Life</option>
+                  <option value="academic">Academic</option>
+                  <option value="mistake-review">Mistake review</option>
+                </select>
+              </label>
+              <label className="mt-3 block text-xs font-bold">
+                Session type
+                <select
+                  value={sessionType}
+                  onChange={(event) =>
+                    setSessionType(event.target.value as "focused" | "deep")
+                  }
+                  className="mt-1 min-h-10 w-full rounded-xl border border-violet/20 bg-white px-3 text-sm"
+                >
+                  <option value="focused">Focused 30-minute</option>
+                  <option value="deep">Deep 60-minute</option>
+                </select>
+              </label>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="mt-4 w-full"
+                onClick={() =>
+                  void recommendStudyPlan({
+                    weeklyGoalMinutes: goal,
+                    readingPriority: priority,
+                    sessionType,
+                    note: "Tutor recommendation based on current adherence and recurring corrections.",
+                  }).then(() => setRecommendationSaved(true))
+                }
+              >
+                {recommendationSaved
+                  ? "Recommendation saved"
+                  : "Send recommendation"}
+              </Button>
+              <p className="mt-3 text-xs leading-5 text-ink-muted">
+                The learner keeps control of their schedule and must accept any
+                change.
+              </p>
+            </div>
+          </Card>
           <Card tone="mint">
             <p className="text-xs font-bold tracking-[0.14em] text-mint-deep uppercase">
               Compact student trend

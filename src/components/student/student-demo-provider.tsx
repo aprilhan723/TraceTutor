@@ -13,10 +13,12 @@ import {
 import type { Student } from "@/domain/models";
 import type {
   AnswerDraft,
+  LearnerStudyPlan,
   MilestoneId,
   OnboardingProfile,
   StudentProgressMetrics,
   StudentStudyState,
+  StudyTopic,
 } from "@/domain/study";
 import {
   createBrowserLearningService,
@@ -52,6 +54,22 @@ interface StudentDemoContextValue {
   completeOnboarding(
     profile: Omit<OnboardingProfile, "completedAt">,
   ): Promise<void>;
+  completeStudyPlan(
+    plan: Omit<LearnerStudyPlan, "weeklyGoalMinutes" | "updatedAt"> & {
+      weeklyGoalMinutes?: number;
+    },
+  ): Promise<void>;
+  startPersonalizedSession(options: {
+    minutes: number;
+    topic: StudyTopic;
+    includeDueReviews: boolean;
+    timed: boolean;
+  }): Promise<StudentStudyState | null>;
+  continueStudySession(sessionId: string): Promise<StudentStudyState | null>;
+  pauseStudySession(sessionId: string): Promise<void>;
+  recordSessionActiveTime(sessionId: string, seconds: number): Promise<void>;
+  endStudySessionAfterBlock(sessionId: string, blockId: string): Promise<void>;
+  respondToStudyRecommendation(id: string, accept: boolean): Promise<void>;
   startMission(missionId: string): Promise<void>;
   saveDraft(
     missionId: string,
@@ -124,6 +142,76 @@ export function StudentDemoProvider({
     async (profile: Omit<OnboardingProfile, "completedAt">) => {
       await runOperation((service) =>
         service.saveOnboarding(demoIds.student, profile),
+      );
+    },
+    [runOperation],
+  );
+
+  const completeStudyPlan = useCallback(
+    async (
+      plan: Omit<LearnerStudyPlan, "weeklyGoalMinutes" | "updatedAt"> & {
+        weeklyGoalMinutes?: number;
+      },
+    ) => {
+      await runOperation((service) =>
+        service.saveStudyPlan(demoIds.student, plan),
+      );
+    },
+    [runOperation],
+  );
+
+  const startPersonalizedSession = useCallback(
+    (options: {
+      minutes: number;
+      topic: StudyTopic;
+      includeDueReviews: boolean;
+      timed: boolean;
+    }) =>
+      runOperation((service) =>
+        service.startPersonalizedSession(demoIds.student, options),
+      ),
+    [runOperation],
+  );
+
+  const continueStudySessionAction = useCallback(
+    (sessionId: string) =>
+      runOperation((service) =>
+        service.continueStudySession(demoIds.student, sessionId),
+      ),
+    [runOperation],
+  );
+
+  const pauseStudySessionAction = useCallback(
+    async (sessionId: string) => {
+      await runOperation((service) =>
+        service.pauseStudySession(demoIds.student, sessionId),
+      );
+    },
+    [runOperation],
+  );
+
+  const recordSessionActiveTime = useCallback(
+    async (sessionId: string, seconds: number) => {
+      await runOperation((service) =>
+        service.recordSessionActiveTime(demoIds.student, sessionId, seconds),
+      );
+    },
+    [runOperation],
+  );
+
+  const endStudySessionAfterBlock = useCallback(
+    async (sessionId: string, blockId: string) => {
+      await runOperation((service) =>
+        service.endStudySessionAfterBlock(demoIds.student, sessionId, blockId),
+      );
+    },
+    [runOperation],
+  );
+
+  const respondToStudyRecommendation = useCallback(
+    async (id: string, accept: boolean) => {
+      await runOperation((service) =>
+        service.respondToStudyRecommendation(demoIds.student, id, accept),
       );
     },
     [runOperation],
@@ -268,6 +356,13 @@ export function StudentDemoProvider({
       getMilestones: (verifiedCorrectionCount) =>
         state ? service.getMilestones(state, verifiedCorrectionCount) : [],
       completeOnboarding,
+      completeStudyPlan,
+      startPersonalizedSession,
+      continueStudySession: continueStudySessionAction,
+      pauseStudySession: pauseStudySessionAction,
+      recordSessionActiveTime,
+      endStudySessionAfterBlock,
+      respondToStudyRecommendation,
       startMission,
       saveDraft,
       submitEntry,
@@ -286,14 +381,21 @@ export function StudentDemoProvider({
     advanceMission,
     completeProbe,
     completeOnboarding,
+    completeStudyPlan,
+    continueStudySessionAction,
+    endStudySessionAfterBlock,
     hydrated,
     isOffline,
+    pauseStudySessionAction,
     prepareNextMission,
     resetDemo,
+    recordSessionActiveTime,
+    respondToStudyRecommendation,
     saveDraft,
     saveElapsedSeconds,
     service,
     startMission,
+    startPersonalizedSession,
     startWeeklyBoss,
     state,
     student,

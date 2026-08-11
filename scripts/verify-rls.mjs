@@ -37,6 +37,9 @@ const requiredSensitiveRevocations = [
   "assignments",
   "assignment_items",
   "ai_diagnosis_suggestions",
+  "daily_learner_progress",
+  "learner_streak_stats",
+  "study_activity_events",
 ];
 for (const table of requiredSensitiveRevocations) {
   const mutationBlock =

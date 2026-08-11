@@ -113,7 +113,10 @@ export function buildSprintRoadmap(
 ): SprintRoadmapDay[] {
   const completed = completedSprintDays(state);
   const currentDay = state.activeMission?.dayNumber || completed.size + 1;
-  const startDate = state.onboarding?.completedAt.slice(0, 10) ?? "2026-08-10";
+  const startDate =
+    state.studyPlan?.onboardingCompletedAt?.slice(0, 10) ??
+    state.onboarding?.completedAt.slice(0, 10) ??
+    "2026-08-10";
   return roadmapFocus.map(([title, detail], index) => {
     const dayNumber = index + 1;
     return {

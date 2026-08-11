@@ -1,4 +1,4 @@
-import { getPracticeItem } from "@/data/practice-content";
+import { getPracticeItem, practiceItems } from "@/data/practice-content";
 import {
   getCompleteWordsMetadata,
   getItemDiagnosticMetadata,
@@ -13,10 +13,13 @@ import type { LearningRepository } from "@/domain/repositories/learning-reposito
 import type {
   AnswerDraft,
   MilestoneId,
+  LearnerStudyPlan,
   OnboardingProfile,
   PracticeItem,
   StudentPatternRecord,
   StudentStudyState,
+  StudySessionSource,
+  StudyTopic,
   StudyAttempt,
 } from "@/domain/study";
 import type {
@@ -69,6 +72,24 @@ import {
   getRecoveryPassAvailability,
   getStreakReason,
 } from "@/services/engagement-engine";
+import {
+  addDailyActivity,
+  calculateCorrectionStreak,
+  calculateWeeklyGoalMinutes,
+  createStudyPlanFromLegacy,
+  markDailyCoreComplete,
+  markQualifyingWorkComplete,
+  toLocalDateKey,
+} from "@/services/personalized-learning";
+import { generateAdaptiveSessionPlan } from "@/services/session-planner";
+import {
+  addSessionActiveSeconds,
+  attachAdaptiveSession,
+  continueStudySession,
+  finishStudySession,
+  pauseStudySession,
+  updateSessionForAttempt,
+} from "@/services/study-session-service";
 import {
   applyTutorAdjudication,
   appendAiSuggestion,
@@ -231,9 +252,42 @@ export class LearningService {
     return next;
   }
 
+  async recommendStudyPlan(
+    tutorId: string,
+    studentId: string,
+    recommendation: {
+      weeklyGoalMinutes: number | null;
+      readingPriority: LearnerStudyPlan["readingPriority"] | null;
+      sessionType: "focused" | "deep" | null;
+      note: string;
+    },
+  ) {
+    if (tutorId !== demoTutor.id) {
+      return this.repository.getStudyState(studentId);
+    }
+    const state = await this.repository.getStudyState(studentId);
+    const nowIso = this.clock.now().toISOString();
+    const next: StudentStudyState = {
+      ...state,
+      tutorRecommendations: [
+        {
+          id: `study-recommendation-${nowIso.replace(/\D/g, "")}`,
+          recommendedAt: nowIso,
+          acknowledgedAt: null,
+          decision: null,
+          ...recommendation,
+        },
+        ...state.tutorRecommendations,
+      ],
+      updatedAt: nowIso,
+    };
+    await this.repository.saveStudyState(next);
+    return next;
+  }
+
   async getStudyState(studentId: string) {
     const state = await this.repository.getStudyState(studentId);
-    if (state.onboarding && !state.activeMission) {
+    if (state.studyPlan?.onboardingCompletedAt && !state.activeMission) {
       return this.prepareNextMissionFromState(state);
     }
     return state;
@@ -250,9 +304,229 @@ export class LearningService {
         ...profile,
         completedAt: this.clock.now().toISOString(),
       },
+      studyPlan: {
+        ...createStudyPlanFromLegacy(
+          { ...profile, completedAt: this.clock.now().toISOString() },
+          this.clock.now().toISOString(),
+        ),
+        onboardingCompletedAt: this.clock.now().toISOString(),
+      },
       updatedAt: this.clock.now().toISOString(),
     };
     return this.prepareNextMissionFromState(nextState);
+  }
+
+  async saveStudyPlan(
+    studentId: string,
+    plan: Omit<LearnerStudyPlan, "weeklyGoalMinutes" | "updatedAt"> & {
+      weeklyGoalMinutes?: number;
+    },
+  ) {
+    const state = await this.repository.getStudyState(studentId);
+    const nowIso = this.clock.now().toISOString();
+    const studyPlan: LearnerStudyPlan = {
+      ...plan,
+      weeklyGoalMinutes:
+        plan.weeklyGoalMinutes ??
+        calculateWeeklyGoalMinutes(
+          plan.defaultDailyMinutes,
+          plan.studyDaysPerWeek,
+        ),
+      onboardingCompletedAt: plan.onboardingCompletedAt ?? nowIso,
+      updatedAt: nowIso,
+    };
+    const next: StudentStudyState = {
+      ...state,
+      studyPlan,
+      onboarding: state.onboarding,
+      updatedAt: nowIso,
+    };
+    if (next.activeMission && !next.activeMission.completedAt) {
+      await this.repository.saveStudyState(next);
+      return next;
+    }
+    return this.prepareNextMissionFromState(next);
+  }
+
+  async respondToStudyRecommendation(
+    studentId: string,
+    recommendationId: string,
+    accept: boolean,
+  ) {
+    const state = await this.repository.getStudyState(studentId);
+    const recommendation = state.tutorRecommendations.find(
+      (entry) => entry.id === recommendationId,
+    );
+    if (!recommendation || recommendation.acknowledgedAt) return state;
+    const nowIso = this.clock.now().toISOString();
+    const studyPlan =
+      accept && state.studyPlan
+        ? {
+            ...state.studyPlan,
+            weeklyGoalMinutes:
+              recommendation.weeklyGoalMinutes ??
+              state.studyPlan.weeklyGoalMinutes,
+            readingPriority:
+              recommendation.readingPriority ?? state.studyPlan.readingPriority,
+            defaultDailyMinutes:
+              recommendation.sessionType === "deep"
+                ? 60
+                : recommendation.sessionType === "focused"
+                  ? 30
+                  : state.studyPlan.defaultDailyMinutes,
+            updatedAt: nowIso,
+          }
+        : state.studyPlan;
+    const next: StudentStudyState = {
+      ...state,
+      studyPlan,
+      tutorRecommendations: state.tutorRecommendations.map((entry) =>
+        entry.id === recommendationId
+          ? {
+              ...entry,
+              acknowledgedAt: nowIso,
+              decision: accept
+                ? ("accepted" as const)
+                : ("kept-current" as const),
+            }
+          : entry,
+      ),
+      updatedAt: nowIso,
+    };
+    await this.repository.saveStudyState(next);
+    return next;
+  }
+
+  async startPersonalizedSession(
+    studentId: string,
+    options: {
+      minutes: number;
+      topic: StudyTopic;
+      includeDueReviews: boolean;
+      timed: boolean;
+      source?: StudySessionSource;
+    },
+  ) {
+    let state = await this.repository.getStudyState(studentId);
+    const studyPlan = state.studyPlan;
+    if (!studyPlan?.onboardingCompletedAt) return state;
+    if (!state.activeMission || state.activeMission.completedAt) {
+      state = await this.prepareNextMissionFromState({
+        ...state,
+        activeMission: null,
+      });
+    }
+    const mission = state.activeMission;
+    if (!mission) return state;
+    const timezone = studyPlan.timezone;
+    const todayKey = toLocalDateKey(this.clock.now(), timezone);
+    const dueReviewItemIds = [
+      ...getDueRetentionSchedules(state, this.clock).map(
+        (entry) => entry.itemId,
+      ),
+      ...getDueReviews(state, this.clock).map((entry) => entry.itemId),
+    ];
+    const unresolvedItemIds = state.diagnoses
+      .filter((entry) => entry.tutorReviewRequired || !entry.probeResolvedAt)
+      .map((entry) => entry.itemId);
+    const highConfidenceMistakeItemIds = state.attempts
+      .filter((entry) => entry.confidence === "certain" && !entry.correct)
+      .map((entry) => entry.itemId);
+    const dailyCoreEntries = mission.dailyCoreEntryIds?.length
+      ? mission.items.filter((entry) =>
+          mission.dailyCoreEntryIds?.includes(entry.entryId),
+        )
+      : mission.items;
+    const plan = generateAdaptiveSessionPlan({
+      requestedMinutes: options.minutes,
+      studyPlan,
+      dueReviewItemIds,
+      unresolvedItemIds,
+      highConfidenceMistakeItemIds,
+      recentItemHistory: state.attempts.map((entry) => ({
+        itemId: entry.itemId,
+        localDate: toLocalDateKey(new Date(entry.submittedAt), timezone),
+      })),
+      publishedItems: practiceItems,
+      todayKey,
+      selectedTopic: options.topic,
+      includeDueReviews: options.includeDueReviews,
+      timed: options.timed,
+      dailyCoreItemIds: dailyCoreEntries.map((entry) => entry.itemId),
+    });
+    const next = attachAdaptiveSession({
+      state,
+      plan,
+      topic: options.topic,
+      includeDueReviews: options.includeDueReviews,
+      timed: options.timed,
+      source: options.source ?? "dashboard",
+      nowIso: this.clock.now().toISOString(),
+    });
+    await this.repository.saveStudyState(next);
+    return next;
+  }
+
+  async continueStudySession(studentId: string, sessionId: string) {
+    const state = await this.repository.getStudyState(studentId);
+    const next = continueStudySession(
+      state,
+      sessionId,
+      this.clock.now().toISOString(),
+    );
+    await this.repository.saveStudyState(next);
+    return next;
+  }
+
+  async pauseStudySession(studentId: string, sessionId: string) {
+    const state = await this.repository.getStudyState(studentId);
+    const next = pauseStudySession(
+      state,
+      sessionId,
+      this.clock.now().toISOString(),
+    );
+    await this.repository.saveStudyState(next);
+    return next;
+  }
+
+  async recordSessionActiveTime(
+    studentId: string,
+    sessionId: string,
+    seconds: number,
+  ) {
+    const state = await this.repository.getStudyState(studentId);
+    const nowIso = this.clock.now().toISOString();
+    const withSession = addSessionActiveSeconds(
+      state,
+      sessionId,
+      seconds,
+      nowIso,
+    );
+    const timezone = state.studyPlan?.timezone ?? "UTC";
+    const next = addDailyActivity({
+      state: withSession,
+      localDate: toLocalDateKey(this.clock.now(), timezone),
+      nowIso,
+      activeSeconds: withSession === state ? 0 : seconds,
+    });
+    await this.repository.saveStudyState(next);
+    return next;
+  }
+
+  async endStudySessionAfterBlock(
+    studentId: string,
+    sessionId: string,
+    blockId: string,
+  ) {
+    const state = await this.repository.getStudyState(studentId);
+    const next = finishStudySession(
+      state,
+      sessionId,
+      this.clock.now().toISOString(),
+      blockId,
+    );
+    await this.repository.saveStudyState(next);
+    return next;
   }
 
   async startMission(studentId: string, missionId: string) {
@@ -472,7 +746,7 @@ export class LearningService {
             completedRetentionScheduleId: entry.retentionScheduleId ?? null,
           });
 
-    const nextState: StudentStudyState = {
+    let nextState: StudentStudyState = {
       ...state,
       attempts: [...state.attempts, attempt],
       diagnoses: diagnosis ? [...state.diagnoses, diagnosis] : state.diagnoses,
@@ -503,6 +777,43 @@ export class LearningService {
       },
       updatedAt: this.clock.now().toISOString(),
     };
+    const nowIso = this.clock.now().toISOString();
+    const localDate = toLocalDateKey(
+      this.clock.now(),
+      state.studyPlan?.timezone ?? "UTC",
+    );
+    nextState = addDailyActivity({
+      state: nextState,
+      localDate,
+      nowIso,
+      questionsAnswered: 1,
+      correctAnswers: evaluation.correct ? 1 : 0,
+      reviewsCompleted: entry.part === "review" ? 1 : 0,
+      transferItemsCompleted: entry.part === "transfer" ? 1 : 0,
+      diagnosticsCompleted: diagnosis ? 1 : 0,
+    });
+    nextState = updateSessionForAttempt({
+      state: nextState,
+      missionEntryId: entryId,
+      correct: evaluation.correct,
+      result: evaluation.result,
+      nowIso,
+    });
+    const coreEntryIds = nextState.activeMission?.dailyCoreEntryIds ?? [];
+    if (
+      coreEntryIds.length > 0 &&
+      coreEntryIds.every(
+        (coreEntryId) =>
+          coreEntryId === entryId ||
+          Boolean(nextState.activeMission?.attemptIdsByEntry[coreEntryId]),
+      )
+    ) {
+      nextState = markDailyCoreComplete({
+        state: nextState,
+        localDate,
+        nowIso,
+      });
+    }
     await this.repository.saveStudyState(nextState);
     return nextState;
   }
@@ -616,9 +927,18 @@ export class LearningService {
     );
     const completedAt = this.clock.now().toISOString();
     const streakReason = getStreakReason(mission);
-    const nextState: StudentStudyState = {
+    const localDate = toLocalDateKey(
+      this.clock.now(),
+      state.studyPlan?.timezone ?? "UTC",
+    );
+    const alreadyEligible = state.dailyProgress.some(
+      (entry) => entry.localDate === localDate && entry.streakEligible,
+    );
+    const session = mission.sessionId
+      ? state.studySessions.find((entry) => entry.id === mission.sessionId)
+      : null;
+    let nextState: StudentStudyState = {
       ...state,
-      correctionStreak: state.correctionStreak + (streakReason ? 1 : 0),
       missionHistory: [
         ...state.missionHistory,
         {
@@ -633,13 +953,26 @@ export class LearningService {
           attemptCount: missionAttempts.length,
           estimatedMinutes: mission.estimatedMinutes,
           mode: mission.mode,
-          correctionStreakEarned: streakReason !== null,
+          correctionStreakEarned: streakReason !== null && !alreadyEligible,
           streakReason,
+          activeMinutes: session
+            ? Math.round((session.activeSeconds / 60) * 10) / 10
+            : undefined,
         },
       ],
       activeMission: { ...mission, completedAt, lastSavedAt: completedAt },
       updatedAt: completedAt,
     };
+    if (streakReason && !alreadyEligible) {
+      nextState = markQualifyingWorkComplete({
+        state: nextState,
+        localDate,
+        nowIso: completedAt,
+      });
+    }
+    if (mission.sessionId) {
+      nextState = finishStudySession(nextState, mission.sessionId, completedAt);
+    }
     await this.repository.saveStudyState(nextState);
     return nextState;
   }
@@ -684,17 +1017,25 @@ export class LearningService {
     const availability = getRecoveryPassAvailability(state);
     if (!availability.available) return state;
     const protectedDate = addDays(this.getProgramDateKey(state), -1);
+    const recoveryPassUses = [
+      ...state.recoveryPassUses,
+      {
+        period: availability.period,
+        protectedDate,
+        usedAt: this.clock.now().toISOString(),
+      },
+    ];
+    const streakStats = calculateCorrectionStreak(
+      state.dailyProgress,
+      toLocalDateKey(this.clock.now(), state.studyPlan?.timezone ?? "UTC"),
+      recoveryPassUses.map((entry) => entry.protectedDate),
+    );
     const next: StudentStudyState = {
       ...state,
       recoveryPasses: 0,
-      recoveryPassUses: [
-        ...state.recoveryPassUses,
-        {
-          period: availability.period,
-          protectedDate,
-          usedAt: this.clock.now().toISOString(),
-        },
-      ],
+      recoveryPassUses,
+      streakStats,
+      correctionStreak: streakStats.current,
       updatedAt: this.clock.now().toISOString(),
     };
     await this.repository.saveStudyState(next);
@@ -762,7 +1103,7 @@ export class LearningService {
     ).length;
     this.clock.setDateKey(addDays(dateKey, -completedDays));
     if (
-      state.onboarding &&
+      (state.studyPlan?.onboardingCompletedAt || state.onboarding) &&
       state.activeMission &&
       !state.activeMission.startedAt &&
       !state.activeMission.completedAt

@@ -14,6 +14,8 @@ import { getItemDiagnosticMetadata } from "@/data/diagnostic-metadata";
 import { getReadingStimulus, practiceItems } from "@/data/practice-content";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Json } from "@/lib/supabase/database.types";
+import { saveStudyPlanCommand } from "@/study/commands";
+import { studyPlanWriteSchema } from "@/study/schemas";
 
 export interface WorkspaceActionState {
   status: "idle" | "success" | "error";
@@ -400,6 +402,50 @@ export async function saveStudentOnboardingAction(formData: FormData) {
     .eq("id", account.userId);
   if (error) redirect("/student/today?onboarding=error");
   revalidatePath("/student/today");
+}
+
+export async function savePersonalizedStudyPlanAction(formData: FormData) {
+  const account = await requireAccountRole("student");
+  if (!account) return;
+  const completedAt = new Date().toISOString();
+  const dailyMinutes = Number(getFormString(formData, "defaultDailyMinutes"));
+  const studyDays = Number(getFormString(formData, "studyDaysPerWeek"));
+  const explicitWeeklyGoal = Number(
+    getFormString(formData, "weeklyGoalMinutes"),
+  );
+  const value = {
+    learningStyle: getFormString(formData, "learningStyle"),
+    defaultDailyMinutes: dailyMinutes,
+    weeklyGoalMinutes:
+      explicitWeeklyGoal || Math.max(30, dailyMinutes * studyDays),
+    studyDaysPerWeek: studyDays,
+    currentReadingLevel: getFormString(formData, "currentReadingLevel")
+      ? Number(getFormString(formData, "currentReadingLevel"))
+      : null,
+    targetReadingScore: getFormString(formData, "targetReadingScore")
+      ? Number(getFormString(formData, "targetReadingScore"))
+      : null,
+    targetTestDate: getFormString(formData, "targetTestDate") || null,
+    readingPriority: getFormString(formData, "readingPriority"),
+    preferredStudyTime: getFormString(formData, "preferredStudyTime") || null,
+    timezone: getFormString(formData, "timezone") || "UTC",
+    onboardingCompletedAt: completedAt,
+  };
+  const parsed = studyPlanWriteSchema.safeParse(value);
+  if (!parsed.success) redirect("/student/today?study-plan=invalid");
+  await saveStudyPlanCommand(parsed.data);
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      target_test_date: parsed.data.targetTestDate,
+      reminder_time: parsed.data.preferredStudyTime,
+      onboarding_completed_at: completedAt,
+    })
+    .eq("id", account.userId);
+  if (error) redirect("/student/today?study-plan=error");
+  revalidatePath("/student", "layout");
+  redirect("/student/today");
 }
 
 export async function submitProductionResponseAction(

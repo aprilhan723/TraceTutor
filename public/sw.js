@@ -1,4 +1,4 @@
-const CACHE_VERSION = "tracetutor-shell-v5";
+const CACHE_VERSION = "tracetutor-shell-v6";
 const SHELL_ROUTES = [
   "/",
   "/demo",

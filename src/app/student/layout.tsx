@@ -10,6 +10,9 @@ import { demoIds, demoLearningService } from "@/services/learning-service";
 import { isSupabaseRuntime } from "@/lib/runtime-mode";
 import { requireAccountRole } from "@/auth/access";
 import { SignOutForm } from "@/components/auth/sign-out-form";
+import { StudentHeaderStatus } from "@/components/student/student-header-status";
+import { Badge } from "@/components/ui/badge";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export default async function StudentLayout({
   children,
@@ -24,12 +27,23 @@ export default async function StudentLayout({
       .slice(0, 2)
       .map((part) => part[0]?.toUpperCase() ?? "")
       .join("");
+    const supabase = await createSupabaseServerClient();
+    const { data: streak } = await supabase
+      .from("learner_streak_stats")
+      .select("current_streak")
+      .eq("learner_id", account.userId)
+      .maybeSingle();
     return (
       <AppShell
         role="student"
         userName={account.displayName}
         userInitials={initials || "S"}
         demoMode={false}
+        headerStatus={
+          <Badge tone="coral">
+            Correction Streak · {streak?.current_streak ?? 0}
+          </Badge>
+        }
         demoDesktopControl={<SignOutForm />}
         demoMobileControl={<SignOutForm compact />}
       >
@@ -53,6 +67,7 @@ export default async function StudentLayout({
           userInitials={home.student.initials}
           demoDesktopControl={<ResetDemoControl />}
           demoMobileControl={<ResetDemoControl compact />}
+          headerStatus={<StudentHeaderStatus />}
         >
           <StudentExperienceGate>{children}</StudentExperienceGate>
         </AppShell>

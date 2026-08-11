@@ -16,18 +16,17 @@ export function SprintRoadmap() {
     recoveryPass,
     getMilestones,
   } = useStudentDemo();
-  if (!hydrated || !state?.onboarding || !programDateKey) return null;
-  const daysUntilTest = differenceInDays(
-    state.onboarding.targetTestDate,
-    programDateKey,
-  );
+  if (!hydrated || !state?.studyPlan || !programDateKey) return null;
+  const daysUntilTest = state.studyPlan.targetTestDate
+    ? differenceInDays(state.studyPlan.targetTestDate, programDateKey)
+    : null;
   const milestones = getMilestones(2);
   return (
     <div>
       <PageHeader
         eyebrow="14-day correction sprint"
         title="The work has an arc."
-        description={`${daysUntilTest} days until your target test date. This roadmap organizes correction, transfer, and spaced return without rewarding empty volume.`}
+        description={`${daysUntilTest === null ? "No test date is set yet" : `${daysUntilTest} days until your target test date`}. This roadmap organizes correction, transfer, and spaced return without rewarding empty volume.`}
         action={
           <Badge tone="mint">
             Correction Streak · {state.correctionStreak}

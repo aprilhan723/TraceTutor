@@ -2,7 +2,7 @@
 
 ## Current phase
 
-**Phase 8: a release-candidate Vercel Preview is implemented and verified in browser-local Demo Mode. The deterministic engine, authenticated architecture, optional tutor-reviewed AI adapter, and complete local fallback remain intact.**
+**Phase 9: personalized Daily Rhythm and Deep Focus learning modes, visible account progress, deterministic deep-study sessions, real active-time tracking, and server-backed personalized-study architecture are implemented. The complete Phase 8 local demo and Preview fallback remain intact.**
 
 ## Implemented
 
@@ -52,7 +52,7 @@
 - E2E tutor journey from queue through diagnosis change/approval, transfer assignment, lesson-brief inclusion, and student weekly-report consistency
 - Ethical 14-day roadmap with target-date countdown, transparent streak reasons, one Recovery Pass per seven-day period, two-minute Light Day, and four meaningful milestone moments
 - Original “Half-Truth Hydra” weekly mixed challenge derived deterministically from frequent reviewed distractor relations and error causes, with per-item selection explanations and a hard safeguard against Boss-only pattern resolution
-- Version 4 student study aggregate with non-destructive v2/v3 migration, parked missions, Recovery Pass ledger, milestone acknowledgements, and offline event queue
+- Version 5 student study aggregate with non-destructive v2/v3/v4 migration, personalized plans/sessions/daily progress, parked missions, Recovery Pass ledger, milestone acknowledgements, and offline event queue
 - Valid manifest, original SVG/PNG install icons, theme metadata, service-worker app shell/visited-mission caching, offline fallback, and local reconnect reconciliation
 - Skippable/replayable product tour and dedicated Trust, Privacy, Content Standards, and Method pages
 - Consistent SEO/social metadata with original 1200×630 TraceTutor preview artwork
@@ -68,7 +68,7 @@
 - Authenticated tutor workspace for content copy, linked-student visibility, assignment creation, and recent response review
 - Authenticated student workspace for onboarding, assigned work, evidence/confidence response submission, resume-safe duplicate submission handling, and honest progress surfaces
 - Storage-agnostic repository factory with a Supabase `LearningRepository` read adapter and narrow validated relational commands for writes
-- Three versioned SQL migrations covering 35 RLS-protected public tables, security-definer commands, taxonomy seed data, indexes, constraints, immutable publication history, soft retirement, audit records, and idempotency records
+- Five versioned SQL migrations covering 42 RLS-protected public tables, security-definer commands, taxonomy seed data, personalized study records, indexes, constraints, immutable publication history, soft retirement, audit records, and idempotency records
 - Separate machine hypotheses and immutable tutor adjudications for future evaluation
 - Column-level protection for correct responses, distractor labels, designated evidence, tutor-only notes, invite hashes, and audit data
 - Static RLS coverage/secret verification scripts, a pgTAP cross-user policy test, and a gated connected Supabase E2E workflow
@@ -87,7 +87,7 @@
 - Student weekly-report explanation released only when the model cause matches a completed tutor adjudication
 - Versioned six-case de-identified mocked evaluation set covering schema validity, tutor-gold agreement, contradictions, calibration buckets, abstention/review, prompt injection, and fallback behavior
 - Append-only `ai_diagnosis_suggestions` migration with tutor-only RLS, direct client mutation revocation, an idempotent scope-checking record function, and no raw prompt or identity storage
-- Static RLS verification expanded across all ordered migrations and 36 exposed tables; pgTAP adds tutor-only AI audit isolation assertions
+- Static RLS verification expanded across all ordered migrations and 42 exposed tables; pgTAP adds tutor-only AI audit and personalized-study isolation assertions
 - Dedicated AI evaluation documentation and `test:ai` script; no paid live evaluation was run
 - Checked Vercel project configuration with an explicit Next.js framework preset and Node.js 24 runtime pin
 - External-base-URL Playwright support for protected or public Preview smoke runs without changing the local E2E workflow
@@ -96,6 +96,23 @@
 - Actual-preview student QA through all six mission items and actual-preview tutor QA through an audited diagnosis approval
 - Actual-preview HTTP smoke coverage for landing, both demo entries, sign-in, student Today/practice, tutor dashboard, and tutor diagnosis review
 - Actual-preview 375 px rendering verification for landing, student Today, and tutor dashboard with no horizontal overflow
+
+## Phase 9 personalized learning system
+
+- Four-step learner onboarding captures a self-reported 1.0–6.0 practice level, optional 1.0–6.0 target, optional future test date, editable Daily Rhythm or Deep Focus preference, 10–120 minute default, 3–7 study days, optional local time, IANA timezone, and Reading priority.
+- The Today Mission is now the approximately ten-minute Daily Core. Due D2/D7 work stays first; high-confidence mistakes, unresolved patterns, learner priority, balanced coverage, and fresh content follow deterministically.
+- Daily Core completion is earned only when all required Core entry IDs have submitted attempts. It marks one learner-local calendar day eligible exactly once. Login and idle time never earn streak credit.
+- The high-visibility Home surface shows current/longest Correction Streak, active minutes today, weekly goal, target-date countdown, seven-day consistency, due work, current target, recent verified corrections, a context-aware primary action, and 15/30/60/90/120/custom Study More entry points.
+- The new Study workspace builds Quick, Focused, Deep, Intensive, Full Block, or custom 10–120 minute sessions across Adaptive Mix, Complete the Words, Daily Life, Academic, Mistake Review, Due Reviews, and Timed Mixed topics.
+- The deterministic planner protects Daily Core first, avoids ordinary unseen repetition for seven days, prioritizes explicit review/retention work, adds 5–10 minute breaks to long plans, and returns an honest shorter plan when reviewed content is insufficient.
+- Study sessions persist planned/available time, blocks, progress, pause/resume state, supported answer metrics, and end-after-block choices. Completed work survives early exit or refresh.
+- Active time uses a 15-second batched heartbeat and counts only an active, visible, unpaused session with interaction in the previous 90 seconds.
+- Progress now separates consistency, active time, task accuracy/coverage, evidence, confidence calibration, high-confidence wrong rate, corrections, immediate/D2/D7 retention, VECR-7, session history, and test target. Unsupported trends display “Not enough data” instead of fabricated values.
+- Tutor engagement shows learner-controlled plan summaries, weekly active time, Core rate, streak, overdue reviews, recent session pattern, content sufficiency, and advisory weekly/priority/session recommendations that learners explicitly accept or decline.
+- Demo study state is version 5 under `tracetutor.demo.study.v5`; v2/v3/v4 migration preserves attempts, drafts, reviews, retention, patterns, mission history, and tutor state while assigning zero unverified historical active time and showing the one-time plan upgrade.
+- Additive migration `202608110002_phase9_personalized_learning.sql` adds six RLS-protected tables, validated IANA timezones, zero-activity new-session enforcement, idempotent activity events, server daily-progress/streak functions, learner-controlled recommendations, existing-profile plan backfill, and no destructive statement.
+- Signed-in Supabase accounts receive personalized-plan onboarding/settings, a real persisted streak header, account progress summaries, and linked-tutor-only engagement visibility. Demo Mode remains fully independent when public Supabase variables are absent.
+- Navigation is now Home, Study, Reviews, Mistake Map, Progress, and Settings with the compact streak visible in desktop and mobile application chrome.
 
 ## Deferred by design
 
@@ -107,7 +124,7 @@
 - Push notifications, public rankings, XP, fake scarcity, or attendance-only rewards
 - Background sync, true server reconciliation, and multi-device guarantees
 
-## Known Phase 8 limitations
+## Known Phase 9 limitations
 
 - The selected Vercel project began as an empty project. Vercel automatically assigned the first CLI upload to its Production target even though the command explicitly used `--target=preview`. TraceTutor did not request or perform a Production promotion, attach a domain, or upload application secrets. That immutable first record was left untouched because this phase forbids deletion/reset of remote data. The verified staging artifact is the later deployment whose target is explicitly `preview`.
 - Vercel Authentication protects the Preview. Signed-in browser QA and authenticated `vercel curl` smoke checks pass, but unauthenticated remote Playwright receives Vercel's login page. The Preview was not made public without separate authorization.
@@ -121,6 +138,10 @@
 - Production builds refuse live AI calls from anonymous Demo Mode; live production assistance requires a cookie-authenticated tutor and linked organization.
 - Cost estimates are versioned for the documented GPT-5.6 model family; an unknown model reports cost as unavailable instead of inventing a price.
 - The six mocked fixtures are a contract/evaluation baseline, not evidence of production learning efficacy or model quality on real student data.
+
+- The Phase 9 Supabase migration and 22-assertion pgTAP suite are checked in but cannot be applied in this checkout because no non-production Supabase project is connected. Static policy verification remains mandatory and passing.
+- Authenticated multi-device personalized session authoring remains limited to assigned/published account content. The complete adaptive session planner and offline-safe resume are available in the local Demo Mode until connected backend reconciliation is explicitly designed and verified.
+- The reviewed demo pool is intentionally finite. Long plans may end early with a visible sufficiency warning rather than repeat ordinary unseen items or manufacture volume.
 
 - Browser storage and service-worker caches are device- and browser-profile-local; clearing site data removes the demo.
 - “Reconciled” offline events only mean the local queue has been processed after reconnect. No remote server receives them in this phase.
@@ -136,20 +157,21 @@
 
 ## Exact next backend phase
 
-**Connect a selected non-production Supabase project, apply and verify all four migrations, regenerate database types, run the connected auth/RLS E2E, add durable distributed AI limits/usage accounting and operational backup/monitoring, then design a separately approved blinded live AI evaluation before enabling the feature for real learners. Production promotion, payments, domains, and live AI remain separate opt-in work and must not start automatically.**
+**Connect a selected non-production Supabase project, apply and verify all five additive migrations, regenerate database types, run the 22-assertion pgTAP suite and connected auth/account-personalization E2E, then add durable authenticated offline reconciliation, distributed AI limits/usage accounting, backups, and monitoring. Production promotion, payments, domains, and live AI remain separate opt-in work and must not start automatically.**
 
-## Phase 8 verification
+## Phase 9 verification
 
 - Formatting, ESLint, Next.js route generation, and strict TypeScript: passed with zero errors
-- Vitest: 24 files and 84 unit/integration tests passed
-- Playwright development: 22 passed and 4 expected skips out of 26
-- Playwright production: 23 passed and 3 expected skips out of 26
+- Vitest: 30 files and 108 unit/integration tests passed
+- Playwright development: 30 passed and 4 expected skips out of 34
+- Playwright production: 31 passed and 3 expected skips out of 34
 - Accessibility: 12 representative development/production axe audits passed with zero serious or critical violations
-- Production build: passed with all 30 generation units completed
+- Production build: passed with all 33 generation units completed
 - Dependency audit: 615 packages audited with zero vulnerabilities at every severity
-- Secret scan: passed across 203 repository files with zero findings; all 62 generated browser-static files also had zero credential-pattern findings
-- Static RLS verification: all 36 exposed tables passed; the 11 connected pgTAP assertions remain gated because Supabase is not configured
-- Migration inventory: all four ordered SQL migrations are present; remote migration status is unavailable because no Supabase project is connected
-- Preview route smoke: 8 of 8 authenticated HTTP route checks passed with status 200
-- Preview browser QA: 1 full six-item student mission and 1 tutor adjudication passed; three 375 px surfaces had zero horizontal overflow; browser console diagnostics contained zero entries
-- Verified Preview: `https://project-qiel2-q374ocqnt-1-8746.vercel.app` (`dpl_4BwVEwdZdz54h111uwdL8Xdv3kez`, target `preview`, status `Ready`)
+- Secret scan: passed across 226 repository files with zero findings; 382 generated browser/server build files also had zero credential-pattern findings
+- Static RLS verification: all 42 exposed tables passed; the 22 connected pgTAP assertions remain gated because Supabase is not configured
+- Migration inventory: all five ordered SQL migrations are present; remote migration status is unavailable because no Supabase project is connected
+- Preview route smoke and browser QA: pending creation of the immutable Phase 9 Preview after the local commit
+- Verified Preview: pending Phase 9 Preview deployment; the Phase 8 artifact remains available at `https://project-qiel2-q374ocqnt-1-8746.vercel.app`
+
+Local builds use `.next.nosync` because this checkout is under macOS Documents storage, where file-provider conflict copies previously contaminated `.next`. Vercel keeps the conventional `.next` output because `VERCEL=1`; this changes only generated output location, not application behavior or route contracts.

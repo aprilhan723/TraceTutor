@@ -15,6 +15,7 @@ import type {
   TutorAdjudicationCommand,
 } from "@/domain/tutor";
 import type { AiDiagnosisInput } from "@/domain/ai-diagnosis";
+import type { ReadingPriority } from "@/domain/study";
 import { aiDiagnosisDecisionSchema } from "@/ai/schemas";
 import {
   createBrowserLearningService,
@@ -35,6 +36,12 @@ interface TutorDemoContextValue {
   saveContent(draft: ContentEditorDraft): Promise<Record<string, string>>;
   saveLessonNotes(studentId: string, notes: string): Promise<void>;
   saveStudentNotes(studentId: string, notes: string): Promise<void>;
+  recommendStudyPlan(input: {
+    weeklyGoalMinutes: number | null;
+    readingPriority: ReadingPriority | null;
+    sessionType: "focused" | "deep" | null;
+    note: string;
+  }): Promise<void>;
   resetTutorDemo(): Promise<void>;
 }
 
@@ -153,6 +160,19 @@ export function TutorDemoProvider({ children }: { children: ReactNode }) {
     [enqueue, service],
   );
 
+  const recommendStudyPlan = useCallback(
+    (input: {
+      weeklyGoalMinutes: number | null;
+      readingPriority: ReadingPriority | null;
+      sessionType: "focused" | "deep" | null;
+      note: string;
+    }) =>
+      enqueue(async () => {
+        await service.recommendStudyPlan(demoIds.tutor, demoIds.student, input);
+      }),
+    [enqueue, service],
+  );
+
   const resetTutorDemo = useCallback(
     () =>
       enqueue(async () => {
@@ -170,6 +190,7 @@ export function TutorDemoProvider({ children }: { children: ReactNode }) {
       saveContent,
       saveLessonNotes,
       saveStudentNotes,
+      recommendStudyPlan,
       resetTutorDemo,
     }),
     [
@@ -181,6 +202,7 @@ export function TutorDemoProvider({ children }: { children: ReactNode }) {
       saveContent,
       saveLessonNotes,
       saveStudentNotes,
+      recommendStudyPlan,
     ],
   );
 

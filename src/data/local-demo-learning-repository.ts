@@ -17,8 +17,10 @@ import type {
 } from "@/domain/study";
 import type { TutorWorkspaceState } from "@/domain/tutor";
 import { DEMO_CLOCK_STORAGE_KEY } from "@/lib/clock";
+import { createStudyPlanFromLegacy } from "@/services/personalized-learning";
 
-export const DEMO_STUDY_STORAGE_KEY = "tracetutor.demo.study.v4";
+export const DEMO_STUDY_STORAGE_KEY = "tracetutor.demo.study.v5";
+export const LEGACY_DEMO_STUDY_V4_STORAGE_KEY = "tracetutor.demo.study.v4";
 export const LEGACY_DEMO_STUDY_V3_STORAGE_KEY = "tracetutor.demo.study.v3";
 export const LEGACY_DEMO_STUDY_STORAGE_KEY = "tracetutor.demo.study.v2";
 export const DEMO_TUTOR_STORAGE_KEY = "tracetutor.demo.tutor.v1";
@@ -52,6 +54,41 @@ function isStudyState(value: unknown): value is StudentStudyState {
 
   const candidate = value as Partial<StudentStudyState>;
   return (
+    candidate.version === 5 &&
+    typeof candidate.studentId === "string" &&
+    Array.isArray(candidate.attempts) &&
+    Array.isArray(candidate.reviewSchedules) &&
+    Array.isArray(candidate.diagnoses) &&
+    Array.isArray(candidate.probeResponses) &&
+    Array.isArray(candidate.retentionSchedules) &&
+    Array.isArray(candidate.missionHistory) &&
+    Array.isArray(candidate.patterns) &&
+    Array.isArray(candidate.recoveryPassUses) &&
+    Array.isArray(candidate.celebratedMilestones) &&
+    Array.isArray(candidate.offlineEvents) &&
+    Array.isArray(candidate.studySessions) &&
+    Array.isArray(candidate.dailyProgress) &&
+    Array.isArray(candidate.tutorRecommendations)
+  );
+}
+
+interface Phase4StudyState extends Omit<
+  StudentStudyState,
+  | "version"
+  | "studyPlan"
+  | "streakStats"
+  | "activeSessionId"
+  | "studySessions"
+  | "dailyProgress"
+  | "tutorRecommendations"
+> {
+  version: 4;
+}
+
+function isPhase4StudyState(value: unknown): value is Phase4StudyState {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Partial<Phase4StudyState>;
+  return (
     candidate.version === 4 &&
     typeof candidate.studentId === "string" &&
     Array.isArray(candidate.attempts) &&
@@ -65,6 +102,41 @@ function isStudyState(value: unknown): value is StudentStudyState {
     Array.isArray(candidate.celebratedMilestones) &&
     Array.isArray(candidate.offlineEvents)
   );
+}
+
+function migratePhase4State(legacy: Phase4StudyState): StudentStudyState {
+  const dailyProgress = legacy.missionHistory.map((mission) => ({
+    learnerId: legacy.studentId,
+    localDate: mission.dateKey,
+    activeSeconds: 0,
+    questionsAnswered: mission.attemptCount,
+    correctAnswers: mission.secureCount,
+    reviewsCompleted: 0,
+    transferItemsCompleted: 0,
+    diagnosticsCompleted: 0,
+    dailyCoreCompleted: mission.dayNumber > 0 && mission.mode === "standard",
+    streakEligible: mission.correctionStreakEarned,
+    goalMinutes: legacy.onboarding?.dailyStudyMinutes ?? 10,
+    createdAt: mission.completedAt,
+    updatedAt: mission.completedAt,
+  }));
+  const lastEligibleLocalDate =
+    dailyProgress.filter((entry) => entry.streakEligible).at(-1)?.localDate ??
+    null;
+  return {
+    ...legacy,
+    version: 5,
+    studyPlan: createStudyPlanFromLegacy(legacy.onboarding, legacy.updatedAt),
+    streakStats: {
+      current: legacy.correctionStreak,
+      longest: legacy.correctionStreak,
+      lastEligibleLocalDate,
+    },
+    activeSessionId: null,
+    studySessions: [],
+    dailyProgress,
+    tutorRecommendations: [],
+  };
 }
 
 type LegacyMission = Omit<StudyMission, "mode"> &
@@ -82,7 +154,7 @@ type LegacyHistory = Omit<
   >;
 
 interface Phase3StudyState extends Omit<
-  StudentStudyState,
+  Phase4StudyState,
   | "version"
   | "recoveryPassUses"
   | "celebratedMilestones"
@@ -130,7 +202,7 @@ function upgradeHistory(history: LegacyHistory[]): MissionHistoryRecord[] {
   });
 }
 
-function migratePhase3State(legacy: Phase3StudyState): StudentStudyState {
+function migratePhase3State(legacy: Phase3StudyState): Phase4StudyState {
   const missionHistory = upgradeHistory(legacy.missionHistory);
   return {
     ...legacy,
@@ -240,7 +312,7 @@ function migrateLegacyState(legacy: LegacyStudyState): StudentStudyState {
     probeResponses: [],
     retentionSchedules: [],
   };
-  return migratePhase3State(phase3);
+  return migratePhase4State(migratePhase3State(phase3));
 }
 
 function isTutorWorkspace(value: unknown): value is TutorWorkspaceState {
@@ -292,6 +364,7 @@ export class LocalDemoLearningRepository implements LearningRepository {
 
     const serialized =
       this.storage.getItem(DEMO_STUDY_STORAGE_KEY) ??
+      this.storage.getItem(LEGACY_DEMO_STUDY_V4_STORAGE_KEY) ??
       this.storage.getItem(LEGACY_DEMO_STUDY_V3_STORAGE_KEY) ??
       this.storage.getItem(LEGACY_DEMO_STUDY_STORAGE_KEY);
     if (!serialized) {
@@ -301,8 +374,13 @@ export class LocalDemoLearningRepository implements LearningRepository {
     try {
       const parsed: unknown = JSON.parse(serialized);
       if (isStudyState(parsed)) return parsed;
+      if (isPhase4StudyState(parsed)) {
+        const migrated = migratePhase4State(parsed);
+        await this.saveStudyState(migrated);
+        return migrated;
+      }
       if (isPhase3StudyState(parsed)) {
-        const migrated = migratePhase3State(parsed);
+        const migrated = migratePhase4State(migratePhase3State(parsed));
         await this.saveStudyState(migrated);
         return migrated;
       }
@@ -323,6 +401,7 @@ export class LocalDemoLearningRepository implements LearningRepository {
 
   async resetStudyState(studentId: string) {
     this.storage.removeItem(DEMO_STUDY_STORAGE_KEY);
+    this.storage.removeItem(LEGACY_DEMO_STUDY_V4_STORAGE_KEY);
     this.storage.removeItem(LEGACY_DEMO_STUDY_V3_STORAGE_KEY);
     this.storage.removeItem(LEGACY_DEMO_STUDY_STORAGE_KEY);
     this.storage.removeItem(DEMO_TUTOR_STORAGE_KEY);

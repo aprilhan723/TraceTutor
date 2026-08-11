@@ -153,7 +153,7 @@ export default function HomePage() {
                 </div>
               </div>
               <div className="soft-float-delayed absolute -right-2 -bottom-8 rotate-3 rounded-2xl bg-violet px-5 py-4 text-white shadow-xl sm:-right-8">
-                <p className="text-[0.62rem] font-bold tracking-[0.15em] text-white/65 uppercase">
+                <p className="text-[0.62rem] font-bold tracking-[0.15em] text-white uppercase">
                   Correction signal
                 </p>
                 <p className="mt-1 font-editorial text-xl">

@@ -20,14 +20,21 @@ async function expectNoSeriousAccessibilityViolations(page: Page) {
 
 async function onboard(page: Page) {
   await page.goto("/student/today");
-  await page.getByLabel("Target test date").fill("2026-09-15");
+  await page.getByRole("radio", { name: /Daily Rhythm/i }).check();
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("radio", { name: /developing/i }).check();
-  await page.getByRole("radio", { name: "10 minutes" }).check();
+  await page.getByLabel("Current Reading level").selectOption("3.5");
+  await page.getByLabel("Target Reading score").selectOption("5");
+  await page.getByLabel(/Target test date/i).fill("2026-09-15");
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByLabel("Preferred reminder time").fill("19:30");
-  await page.getByRole("radio", { name: "Finding evidence" }).check();
-  await page.getByRole("button", { name: /build my sprint/i }).click();
+  await page.getByLabel(/Default study time/i).fill("10");
+  await page.getByLabel("Study days per week").selectOption("5");
+  await page.getByLabel(/Preferred time/i).fill("19:30");
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page
+    .locator("label")
+    .filter({ hasText: /^Mistake review$/ })
+    .click();
+  await page.getByRole("button", { name: /build my plan/i }).click();
   await page.getByRole("button", { name: "Skip tour" }).click();
 }
 

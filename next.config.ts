@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // macOS may sync Documents through iCloud and restore stale `.next` files as
+  // conflict copies. Keep local generated output in a `.nosync` directory;
+  // Vercel retains its conventional build directory.
+  distDir: process.env.VERCEL ? ".next" : ".next.nosync",
   typedRoutes: true,
   async headers() {
     return [

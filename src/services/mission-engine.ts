@@ -6,7 +6,7 @@ import {
 } from "@/data/practice-content";
 import type { MistakeCategory } from "@/domain/models";
 import type {
-  DailyStudyMinutes,
+  LearnerStudyPlan,
   MainStruggle,
   MissionItemRef,
   StudentStudyState,
@@ -32,6 +32,23 @@ const struggleTargets: Record<
   "not-sure": { category: "evidence-drift", label: "Evidence drift" },
 };
 
+const priorityTargets: Record<
+  LearnerStudyPlan["readingPriority"],
+  { category: MistakeCategory; label: string }
+> = {
+  balanced: { category: "evidence-drift", label: "Evidence precision" },
+  "complete-words": { category: "word-form", label: "Word-form signal" },
+  "daily-life": { category: "purpose-confusion", label: "Purpose and detail" },
+  academic: {
+    category: "inference-overreach",
+    label: "Academic inference limits",
+  },
+  "mistake-review": {
+    category: "evidence-drift",
+    label: "Recurring evidence pattern",
+  },
+};
+
 function completedSprintDays(state: StudentStudyState) {
   return state.missionHistory.filter((mission) => mission.dayNumber > 0).length;
 }
@@ -42,10 +59,6 @@ export function getProgramDateKey(state: StudentStudyState, clock: Clock) {
 
 export function getNextDayNumber(state: StudentStudyState) {
   return Math.min(15, completedSprintDays(state) + 1);
-}
-
-function speedItemCount(minutes: DailyStudyMinutes) {
-  return minutes === 5 ? 2 : 3;
 }
 
 function createEntry(
@@ -71,7 +84,7 @@ export function createMissionForState(
   state: StudentStudyState,
   clock: Clock,
 ): StudyMission | null {
-  if (!state.onboarding) {
+  if (!state.studyPlan?.onboardingCompletedAt && !state.onboarding) {
     return null;
   }
 
@@ -85,7 +98,9 @@ export function createMissionForState(
   }
 
   const dateKey = getProgramDateKey(state, clock);
-  const target = struggleTargets[state.onboarding.mainStruggle];
+  const target = state.studyPlan
+    ? priorityTargets[state.studyPlan.readingPriority]
+    : struggleTargets[state.onboarding?.mainStruggle ?? "not-sure"];
   const items: MissionItemRef[] = [];
 
   const dueRetention = state.retentionSchedules
@@ -124,7 +139,7 @@ export function createMissionForState(
     });
   }
 
-  const ctwCount = speedItemCount(state.onboarding.dailyStudyMinutes);
+  const ctwCount = 3;
   for (let index = 0; index < ctwCount; index += 1) {
     const contentIndex =
       ((dayNumber - 1) * 3 + index) % completeWordsItems.length;
@@ -142,17 +157,6 @@ export function createMissionForState(
     items.push(createEntry(thinkingItem.id, "thinking", `day-${dayNumber}`));
   }
 
-  if (state.onboarding.dailyStudyMinutes === 15) {
-    const extraPool =
-      dayNumber % 2 === 1 ? academicQuestions : dailyLifeQuestions;
-    const extraItem = extraPool[thinkingIndex % extraPool.length];
-    if (extraItem) {
-      items.push(
-        createEntry(extraItem.id, "thinking", `extra-day-${dayNumber}`),
-      );
-    }
-  }
-
   const transferTriggered = state.attempts.some(
     (attempt) => attempt.result !== "secure",
   );
@@ -164,6 +168,7 @@ export function createMissionForState(
   }
 
   const now = clock.now().toISOString();
+  const dailyCoreEntryIds = items.map((entry) => entry.entryId);
   return {
     id: `mission-${dateKey}-day-${String(dayNumber).padStart(2, "0")}`,
     studentId: state.studentId,
@@ -172,9 +177,10 @@ export function createMissionForState(
     title: `Day ${dayNumber}: Correct the pattern, then prove the transfer`,
     primaryTarget: target.category,
     primaryTargetLabel: target.label,
-    estimatedMinutes: state.onboarding.dailyStudyMinutes,
+    estimatedMinutes: 10,
     mode: "standard",
     items,
+    dailyCoreEntryIds,
     currentIndex: 0,
     drafts: {},
     attemptIdsByEntry: {},

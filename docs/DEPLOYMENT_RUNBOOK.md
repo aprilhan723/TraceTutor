@@ -2,7 +2,7 @@
 
 ## Deployment boundary
 
-TraceTutor Phase 8 uses a Vercel **Preview** deployment only. The Preview environment is the staging environment for this phase. Do not run `vercel --prod`, promote a deployment, attach a production/custom domain, create a paid custom environment, or purchase any plan or add-on.
+TraceTutor Phase 9 uses a Vercel **Preview** deployment only. The Preview environment is the staging environment for this phase. Do not run `vercel --prod`, promote a deployment, attach a production/custom domain, create a paid custom environment, or purchase any plan or add-on.
 
 The initial preview intentionally runs in Demo Mode:
 
@@ -57,10 +57,12 @@ Environment variables are added only to the Vercel **Preview** environment throu
 2. Run `vercel whoami` to verify the selected account.
 3. Run `vercel link` only if the directory is not already linked. Deliberately select the free/default scope and project; do not accept an upgrade or add-on.
 4. Audit the Preview variable names with `vercel env ls preview`. Do not download or print values.
-5. Confirm `vercel project inspect` reports the expected project and that the checked `vercel.json` forces the `nextjs` framework even if an empty project began with Vercel's `Other` preset.
+5. Confirm `vercel project inspect` reports the expected project, the checked `vercel.json` forces the `nextjs` framework even if an empty project began with Vercel's `Other` preset, and `.vercelignore` excludes local dependencies, generated output, environment files, and test artifacts.
 6. Run `vercel deploy --target=preview --logs` from the repository root.
 7. Run `vercel inspect <url>` and require both `target: preview` and `status: Ready` before smoke testing.
 8. Record the immutable Preview URL and deployment ID. Do not alias it to a production domain and do not promote it.
+
+Local builds write to `.next.nosync` to avoid macOS file-provider conflict artifacts in Documents. Vercel sets `VERCEL=1`, which intentionally restores the platform-standard `.next` output for the remote build; neither generated directory is uploaded as source.
 
 ## Post-deployment verification
 
@@ -91,6 +93,10 @@ Because Demo Mode stores state in browser storage, use a fresh browser profile w
 
 The empty project's first upload was automatically marked Production by Vercel even though `--target=preview` was supplied. It was never manually promoted and was left unmodified to honor the no-delete/no-reset rule. Two early uploads returned 404 while the empty project retained its `Other` framework preset. The checked `vercel.json` corrected the preset before the verified Preview above.
 
+## Phase 9 release rule
+
+Deploy only after the complete formatter/lint/type/unit/RLS/E2E/build/audit/secret preflight passes and the local checkpoint tag `before-personalized-learning-modes` remains resolvable. The Phase 9 preview must expose zero application variables unless a separately selected non-production Supabase project is connected. Smoke Home, Study, Reviews, Progress, Settings, a 30-minute pause/resume, a 90-minute block plan, tutor engagement/recommendation, and 390/768/1440 px layouts before recording the new immutable preview URL.
+
 ## Release decision
 
-The preview is ready to share only when all available checks pass and every unavailable connected check is listed as a limitation. Phase 8 never promotes the preview to Production.
+The preview is ready to share only when all available checks pass and every unavailable connected check is listed as a limitation. Phase 9 never promotes the preview to Production.

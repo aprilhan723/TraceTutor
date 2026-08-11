@@ -1,0 +1,23 @@
+# Local dependencies and generated outputs
+node_modules
+.next
+.next.nosync
+out
+build
+coverage
+
+# Local credentials and platform state
+.env*
+.vercel
+*.pem
+
+# Local test, editor, and agent artifacts
+playwright-report
+test-results
+.codex-docs
+*.docx
+.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*

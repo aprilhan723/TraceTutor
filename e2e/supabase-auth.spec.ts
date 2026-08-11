@@ -104,7 +104,7 @@ test.describe("connected Supabase account lifecycle", () => {
     await studentPage.getByLabel("student", { exact: true }).check();
     await studentPage.getByRole("button", { name: "Continue" }).click();
     await studentPage
-      .getByRole("button", { name: "Save and see Today" })
+      .getByRole("button", { name: "Build my personalized plan" })
       .click();
 
     await tutorPage.reload();

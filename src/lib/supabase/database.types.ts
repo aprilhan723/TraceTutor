@@ -28,6 +28,11 @@ type Timestamped = {
 
 export type AccountRole = "student" | "tutor";
 export type ContentStatus = "draft" | "reviewed" | "published" | "retired";
+export type LearningStyle = "daily_rhythm" | "deep_focus";
+export type ReadingPriority =
+  "balanced" | "complete_words" | "daily_life" | "academic" | "mistake_review";
+export type StudySessionType =
+  "daily_core" | "quick" | "focused" | "deep" | "intensive" | "custom";
 
 export interface Database {
   public: {
@@ -566,6 +571,201 @@ export interface Database {
           created_at?: string;
         }
       >;
+      learner_study_plans: Table<
+        Timestamped & {
+          learner_id: string;
+          learning_style: LearningStyle;
+          default_daily_minutes: number;
+          weekly_goal_minutes: number;
+          study_days_per_week: number;
+          current_reading_level: number | null;
+          target_reading_score: number | null;
+          target_test_date: string | null;
+          reading_priority: ReadingPriority;
+          preferred_study_time: string | null;
+          timezone: string;
+          onboarding_completed_at: string | null;
+        },
+        {
+          learner_id: string;
+          learning_style: LearningStyle;
+          default_daily_minutes: number;
+          weekly_goal_minutes: number;
+          study_days_per_week: number;
+          current_reading_level?: number | null;
+          target_reading_score?: number | null;
+          target_test_date?: string | null;
+          reading_priority?: ReadingPriority;
+          preferred_study_time?: string | null;
+          timezone: string;
+          onboarding_completed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        }
+      >;
+      study_sessions: Table<
+        Timestamped & {
+          id: string;
+          learner_id: string;
+          session_type: StudySessionType;
+          status: "planned" | "active" | "paused" | "completed" | "abandoned";
+          source: "dashboard" | "tutor_assignment" | "review_queue" | "library";
+          topic: string;
+          planned_minutes: number;
+          available_minutes: number;
+          active_seconds: number;
+          questions_answered: number;
+          correct_answers: number;
+          due_reviews_completed: number;
+          transfer_items_completed: number;
+          diagnostic_loops_completed: number;
+          include_due_reviews: boolean;
+          timed: boolean;
+          plan: Json;
+          content_shortage: boolean;
+          shortage_message: string | null;
+          started_at: string | null;
+          last_activity_at: string | null;
+          paused_at: string | null;
+          completed_at: string | null;
+          ended_after_block_key: string | null;
+        },
+        {
+          id?: string;
+          learner_id: string;
+          session_type: StudySessionType;
+          status?: "planned" | "active" | "paused" | "completed" | "abandoned";
+          source?:
+            "dashboard" | "tutor_assignment" | "review_queue" | "library";
+          topic: string;
+          planned_minutes: number;
+          available_minutes: number;
+          active_seconds?: number;
+          questions_answered?: number;
+          correct_answers?: number;
+          due_reviews_completed?: number;
+          transfer_items_completed?: number;
+          diagnostic_loops_completed?: number;
+          include_due_reviews?: boolean;
+          timed?: boolean;
+          plan?: Json;
+          content_shortage?: boolean;
+          shortage_message?: string | null;
+          started_at?: string | null;
+          last_activity_at?: string | null;
+          paused_at?: string | null;
+          completed_at?: string | null;
+          ended_after_block_key?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        }
+      >;
+      daily_learner_progress: Table<
+        Timestamped & {
+          id: string;
+          learner_id: string;
+          local_date: string;
+          active_seconds: number;
+          questions_answered: number;
+          correct_answers: number;
+          reviews_completed: number;
+          transfer_items_completed: number;
+          diagnostics_completed: number;
+          daily_core_completed: boolean;
+          streak_eligible: boolean;
+          goal_minutes: number;
+        },
+        {
+          id?: string;
+          learner_id: string;
+          local_date: string;
+          active_seconds?: number;
+          questions_answered?: number;
+          correct_answers?: number;
+          reviews_completed?: number;
+          transfer_items_completed?: number;
+          diagnostics_completed?: number;
+          daily_core_completed?: boolean;
+          streak_eligible?: boolean;
+          goal_minutes: number;
+          created_at?: string;
+          updated_at?: string;
+        }
+      >;
+      learner_streak_stats: Table<
+        {
+          learner_id: string;
+          current_streak: number;
+          longest_streak: number;
+          last_eligible_local_date: string | null;
+          updated_at: string;
+        },
+        {
+          learner_id: string;
+          current_streak?: number;
+          longest_streak?: number;
+          last_eligible_local_date?: string | null;
+          updated_at?: string;
+        }
+      >;
+      study_activity_events: Table<
+        {
+          id: string;
+          session_id: string;
+          learner_id: string;
+          client_event_id: string;
+          local_date: string;
+          active_seconds: number;
+          questions_answered: number;
+          correct_answers: number;
+          reviews_completed: number;
+          transfer_items_completed: number;
+          diagnostics_completed: number;
+          created_at: string;
+        },
+        {
+          id?: string;
+          session_id: string;
+          learner_id: string;
+          client_event_id: string;
+          local_date: string;
+          active_seconds?: number;
+          questions_answered?: number;
+          correct_answers?: number;
+          reviews_completed?: number;
+          transfer_items_completed?: number;
+          diagnostics_completed?: number;
+          created_at?: string;
+        }
+      >;
+      tutor_study_recommendations: Table<
+        {
+          id: string;
+          organization_id: string;
+          tutor_id: string;
+          student_id: string;
+          weekly_goal_minutes: number | null;
+          reading_priority: ReadingPriority | null;
+          session_type: StudySessionType | null;
+          note: string;
+          acknowledged_at: string | null;
+          decision: "accepted" | "kept_current" | null;
+          created_at: string;
+        },
+        {
+          id?: string;
+          organization_id: string;
+          tutor_id: string;
+          student_id: string;
+          weekly_goal_minutes?: number | null;
+          reading_priority?: ReadingPriority | null;
+          session_type?: StudySessionType | null;
+          note: string;
+          acknowledged_at?: string | null;
+          decision?: "accepted" | "kept_current" | null;
+          created_at?: string;
+        }
+      >;
       audit_logs: Table<
         {
           id: string;
@@ -667,10 +867,39 @@ export interface Database {
         };
         Returns: string;
       };
+      record_study_activity: {
+        Args: {
+          p_session_id: string;
+          p_client_event_id: string;
+          p_local_date: string;
+          p_active_seconds?: number;
+          p_questions_answered?: number;
+          p_correct_answers?: number;
+          p_reviews_completed?: number;
+          p_transfer_items_completed?: number;
+          p_diagnostics_completed?: number;
+        };
+        Returns: boolean;
+      };
+      complete_daily_core: {
+        Args: { p_local_date: string; p_goal_minutes: number };
+        Returns: Json;
+      };
+      respond_to_study_recommendation: {
+        Args: { p_recommendation_id: string; p_accept: boolean };
+        Returns: undefined;
+      };
     };
     Enums: {
       account_role: AccountRole;
       content_status: ContentStatus;
+      learning_style: LearningStyle;
+      reading_priority: ReadingPriority;
+      study_session_type: StudySessionType;
+      study_session_status:
+        "planned" | "active" | "paused" | "completed" | "abandoned";
+      study_session_source:
+        "dashboard" | "tutor_assignment" | "review_queue" | "library";
     };
     CompositeTypes: Record<never, never>;
   };

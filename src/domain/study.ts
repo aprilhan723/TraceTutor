@@ -39,6 +39,36 @@ export interface OnboardingProfile {
   completedAt: string;
 }
 
+export const learningStyles = ["daily-rhythm", "deep-focus"] as const;
+export type LearningStyle = (typeof learningStyles)[number];
+
+export const readingPriorities = [
+  "balanced",
+  "complete-words",
+  "daily-life",
+  "academic",
+  "mistake-review",
+] as const;
+export type ReadingPriority = (typeof readingPriorities)[number];
+
+export const studyMinutePresets = [10, 15, 30, 45, 60, 90, 120] as const;
+export type StudyMinutePreset = (typeof studyMinutePresets)[number];
+
+export interface LearnerStudyPlan {
+  learningStyle: LearningStyle;
+  defaultDailyMinutes: number;
+  weeklyGoalMinutes: number;
+  studyDaysPerWeek: number;
+  currentReadingLevel: number | null;
+  targetReadingScore: number | null;
+  targetTestDate: string | null;
+  readingPriority: ReadingPriority;
+  timezone: string;
+  preferredStudyTime: string | null;
+  onboardingCompletedAt: string | null;
+  updatedAt: string;
+}
+
 export type AnswerConfidence = "guessing" | "think-so" | "certain";
 export type ResultState = "secure" | "unstable" | "diagnose";
 export type PatternStatus =
@@ -106,7 +136,7 @@ export type PracticeItem =
 export type MissionPartKind = "review" | "speed" | "thinking" | "transfer";
 export type ReviewCadence = "D2" | "D7";
 export type MissionMode =
-  "standard" | "light" | "weekly-boss" | "tutor-assigned";
+  "standard" | "light" | "weekly-boss" | "tutor-assigned" | "study-session";
 export type StreakReason =
   "due-review" | "full-correction-loop" | "transfer-check" | "tutor-assigned";
 
@@ -151,6 +181,8 @@ export interface StudyMission {
   estimatedMinutes: number;
   mode: MissionMode;
   items: MissionItemRef[];
+  dailyCoreEntryIds?: string[];
+  sessionId?: string;
   currentIndex: number;
   drafts: Record<string, AnswerDraft>;
   attemptIdsByEntry: Record<string, string>;
@@ -158,6 +190,113 @@ export interface StudyMission {
   startedAt: string | null;
   lastSavedAt: string;
   completedAt: string | null;
+}
+
+export const studySessionTypes = [
+  "daily-core",
+  "quick",
+  "focused",
+  "deep",
+  "intensive",
+  "custom",
+] as const;
+export type StudySessionType = (typeof studySessionTypes)[number];
+export type StudySessionStatus =
+  "planned" | "active" | "paused" | "completed" | "abandoned";
+export type StudySessionSource =
+  "dashboard" | "tutor-assignment" | "review-queue" | "library";
+export type StudyTopic =
+  | "adaptive-mix"
+  | "complete-words"
+  | "daily-life"
+  | "academic"
+  | "mistake-review"
+  | "due-reviews"
+  | "timed-mixed";
+export type StudyActivityType =
+  | "daily-core"
+  | "due-review"
+  | "complete-words"
+  | "daily-life"
+  | "academic"
+  | "mistake-review"
+  | "transfer"
+  | "timed-mixed"
+  | "break"
+  | "summary";
+
+export interface StudyPlanBlock {
+  id: string;
+  title: string;
+  detail: string;
+  activityType: StudyActivityType;
+  estimatedMinutes: number;
+  itemIds: PracticeItem["id"][];
+  missionEntryIds: string[];
+  status: "upcoming" | "active" | "completed" | "skipped";
+  breakMinutes: number;
+}
+
+export interface StudySession {
+  id: string;
+  learnerId: string;
+  sessionType: StudySessionType;
+  topic: StudyTopic;
+  plannedMinutes: number;
+  availableMinutes: number;
+  activeSeconds: number;
+  startedAt: string | null;
+  lastActivityAt: string | null;
+  completedAt: string | null;
+  pausedAt: string | null;
+  status: StudySessionStatus;
+  questionsAnswered: number;
+  correctAnswers: number;
+  dueReviewsCompleted: number;
+  transferItemsCompleted: number;
+  diagnosticLoopsCompleted: number;
+  source: StudySessionSource;
+  includeDueReviews: boolean;
+  timed: boolean;
+  blocks: StudyPlanBlock[];
+  contentShortage: boolean;
+  shortageMessage: string | null;
+  endedAfterBlockId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DailyLearnerProgress {
+  learnerId: string;
+  localDate: string;
+  activeSeconds: number;
+  questionsAnswered: number;
+  correctAnswers: number;
+  reviewsCompleted: number;
+  transferItemsCompleted: number;
+  diagnosticsCompleted: number;
+  dailyCoreCompleted: boolean;
+  streakEligible: boolean;
+  goalMinutes: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CorrectionStreakStats {
+  current: number;
+  longest: number;
+  lastEligibleLocalDate: string | null;
+}
+
+export interface TutorStudyRecommendation {
+  id: string;
+  recommendedAt: string;
+  weeklyGoalMinutes: number | null;
+  readingPriority: ReadingPriority | null;
+  sessionType: "focused" | "deep" | null;
+  note: string;
+  acknowledgedAt: string | null;
+  decision: "accepted" | "kept-current" | null;
 }
 
 export interface StudyAttempt {
@@ -200,6 +339,7 @@ export interface MissionHistoryRecord {
   mode: MissionMode;
   correctionStreakEarned: boolean;
   streakReason: StreakReason | null;
+  activeMinutes?: number;
 }
 
 export interface RecoveryPassUse {
@@ -243,16 +383,22 @@ export interface StudentPatternRecord {
 }
 
 export interface StudentStudyState {
-  version: 4;
+  version: 5;
   studentId: string;
   onboarding: OnboardingProfile | null;
+  studyPlan: LearnerStudyPlan | null;
   correctionStreak: number;
+  streakStats: CorrectionStreakStats;
   recoveryPasses: number;
   recoveryPassUses: RecoveryPassUse[];
   celebratedMilestones: MilestoneId[];
   offlineEvents: OfflineAttemptEvent[];
   activeMission: StudyMission | null;
   parkedMission: StudyMission | null;
+  activeSessionId: string | null;
+  studySessions: StudySession[];
+  dailyProgress: DailyLearnerProgress[];
+  tutorRecommendations: TutorStudyRecommendation[];
   attempts: StudyAttempt[];
   reviewSchedules: ReviewSchedule[];
   diagnoses: DiagnosisRecord[];
@@ -279,4 +425,22 @@ export interface StudentProgressMetrics {
   calibratedAttempts: number;
   confidenceAttempts: number;
   calibrationPercentage: number;
+  currentCorrectionStreak: number;
+  longestCorrectionStreak: number;
+  todayActiveMinutes: number;
+  weeklyActiveMinutes: number;
+  weeklyGoalMinutes: number;
+  activeStudyDays: number;
+  totalQuestionsAnswered: number;
+  recentAccuracy: number | null;
+  sevenDayAccuracy: number | null;
+  thirtyDayAccuracy: number | null;
+  highConfidenceWrongRate: number | null;
+  dueReviewCompletionRate: number | null;
+  immediateTransferRate: number | null;
+  d2RetentionRate: number | null;
+  d7RetentionRate: number | null;
+  recurringErrorCount: number;
+  correctedErrorCount: number;
+  hasAccuracyTrend: boolean;
 }

@@ -24,8 +24,8 @@ export function StudentExperienceGate({ children }: { children: ReactNode }) {
   return (
     <>
       {children}
-      {!state?.onboarding ? <OnboardingFlow /> : null}
-      {state?.onboarding ? <ProductTour /> : null}
+      {!state?.studyPlan?.onboardingCompletedAt ? <OnboardingFlow /> : null}
+      {state?.studyPlan?.onboardingCompletedAt ? <ProductTour /> : null}
     </>
   );
 }

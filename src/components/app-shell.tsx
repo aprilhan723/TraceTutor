@@ -18,6 +18,7 @@ interface AppShellProps {
   demoMode?: boolean;
   demoDesktopControl?: ReactNode;
   demoMobileControl?: ReactNode;
+  headerStatus?: ReactNode;
 }
 
 interface NavigationItem {
@@ -28,10 +29,12 @@ interface NavigationItem {
 
 const navigation: Record<AppRole, NavigationItem[]> = {
   student: [
-    { href: "/student/today", label: "Today", symbol: "○" },
+    { href: "/student/today", label: "Home", symbol: "○" },
+    { href: "/student/study", label: "Study", symbol: "◇" },
+    { href: "/student/reviews", label: "Reviews", symbol: "↺" },
     { href: "/student/mistake-map", label: "Mistake Map", symbol: "⌁" },
     { href: "/student/progress", label: "Progress", symbol: "↗" },
-    { href: "/student/weekly-report", label: "Weekly", symbol: "▤" },
+    { href: "/student/settings", label: "Settings", symbol: "⚙" },
   ],
   tutor: [
     { href: "/tutor/dashboard", label: "Dashboard", symbol: "◇" },
@@ -60,7 +63,7 @@ function NavigationLinks({
         className={cn(
           "group flex items-center rounded-2xl font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coral",
           mobile
-            ? "min-h-14 flex-1 flex-col justify-center gap-0.5 px-1 text-[0.65rem]"
+            ? "min-h-14 min-w-0 flex-1 flex-col justify-center gap-0.5 px-0.5 text-[0.58rem] sm:text-[0.65rem]"
             : "min-h-12 gap-3 px-4 text-sm",
           active
             ? "bg-violet text-white"
@@ -90,6 +93,7 @@ export function AppShell({
   demoMode = true,
   demoDesktopControl,
   demoMobileControl,
+  headerStatus,
 }: AppShellProps) {
   const pathname = usePathname();
   const practiceMode = pathname.startsWith("/student/practice/");
@@ -175,6 +179,7 @@ export function AppShell({
             </>
           )}
           <div className="flex items-center gap-2">
+            {headerStatus}
             {demoMode ? <Badge tone="violet">Demo Mode</Badge> : null}
             {!practiceMode && demoMobileControl ? demoMobileControl : null}
             {demoMode && !practiceMode ? (
