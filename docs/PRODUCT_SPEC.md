@@ -262,3 +262,12 @@ TraceTutor is independent practice software and is not endorsed by or affiliated
 - Service-role browser access, automatic fake-history migration, and claims of multi-device offline sync
 - Production SMTP, custom domains, monitoring, backups, and deployment configuration
 - Paid live model evaluation without separate human approval
+
+## Phase 8 preview release
+
+- TraceTutor may be shared through one Vercel Preview deployment for staging review only.
+- The staging release defaults to the complete, visibly labeled browser-local Demo Mode and requires no database or AI secret.
+- Student and tutor demo entry, mission persistence, tutor review, PWA behavior, trust copy, and mobile layout must be smoke-tested on the actual preview URL.
+- A disabled Supabase connection means account creation and connected RLS lifecycle checks remain documented limitations, not simulated production behavior.
+- The preview must not be promoted to Production, attached to a purchased/custom domain, or described as a production service.
+- Rollback is non-destructive: deploy the previous verified commit as another immutable Preview and stop sharing the failing URL.

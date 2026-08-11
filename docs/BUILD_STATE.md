@@ -2,7 +2,7 @@
 
 ## Current phase
 
-**Phase 7: implemented as an optional, tutor-reviewed AI diagnosis enhancement. The deterministic engine, authenticated architecture, and complete browser-local demo remain independent and fully functional.**
+**Phase 8: a release-candidate Vercel Preview is implemented and verified in browser-local Demo Mode. The deterministic engine, authenticated architecture, optional tutor-reviewed AI adapter, and complete local fallback remain intact.**
 
 ## Implemented
 
@@ -89,18 +89,31 @@
 - Append-only `ai_diagnosis_suggestions` migration with tutor-only RLS, direct client mutation revocation, an idempotent scope-checking record function, and no raw prompt or identity storage
 - Static RLS verification expanded across all ordered migrations and 36 exposed tables; pgTAP adds tutor-only AI audit isolation assertions
 - Dedicated AI evaluation documentation and `test:ai` script; no paid live evaluation was run
+- Checked Vercel project configuration with an explicit Next.js framework preset and Node.js 24 runtime pin
+- External-base-URL Playwright support for protected or public Preview smoke runs without changing the local E2E workflow
+- Preview deployment and non-destructive rollback runbooks with public/server environment scoping, preflight, smoke, and incident guidance
+- Vercel Preview deployment in visibly labeled Demo Mode with no Supabase or OpenAI application variable uploaded
+- Actual-preview student QA through all six mission items and actual-preview tutor QA through an audited diagnosis approval
+- Actual-preview HTTP smoke coverage for landing, both demo entries, sign-in, student Today/practice, tutor dashboard, and tutor diagnosis review
+- Actual-preview 375 px rendering verification for landing, student Today, and tutor dashboard with no horizontal overflow
 
 ## Deferred by design
 
 - AI-generated practice content or autonomous diagnosis
 - Paid live model evaluation without separate approval
 - PDF generation (browser print is implemented)
-- Payments, remote notifications, and deployment
+- Payments, remote notifications, and Production release/promotion
 - Official score estimates or predictions
 - Push notifications, public rankings, XP, fake scarcity, or attendance-only rewards
 - Background sync, true server reconciliation, and multi-device guarantees
 
-## Known Phase 7 limitations
+## Known Phase 8 limitations
+
+- The selected Vercel project began as an empty project. Vercel automatically assigned the first CLI upload to its Production target even though the command explicitly used `--target=preview`. TraceTutor did not request or perform a Production promotion, attach a domain, or upload application secrets. That immutable first record was left untouched because this phase forbids deletion/reset of remote data. The verified staging artifact is the later deployment whose target is explicitly `preview`.
+- Vercel Authentication protects the Preview. Signed-in browser QA and authenticated `vercel curl` smoke checks pass, but unauthenticated remote Playwright receives Vercel's login page. The Preview was not made public without separate authorization.
+- The selected Vercel Preview has zero application environment variables. It intentionally runs Demo Mode only; Supabase authentication, auth callback success, connected protected-route isolation, and pgTAP RLS cannot be exercised remotely until a non-production Supabase project is explicitly connected.
+- Browser-local demo progress is isolated to one browser profile and is not multi-device synchronization. Preview redeployments do not migrate that local data.
+- The first two upload attempts used the empty project's `Other` framework preset and returned 404. The checked `vercel.json` now forces `nextjs`; the verified Preview builds and serves all expected routes.
 
 - Live AI is intentionally off unless `TRACETUTOR_LIVE_AI_ENABLED=true`; this phase made no paid API request even though a secure local server key is available.
 - Rate limits, circuit state, idempotency cache, and usage totals are process-local. A multi-instance deployment needs a durable shared store before live AI is enabled.
@@ -123,23 +136,20 @@
 
 ## Exact next backend phase
 
-**Connect a selected Supabase project, apply and verify all four migrations, regenerate database types, run the connected auth/RLS E2E, add durable distributed AI limits/usage accounting and operational backup/monitoring, then design a separately approved blinded live AI evaluation before enabling the feature for real learners. Payments and deployment remain separate opt-in work and must not start automatically.**
+**Connect a selected non-production Supabase project, apply and verify all four migrations, regenerate database types, run the connected auth/RLS E2E, add durable distributed AI limits/usage accounting and operational backup/monitoring, then design a separately approved blinded live AI evaluation before enabling the feature for real learners. Production promotion, payments, domains, and live AI remain separate opt-in work and must not start automatically.**
 
-## Verification
+## Phase 8 verification
 
-- Dependency install: passed with `@supabase/ssr` 0.12.4, `@supabase/supabase-js` 2.112.2, OpenAI 7.4.0, and Zod 4.4.3; 490 packages audited with zero vulnerabilities and no secret or service-role dependency added
-- Prettier write and format check: passed
-- ESLint: passed with zero warnings or errors
-- Strict TypeScript and Next.js route type generation: passed
-- Focused mocked AI suite: 6 files and 18 tests passed; no paid live request or live evaluation was made
-- Vitest repeated stability run: 24 files and 84 tests passed in each of two consecutive full runs
-- Static RLS verification: passed for all 36 exposed tables; each is RLS-enabled and policy-covered, with sensitive direct mutations revoked
-- pgTAP policy suite: 11 cross-user assertions committed but not run because no local Supabase/Postgres runtime is installed or connected
-- Playwright development run: 22 passed, 4 intentionally skipped (two production-only offline cases and two credential-gated Supabase lifecycle cases)
-- Playwright production run: 23 passed, 3 intentionally skipped (one duplicate mobile offline case and two credential-gated Supabase lifecycle cases)
-- Focused production PWA regression check: 1 passed after separating demo-cache and authenticated no-store behavior
-- Connected Supabase lifecycle E2E: implemented for tutor registration → invite → student join → assignment → response → linked-tutor visibility, but intentionally skipped until public project configuration and a local test inbox are available
-- Accessibility: six representative development and six production desktop/mobile axe audits passed with zero serious or critical violations
-- Production build: passed; all 30 generation units completed, including the new dynamic AI diagnosis route, alongside Next.js Proxy
-- Secret scan: passed across 200 tracked/untracked repository files with zero findings
-- Browser QA: passed at 1280×720 and 375×812 for the tutor AI-review boundary and student approved-explanation boundary, with zero console warnings/errors and zero horizontal overflow
+- Formatting, ESLint, Next.js route generation, and strict TypeScript: passed with zero errors
+- Vitest: 24 files and 84 unit/integration tests passed
+- Playwright development: 22 passed and 4 expected skips out of 26
+- Playwright production: 23 passed and 3 expected skips out of 26
+- Accessibility: 12 representative development/production axe audits passed with zero serious or critical violations
+- Production build: passed with all 30 generation units completed
+- Dependency audit: 615 packages audited with zero vulnerabilities at every severity
+- Secret scan: passed across 203 repository files with zero findings; all 62 generated browser-static files also had zero credential-pattern findings
+- Static RLS verification: all 36 exposed tables passed; the 11 connected pgTAP assertions remain gated because Supabase is not configured
+- Migration inventory: all four ordered SQL migrations are present; remote migration status is unavailable because no Supabase project is connected
+- Preview route smoke: 8 of 8 authenticated HTTP route checks passed with status 200
+- Preview browser QA: 1 full six-item student mission and 1 tutor adjudication passed; three 375 px surfaces had zero horizontal overflow; browser console diagnostics contained zero entries
+- Verified Preview: `https://project-qiel2-q374ocqnt-1-8746.vercel.app` (`dpl_4BwVEwdZdz54h111uwdL8Xdv3kez`, target `preview`, status `Ready`)

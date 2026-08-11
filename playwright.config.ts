@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const productionE2E = process.env.E2E_PRODUCTION === "1";
+const externalBaseUrl = process.env.E2E_BASE_URL?.trim();
 
 export default defineConfig({
   testDir: "./e2e",
@@ -11,7 +12,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: "list",
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL: externalBaseUrl || "http://localhost:3000",
     trace: "on-first-retry",
   },
   projects: [
@@ -24,12 +25,14 @@ export default defineConfig({
       use: { ...devices["Pixel 7"] },
     },
   ],
-  webServer: {
-    command: productionE2E
-      ? "node node_modules/next/dist/bin/next start -p 3000"
-      : "node node_modules/next/dist/bin/next dev --webpack -p 3000",
-    url: "http://localhost:3000",
-    reuseExistingServer: !process.env.CI && !productionE2E,
-    timeout: 120_000,
-  },
+  webServer: externalBaseUrl
+    ? undefined
+    : {
+        command: productionE2E
+          ? "node node_modules/next/dist/bin/next start -p 3000"
+          : "node node_modules/next/dist/bin/next dev --webpack -p 3000",
+        url: "http://localhost:3000",
+        reuseExistingServer: !process.env.CI && !productionE2E,
+        timeout: 120_000,
+      },
 });

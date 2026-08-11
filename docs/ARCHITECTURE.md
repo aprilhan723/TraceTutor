@@ -219,4 +219,12 @@ Marketing layouts are mobile-first and progressively move to two- or three-colum
 
 ## Next backend notes
 
-Phase 7 still uses no service-role key, payments, deployment, or production SMTP. The next backend phase should verify all migrations against the selected hosted/local project, regenerate database types, connect durable distributed rate/usage controls, add operational monitoring/backups and an authenticated offline reconciliation protocol, and run a separately approved blinded live evaluation before enabling AI for real learners. UI code must continue to use repository/services or validated server commands rather than importing seeds or trusting client-authored ownership.
+Phase 8 still uses no service-role key, payments, Production release, or production SMTP; only the isolated Preview described below exists. The next backend phase should verify all migrations against the selected hosted/local project, regenerate database types, connect durable distributed rate/usage controls, add operational monitoring/backups and an authenticated offline reconciliation protocol, and run a separately approved blinded live evaluation before enabling AI for real learners. UI code must continue to use repository/services or validated server commands rather than importing seeds or trusting client-authored ownership.
+
+## Preview deployment boundary
+
+Phase 8 uses Vercel's default Preview environment as staging. TraceTutor never requests or performs a Production promotion, attaches a domain, or enables a paid custom environment. The verified Preview supplies no application environment variables, so runtime selection stays in the complete browser-local Demo Mode and neither Supabase nor OpenAI is contacted. The deployment runbook records Vercel's exceptional automatic classification of an empty project's first upload as Production and the separately inspected Preview that replaced it for staging QA.
+
+Only the Supabase Project URL and publishable key may ever use `NEXT_PUBLIC_*` names. `OPENAI_API_KEY` and live-AI controls remain server-only behind `server-only` modules; no service-role variable exists in the application contract. Build output and the checked browser-static chunks are scanned for credential patterns before preview creation.
+
+Preview deployment and rollback procedures are operational documentation rather than application runtime dependencies. Preview URLs are treated as immutable artifacts. Rollback creates and verifies a new preview from the previous good commit without deleting a deployment, changing production aliases, or resetting remote state.
