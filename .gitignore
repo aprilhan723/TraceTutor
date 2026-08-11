@@ -45,6 +45,7 @@ next-env.d.ts
 # local test artifacts
 /playwright-report/
 /test-results/
+/tmp/
 
 # local Codex/document working artifacts (not application source)
 /.codex-docs/
