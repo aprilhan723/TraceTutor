@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(8);
+select plan(11);
 
 insert into auth.users (id, email, aud, role) values
   ('20000000-0000-4000-8000-000000000001', 'tutor-a@example.test', 'authenticated', 'authenticated'),
@@ -46,6 +46,29 @@ insert into public.assignment_items (id, assignment_id, item_version_id, positio
   ('25100000-0000-4000-8000-000000000001', '25000000-0000-4000-8000-000000000001', '24100000-0000-4000-8000-000000000001', 1);
 insert into public.attempts (id, assignment_item_id, student_id, client_submission_id, submitted_at, status) values
   ('26000000-0000-4000-8000-000000000001', '25100000-0000-4000-8000-000000000001', '20000000-0000-4000-8000-000000000002', '26100000-0000-4000-8000-000000000001', now(), 'submitted');
+insert into public.diagnostic_sessions (
+  id, attempt_id, student_id, machine_suggestion, machine_model_version
+) values (
+  '27000000-0000-4000-8000-000000000001',
+  '26000000-0000-4000-8000-000000000001',
+  '20000000-0000-4000-8000-000000000002',
+  '{"primaryCause":"scope-expanded"}',
+  'rule-v1'
+);
+insert into public.ai_diagnosis_suggestions (
+  id, diagnostic_session_id, organization_id, requested_by, request_id,
+  input_fingerprint, model_version, prompt_version, schema_version,
+  suggestion, policy_review
+) values (
+  '27100000-0000-4000-8000-000000000001',
+  '27000000-0000-4000-8000-000000000001',
+  '21000000-0000-4000-8000-000000000001',
+  '20000000-0000-4000-8000-000000000001',
+  '27200000-0000-4000-8000-000000000001',
+  repeat('a', 64), 'mock-v1', 'prompt-v1', 'schema-v1',
+  '{"primaryErrorCause":"scope-expanded"}',
+  '{"tutorReviewRequired":true}'
+);
 insert into public.tutor_notes (organization_id, tutor_id, student_id, body) values
   ('21000000-0000-4000-8000-000000000001', '20000000-0000-4000-8000-000000000001', '20000000-0000-4000-8000-000000000002', 'Tutor-only note');
 
@@ -66,6 +89,7 @@ select throws_ok(
   $$ update public.profiles set role = 'tutor' where id = '20000000-0000-4000-8000-000000000002' $$,
   'student cannot escalate their account role'
 );
+select is((select count(*) from public.ai_diagnosis_suggestions), 0::bigint, 'student cannot read tutor-only AI suggestions');
 select throws_ok(
   $$ insert into public.tutor_adjudications (diagnostic_session_id, tutor_id, revision, decision) values ('27000000-0000-4000-8000-000000000001', '20000000-0000-4000-8000-000000000002', 1, 'approved') $$,
   'student cannot write a tutor adjudication'
@@ -78,9 +102,11 @@ select results_eq(
   'tutor reads only the explicitly linked student'
 );
 select is((select count(*) from public.attempts), 1::bigint, 'linked tutor reads the linked student attempt');
+select is((select count(*) from public.ai_diagnosis_suggestions), 1::bigint, 'linked tutor reads the linked student AI suggestion audit');
 
 select set_config('request.jwt.claims', '{"sub":"20000000-0000-4000-8000-000000000003","role":"authenticated"}', true);
 select is((select count(*) from public.attempts), 0::bigint, 'another tutor cannot read an unlinked student attempt');
+select is((select count(*) from public.ai_diagnosis_suggestions), 0::bigint, 'another tutor cannot read an unlinked AI suggestion audit');
 
 select * from finish();
 rollback;

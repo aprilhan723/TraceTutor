@@ -5,6 +5,7 @@ import type {
   Skill,
 } from "@/domain/mistake-intelligence";
 import type { AnswerConfidence, ResultState } from "@/domain/study";
+import type { AiDiagnosisAuditSnapshot } from "@/domain/ai-diagnosis";
 
 export const tutorReviewStatuses = [
   "pending",
@@ -81,7 +82,8 @@ export interface TutorAuditEvent {
     | "follow-up-requested"
     | "ambiguity-marked"
     | "lesson-brief-added"
-    | "feedback-sent";
+    | "feedback-sent"
+    | "ai-suggestion-recorded";
   summary: string;
   createdAt: string;
   tutorId: string;
@@ -97,6 +99,7 @@ export interface TutorDiagnosisCase {
   studentQuestion: string | null;
   questionResolved: boolean;
   machineSuggestion: MachineDiagnosisSnapshot;
+  aiSuggestions?: AiDiagnosisAuditSnapshot[];
   attempt: TutorAttemptSnapshot;
   probe: TutorProbeSnapshot | null;
   retentionHistory: TutorRetentionSnapshot[];

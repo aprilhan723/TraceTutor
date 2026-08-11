@@ -318,6 +318,29 @@ test("tutor shell navigation is reachable", async ({ page }) => {
   await expect(page.getByRole("heading", { name: /students/i })).toBeVisible();
 });
 
+test("tutor sees an audited AI fixture while the student sees only the approved explanation", async ({
+  page,
+}) => {
+  await page.goto("/tutor/review/case-scope-expansion");
+  await expect(
+    page.getByText("AI suggestion — tutor review pending", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Versioned demo fixture", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText(/live AI is off by default/i)).toBeVisible();
+  await expect(page.getByText(/mock fixture — no API usage/i)).toBeHidden();
+
+  await page.goto("/student/weekly-report");
+  await expect(
+    page.getByRole("heading", { name: /a cautious way to name the pattern/i }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/may have attached the right date/i),
+  ).toBeVisible();
+  await expect(page.getByText(/human verified/i)).toBeVisible();
+});
+
 test("tutor adjudicates a diagnosis and carries it into the lesson brief", async ({
   page,
 }) => {

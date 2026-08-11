@@ -24,6 +24,7 @@ import type {
   TutorAdjudicationCommand,
   TutorWorkspaceState,
 } from "@/domain/tutor";
+import type { AiDiagnosisAuditSnapshot } from "@/domain/ai-diagnosis";
 import {
   errorCauseLabels,
   processStageLabels,
@@ -70,6 +71,7 @@ import {
 } from "@/services/engagement-engine";
 import {
   applyTutorAdjudication,
+  appendAiSuggestion,
   buildContentLibrary,
   buildContentEditorDrafts,
   buildLessonBrief,
@@ -153,6 +155,23 @@ export class LearningService {
       workspace,
       caseId,
       command,
+      tutorId,
+      this.clock.now().toISOString(),
+    );
+    await this.repository.saveTutorWorkspace(next);
+    return next;
+  }
+
+  async recordAiSuggestion(
+    tutorId: string,
+    caseId: string,
+    suggestion: AiDiagnosisAuditSnapshot,
+  ) {
+    const workspace = await this.repository.getTutorWorkspace(tutorId);
+    const next = appendAiSuggestion(
+      workspace,
+      caseId,
+      suggestion,
       tutorId,
       this.clock.now().toISOString(),
     );

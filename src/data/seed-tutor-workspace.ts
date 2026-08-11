@@ -4,6 +4,10 @@ import type {
   TutorDiagnosisCase,
   TutorWorkspaceState,
 } from "@/domain/tutor";
+import { createEvaluationAudit } from "@/ai/evaluation/fixtures";
+
+const scopeAiFixture = createEvaluationAudit("scope-expansion-gold");
+const timeAiFixture = createEvaluationAudit("time-mismatch-gold");
 
 const pendingAdjudication: TutorAdjudication = {
   status: "pending",
@@ -57,6 +61,7 @@ const demoDiagnosisCases: TutorDiagnosisCase[] = [
       ],
       suggestedAt: "2026-08-09T09:12:00.000Z",
     },
+    aiSuggestions: scopeAiFixture ? [scopeAiFixture] : [],
     attempt: {
       itemId: "daily-02",
       taskType: "daily-life",
@@ -262,6 +267,7 @@ const demoDiagnosisCases: TutorDiagnosisCase[] = [
       supportingEvidence: ["The selected time belongs to a different event."],
       suggestedAt: "2026-08-05T09:14:00.000Z",
     },
+    aiSuggestions: timeAiFixture ? [timeAiFixture] : [],
     attempt: {
       itemId: "daily-05",
       taskType: "daily-life",

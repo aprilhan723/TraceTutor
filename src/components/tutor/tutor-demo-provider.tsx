@@ -14,6 +14,8 @@ import type {
   ContentEditorDraft,
   TutorAdjudicationCommand,
 } from "@/domain/tutor";
+import type { AiDiagnosisInput } from "@/domain/ai-diagnosis";
+import { aiDiagnosisDecisionSchema } from "@/ai/schemas";
 import {
   createBrowserLearningService,
   demoIds,
@@ -29,6 +31,7 @@ interface TutorDemoContextValue {
   hydrated: boolean;
   bundle: TutorBundle | null;
   adjudicate(caseId: string, command: TutorAdjudicationCommand): Promise<void>;
+  requestAiSuggestion(caseId: string, input: AiDiagnosisInput): Promise<string>;
   saveContent(draft: ContentEditorDraft): Promise<Record<string, string>>;
   saveLessonNotes(studentId: string, notes: string): Promise<void>;
   saveStudentNotes(studentId: string, notes: string): Promise<void>;
@@ -102,6 +105,38 @@ export function TutorDemoProvider({ children }: { children: ReactNode }) {
     [refresh, service],
   );
 
+  const requestAiSuggestion = useCallback(
+    async (caseId: string, input: AiDiagnosisInput) => {
+      let response: Response;
+      try {
+        response = await fetch("/api/ai/diagnosis", {
+          method: "POST",
+          cache: "no-store",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ requestId: crypto.randomUUID(), input }),
+        });
+      } catch {
+        return "AI assist is unavailable. Continue with the rule trace.";
+      }
+      const parsed = aiDiagnosisDecisionSchema.safeParse(
+        await response.json().catch(() => null),
+      );
+      if (!response.ok || !parsed.success) {
+        return "AI assist returned an invalid response. Continue with the rule trace.";
+      }
+      if (parsed.data.status === "fallback") return parsed.data.message;
+      const audit = parsed.data.audit;
+      if (!audit) {
+        return "AI assist returned an invalid response. Continue with the rule trace.";
+      }
+      await enqueue(async () => {
+        await service.recordAiSuggestion(demoIds.tutor, caseId, audit);
+      });
+      return "AI suggestion saved for tutor review.";
+    },
+    [enqueue, service],
+  );
+
   const saveLessonNotes = useCallback(
     (studentId: string, notes: string) =>
       enqueue(async () => {
@@ -131,6 +166,7 @@ export function TutorDemoProvider({ children }: { children: ReactNode }) {
       hydrated,
       bundle,
       adjudicate,
+      requestAiSuggestion,
       saveContent,
       saveLessonNotes,
       saveStudentNotes,
@@ -140,6 +176,7 @@ export function TutorDemoProvider({ children }: { children: ReactNode }) {
       adjudicate,
       bundle,
       hydrated,
+      requestAiSuggestion,
       resetTutorDemo,
       saveContent,
       saveLessonNotes,

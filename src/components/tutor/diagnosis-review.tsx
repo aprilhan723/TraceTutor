@@ -10,12 +10,20 @@ import { useTutorDemo } from "@/components/tutor/tutor-demo-provider";
 import {
   errorCauseLabels,
   errorCauseTaxonomy,
+  processStageLabels,
   type ErrorCause,
 } from "@/domain/mistake-intelligence";
 import { cn } from "@/lib/cn";
+import { buildAiDiagnosisInput } from "@/ai/input-builder";
 
-export function DiagnosisReview({ caseId }: { caseId: string }) {
-  const { hydrated, bundle, adjudicate } = useTutorDemo();
+export function DiagnosisReview({
+  caseId,
+  liveAiAvailable,
+}: {
+  caseId: string;
+  liveAiAvailable: boolean;
+}) {
+  const { hydrated, bundle, adjudicate, requestAiSuggestion } = useTutorDemo();
   const detail = bundle?.caseDetails.find(
     (candidate) => candidate.case.id === caseId,
   );
@@ -25,6 +33,8 @@ export function DiagnosisReview({ caseId }: { caseId: string }) {
   const [followUp, setFollowUp] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiMessage, setAiMessage] = useState("");
 
   if (!hydrated) {
     return (
@@ -59,11 +69,27 @@ export function DiagnosisReview({ caseId }: { caseId: string }) {
     "";
   const followUpValue = followUp ?? adjudication.followUpQuestion ?? "";
   const feedbackValue = feedback ?? adjudication.feedback ?? "";
+  const latestAiSuggestion = item.aiSuggestions?.at(-1) ?? null;
+  const aiInput = buildAiDiagnosisInput(detail);
+  const aiMatchesTutor = Boolean(
+    latestAiSuggestion &&
+    ["approved", "changed"].includes(adjudication.status) &&
+    latestAiSuggestion.suggestion.primaryErrorCause === primary,
+  );
 
   async function act(command: Parameters<typeof adjudicate>[1]) {
     setBusy(true);
     await adjudicate(caseId, command);
     setBusy(false);
+  }
+
+  async function requestSuggestion() {
+    if (!aiInput) return;
+    setAiBusy(true);
+    setAiMessage("");
+    const message = await requestAiSuggestion(caseId, aiInput);
+    setAiMessage(message);
+    setAiBusy(false);
   }
 
   return (
@@ -262,6 +288,163 @@ export function DiagnosisReview({ caseId }: { caseId: string }) {
                 </p>
               </div>
             ) : null}
+          </Card>
+
+          <Card>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-bold tracking-[0.14em] text-violet uppercase">
+                  AI suggestion — tutor review pending
+                </p>
+                <h2 className="mt-2 font-editorial text-2xl font-bold">
+                  Optional ambiguity check
+                </h2>
+              </div>
+              <Badge tone={latestAiSuggestion ? "violet" : "neutral"}>
+                {latestAiSuggestion?.source === "evaluation-fixture"
+                  ? "Versioned demo fixture"
+                  : latestAiSuggestion
+                    ? "Server suggestion"
+                    : "No suggestion saved"}
+              </Badge>
+            </div>
+
+            {latestAiSuggestion ? (
+              <div className="mt-5">
+                <div className="rounded-2xl border border-violet/15 bg-violet-soft p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="font-editorial text-xl font-bold">
+                      Likely:{" "}
+                      {
+                        errorCauseLabels[
+                          latestAiSuggestion.suggestion.primaryErrorCause
+                        ]
+                      }
+                    </p>
+                    <Badge tone="neutral">
+                      {Math.round(
+                        latestAiSuggestion.suggestion.confidence * 100,
+                      )}
+                      % model confidence
+                    </Badge>
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-ink-muted">
+                    {
+                      processStageLabels[
+                        latestAiSuggestion.suggestion.primaryProcessStage
+                      ]
+                    }
+                  </p>
+                  {latestAiSuggestion.suggestion.secondaryCauses.length ? (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {latestAiSuggestion.suggestion.secondaryCauses.map(
+                        (cause) => (
+                          <Badge key={cause} tone="neutral">
+                            Alternate: {errorCauseLabels[cause]}
+                          </Badge>
+                        ),
+                      )}
+                    </div>
+                  ) : null}
+                </div>
+
+                <h3 className="mt-5 text-xs font-bold tracking-wide text-violet uppercase">
+                  Review controls
+                </h3>
+                <ul className="mt-2 space-y-2 text-sm leading-6 text-ink-muted">
+                  {latestAiSuggestion.policyReview.reasons.map((reason) => (
+                    <li key={reason}>• {reason}</li>
+                  ))}
+                </ul>
+                <p className="mt-4 rounded-xl border border-ink/10 p-4 text-sm leading-6">
+                  <strong>Suggested next step:</strong>{" "}
+                  {latestAiSuggestion.suggestion.recommendedNextStep.prompt}
+                </p>
+                <div className="mt-4 rounded-xl bg-mint p-4">
+                  <p className="text-xs font-bold text-mint-deep uppercase">
+                    Student explanation preview
+                  </p>
+                  <p className="mt-2 text-sm leading-6">
+                    {latestAiSuggestion.suggestion.studentFacingExplanation}
+                  </p>
+                  <p className="mt-2 text-xs leading-5 text-ink-muted">
+                    {aiMatchesTutor
+                      ? "Eligible for the student view because it matches the completed tutor decision."
+                      : "Held from the student view until the tutor decision matches this cause."}
+                  </p>
+                </div>
+
+                <details className="mt-4 rounded-xl border border-ink/10 p-4 text-xs text-ink-muted">
+                  <summary className="cursor-pointer font-bold text-ink">
+                    Model and usage audit
+                  </summary>
+                  <dl className="mt-3 grid gap-2 sm:grid-cols-2">
+                    <div>
+                      <dt className="font-bold">Model</dt>
+                      <dd>{latestAiSuggestion.modelVersion}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-bold">Prompt / schema</dt>
+                      <dd>
+                        {latestAiSuggestion.promptVersion} ·{" "}
+                        {latestAiSuggestion.schemaVersion}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="font-bold">Tokens</dt>
+                      <dd>
+                        {latestAiSuggestion.source === "evaluation-fixture"
+                          ? "Mock fixture — no API usage"
+                          : `${latestAiSuggestion.usage.inputTokens} in · ${latestAiSuggestion.usage.outputTokens} out`}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="font-bold">Estimated request cost</dt>
+                      <dd>
+                        {latestAiSuggestion.source === "evaluation-fixture"
+                          ? "$0 (mock)"
+                          : latestAiSuggestion.usage.estimatedCostUsd === null
+                            ? "Unavailable for this model"
+                            : `$${latestAiSuggestion.usage.estimatedCostUsd.toFixed(6)}`}
+                      </dd>
+                    </div>
+                  </dl>
+                </details>
+              </div>
+            ) : (
+              <p className="mt-4 text-sm leading-6 text-ink-muted">
+                The deterministic trace is complete on its own. Optional AI is
+                requested only when multiple causes remain plausible or a short
+                student explanation needs classification.
+              </p>
+            )}
+
+            <div className="mt-5 border-t border-ink/10 pt-4">
+              {liveAiAvailable && aiInput ? (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => void requestSuggestion()}
+                  disabled={aiBusy}
+                >
+                  {aiBusy
+                    ? "Checking ambiguity…"
+                    : latestAiSuggestion
+                      ? "Request a fresh suggestion"
+                      : "Request AI suggestion"}
+                </Button>
+              ) : (
+                <p className="text-xs leading-5 text-ink-muted">
+                  Live AI is off by default. Rule diagnosis and every tutor
+                  action remain fully functional.
+                </p>
+              )}
+              {aiMessage ? (
+                <p className="mt-3 text-sm font-semibold" role="status">
+                  {aiMessage}
+                </p>
+              ) : null}
+            </div>
           </Card>
 
           <Card>

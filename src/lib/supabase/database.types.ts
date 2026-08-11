@@ -530,6 +530,42 @@ export interface Database {
           resolved_at?: string | null;
         }
       >;
+      ai_diagnosis_suggestions: Table<
+        {
+          id: string;
+          diagnostic_session_id: string;
+          organization_id: string;
+          requested_by: string;
+          request_id: string;
+          input_fingerprint: string;
+          model_version: string;
+          prompt_version: string;
+          schema_version: string;
+          suggestion: Json;
+          policy_review: Json;
+          input_tokens: number;
+          output_tokens: number;
+          estimated_cost_microusd: number | null;
+          created_at: string;
+        },
+        {
+          id?: string;
+          diagnostic_session_id: string;
+          organization_id: string;
+          requested_by: string;
+          request_id: string;
+          input_fingerprint: string;
+          model_version: string;
+          prompt_version: string;
+          schema_version: string;
+          suggestion: Json;
+          policy_review: Json;
+          input_tokens?: number;
+          output_tokens?: number;
+          estimated_cost_microusd?: number | null;
+          created_at?: string;
+        }
+      >;
       audit_logs: Table<
         {
           id: string;
@@ -612,6 +648,22 @@ export interface Database {
           p_follow_up_question: string | null;
           p_add_to_lesson: boolean;
           p_idempotency_key: string;
+        };
+        Returns: string;
+      };
+      record_ai_diagnosis_suggestion: {
+        Args: {
+          p_diagnostic_session_id: string;
+          p_request_id: string;
+          p_input_fingerprint: string;
+          p_model_version: string;
+          p_prompt_version: string;
+          p_schema_version: string;
+          p_suggestion: Json;
+          p_policy_review: Json;
+          p_input_tokens: number;
+          p_output_tokens: number;
+          p_estimated_cost_microusd: number | null;
         };
         Returns: string;
       };

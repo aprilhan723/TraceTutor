@@ -2,7 +2,7 @@
 
 ## Current phase
 
-**Phase 6: implemented as a production-ready local data/authentication release candidate. The Phase 5 browser-local demo remains complete and independent.**
+**Phase 7: implemented as an optional, tutor-reviewed AI diagnosis enhancement. The deterministic engine, authenticated architecture, and complete browser-local demo remain independent and fully functional.**
 
 ## Implemented
 
@@ -75,17 +75,39 @@
 - Optional retry-safe copy of original demo content into a tutor workspace without copying fictional students, attempts, or history
 - Authenticated responses marked `private, no-store`; the service worker does not cache authenticated pages or API responses
 - Public-only `.env.example`, local Supabase/email template configuration, and a credential-safe setup guide
+- Official OpenAI Node SDK 7.4.0 in a `server-only` provider using the Responses API, `responses.parse`, strict Zod Structured Outputs, `store: false`, and a bounded output budget
+- Live AI feature flag disabled by default; a key alone never triggers a request, and Demo Mode requires no key
+- Minimum de-identified AI input contract covering task/skill metadata, option relation, short evidence excerpts, confidence/timing buckets, structured probe data, aggregate prior pattern, and rule candidates without names, email, roster, or unrelated history
+- Strict AI output contract for primary process/cause, confidence, up to two secondary causes, distractor relation, brief evidence, alternatives, next probe/remediation/abstention, tutor-review reasons, and uncertainty-aware student explanation
+- Deterministic eligibility rule that calls a model only for multiple plausible rule hypotheses or short-explanation classification
+- Typed fallback for disabled/missing API, unneeded model work, timeouts, malformed output, rate limits, open circuit, and provider failure
+- Per-user and per-organization in-memory limits, eight-second timeout, one bounded retry, three-failure circuit breaker, privacy-preserving safety identifier, and idempotent request handling
+- Redacted operational events and versioned token/cost accounting with no prompt body, key, or hidden reasoning in logs
+- Tutor-only AI suggestion card that always preserves the original rule trace and separate tutor adjudication, with explicit model/prompt/schema/usage audit data
+- Student weekly-report explanation released only when the model cause matches a completed tutor adjudication
+- Versioned six-case de-identified mocked evaluation set covering schema validity, tutor-gold agreement, contradictions, calibration buckets, abstention/review, prompt injection, and fallback behavior
+- Append-only `ai_diagnosis_suggestions` migration with tutor-only RLS, direct client mutation revocation, an idempotent scope-checking record function, and no raw prompt or identity storage
+- Static RLS verification expanded across all ordered migrations and 36 exposed tables; pgTAP adds tutor-only AI audit isolation assertions
+- Dedicated AI evaluation documentation and `test:ai` script; no paid live evaluation was run
 
 ## Deferred by design
 
-- External AI diagnosis or generated content
+- AI-generated practice content or autonomous diagnosis
+- Paid live model evaluation without separate approval
 - PDF generation (browser print is implemented)
 - Payments, remote notifications, and deployment
 - Official score estimates or predictions
 - Push notifications, public rankings, XP, fake scarcity, or attendance-only rewards
 - Background sync, true server reconciliation, and multi-device guarantees
 
-## Known Phase 6 limitations
+## Known Phase 7 limitations
+
+- Live AI is intentionally off unless `TRACETUTOR_LIVE_AI_ENABLED=true`; this phase made no paid API request even though a secure local server key is available.
+- Rate limits, circuit state, idempotency cache, and usage totals are process-local. A multi-instance deployment needs a durable shared store before live AI is enabled.
+- The authenticated Supabase diagnosis-review surface remains gated by the Phase 6 project-connection limitation. The schema, RLS audit table, record function, route auth, and local tutor UI are ready, but no hosted project was available for connected persistence verification.
+- Production builds refuse live AI calls from anonymous Demo Mode; live production assistance requires a cookie-authenticated tutor and linked organization.
+- Cost estimates are versioned for the documented GPT-5.6 model family; an unknown model reports cost as unavailable instead of inventing a price.
+- The six mocked fixtures are a contract/evaluation baseline, not evidence of production learning efficacy or model quality on real student data.
 
 - Browser storage and service-worker caches are device- and browser-profile-local; clearing site data removes the demo.
 - “Reconciled” offline events only mean the local queue has been processed after reconnect. No remote server receives them in this phase.
@@ -97,26 +119,27 @@
 - The connected registration/invitation/assignment E2E is present and gated, but cannot run until the public Project URL and publishable key are supplied locally.
 - Authenticated account pages intentionally use `private, no-store`; browser-local offline mission reconciliation remains a Demo Mode capability until a server conflict protocol is designed and verified.
 - Supabase-generated TypeScript types should replace the checked relational interface after the first migration is applied to the selected project.
-- Production SMTP, domain configuration, backups, monitoring, deployment, payments, and external AI remain unconfigured.
+- Production SMTP, domain configuration, backups, monitoring, deployment, and payments remain unconfigured. Live AI remains intentionally disabled.
 
 ## Exact next backend phase
 
-**Connect a selected Supabase project, apply and verify the committed migrations, regenerate database types, run the connected auth/RLS E2E, and add operational backup/monitoring plus a tested authenticated offline conflict protocol. External AI, payments, and deployment remain separate opt-in work and must not start automatically.**
+**Connect a selected Supabase project, apply and verify all four migrations, regenerate database types, run the connected auth/RLS E2E, add durable distributed AI limits/usage accounting and operational backup/monitoring, then design a separately approved blinded live AI evaluation before enabling the feature for real learners. Payments and deployment remain separate opt-in work and must not start automatically.**
 
 ## Verification
 
-- Dependency install: passed with `@supabase/ssr` 0.12.4, `@supabase/supabase-js` 2.112.2, and Zod 4.4.3; no secret or service-role dependency was added
+- Dependency install: passed with `@supabase/ssr` 0.12.4, `@supabase/supabase-js` 2.112.2, OpenAI 7.4.0, and Zod 4.4.3; 490 packages audited with zero vulnerabilities and no secret or service-role dependency added
 - Prettier write and format check: passed
 - ESLint: passed with zero warnings or errors
 - Strict TypeScript and Next.js route type generation: passed
-- Vitest repeated stability run: 18 files and 66 tests passed in each of two consecutive full runs
-- Static RLS verification: passed for all 35 exposed tables; each is RLS-enabled and policy-covered, with sensitive direct mutations revoked
-- pgTAP policy suite: 8 cross-user assertions committed but not run because no local Supabase/Postgres runtime is installed or connected
-- Playwright development run: 20 passed, 4 intentionally skipped (two production-only offline cases and two credential-gated Supabase lifecycle cases)
-- Playwright production run: 21 passed, 3 intentionally skipped (one duplicate mobile offline case and two credential-gated Supabase lifecycle cases)
+- Focused mocked AI suite: 6 files and 18 tests passed; no paid live request or live evaluation was made
+- Vitest repeated stability run: 24 files and 84 tests passed in each of two consecutive full runs
+- Static RLS verification: passed for all 36 exposed tables; each is RLS-enabled and policy-covered, with sensitive direct mutations revoked
+- pgTAP policy suite: 11 cross-user assertions committed but not run because no local Supabase/Postgres runtime is installed or connected
+- Playwright development run: 22 passed, 4 intentionally skipped (two production-only offline cases and two credential-gated Supabase lifecycle cases)
+- Playwright production run: 23 passed, 3 intentionally skipped (one duplicate mobile offline case and two credential-gated Supabase lifecycle cases)
 - Focused production PWA regression check: 1 passed after separating demo-cache and authenticated no-store behavior
 - Connected Supabase lifecycle E2E: implemented for tutor registration → invite → student join → assignment → response → linked-tutor visibility, but intentionally skipped until public project configuration and a local test inbox are available
-- Accessibility: six representative production desktop/mobile axe audits passed with zero serious or critical violations
-- Production build: passed; 29 static pages generated alongside 8 dynamic app routes and Next.js Proxy
-- Secret scan: passed across 178 tracked/untracked repository files with zero findings
-- Browser QA: passed at 1280×720 and 375×812 for demo selection, student Today, tutor queue, role switching, console output, and horizontal overflow
+- Accessibility: six representative development and six production desktop/mobile axe audits passed with zero serious or critical violations
+- Production build: passed; all 30 generation units completed, including the new dynamic AI diagnosis route, alongside Next.js Proxy
+- Secret scan: passed across 200 tracked/untracked repository files with zero findings
+- Browser QA: passed at 1280×720 and 375×812 for the tutor AI-review boundary and student approved-explanation boundary, with zero console warnings/errors and zero horizontal overflow

@@ -4,7 +4,7 @@
 
 - **Brand:** TraceTutor
 - **Product label:** TOEFL Reading Correction Sprint
-- **Phase:** 6 — authenticated data architecture, with the local release candidate preserved
+- **Phase:** 7 — optional tutor-reviewed AI assistance, with deterministic and local fallbacks preserved
 - **Primary promise:** Practice less randomly. Correct what keeps repeating.
 
 TraceTutor is not a question bank. It is a tutor-verified daily mistake-correction product for the 2026 TOEFL Reading experience. The student completes one focused correction sprint; the tutor sees the repeated reasoning pattern before the next lesson.
@@ -22,7 +22,7 @@ TraceTutor is not a question bank. It is a tutor-verified daily mistake-correcti
 4. **Transfer** — apply the correction in a new context.
 5. **Retain** — revisit the correction after time has passed.
 
-Phase 6 adds a production data and account boundary without removing Phase 5. The complete fictional demo remains an independent browser-local sales and fallback experience. When public Supabase configuration is present and Demo Mode was not explicitly selected, the app uses cookie-based server authentication, database-owned roles, invite-only student membership, relational records, RLS, and validated commands. Tutor adjudication remains the verification boundary.
+Phase 7 adds a narrowly scoped, server-only OpenAI adapter without replacing any Phase 6 behavior. The model is consulted only when the deterministic trace contains multiple plausible causes or a short structured student explanation needs classification. Live AI is disabled by default, every normal test uses mocks, and provider failure returns the unchanged rule trace. Tutor adjudication remains the verification boundary.
 
 ## 2026 Reading task coverage
 
@@ -221,16 +221,44 @@ The landing page communicates the method, contrasts volume practice with mistake
 - With public Supabase variables, authenticated routes use Supabase unless the user explicitly enters the local demo. A short-lived HTTP-only cookie preserves that choice across demo role switching.
 - Authenticated student, tutor, and auth responses are `private, no-store`; the service worker does not persist them. The local demo’s existing PWA behavior remains separate.
 
+## Phase 7 optional diagnosis assistance
+
+### Bounded model role
+
+- The deterministic rule engine remains the first and sufficient diagnosis layer.
+- A model request is eligible only when more than one rule candidate remains plausible or a short student explanation needs classification.
+- The model never creates official score estimates, content keys, assignments, or final tutor decisions.
+- Every model suggestion is labeled “AI suggestion — tutor review pending.” A tutor must adjudicate it before a matching cautious explanation can appear in the student weekly report.
+- Model output never overwrites the original rule snapshot or the separate tutor adjudication.
+
+### Minimum server-only data
+
+The request contains task family and skill, the reviewed selected-option relation, short selected/designated evidence excerpts, evidence overlap, reported confidence, a timing bucket, an answer-change bucket, a structured probe response, a bounded aggregate recurrence/retention signal, and up to three rule candidates. It excludes student/tutor names, email, class roster, raw account identifiers, full unrelated history, and secrets. Student text is treated as untrusted quoted data. Requests use the Responses API with strict Structured Outputs and `store: false`.
+
+### Strict suggestion contract
+
+The validated output contains a primary process stage and cause, confidence from 0–1, up to two secondary causes, distractor relation, brief evidence, alternatives, one next probe/remediation/abstention action, tutor-review reasons, and a short uncertainty-aware student explanation. Malformed or unavailable output is discarded in favor of deterministic rules.
+
+### Safety, cost, and evaluation
+
+- Live AI requires both a server-only key and `TRACETUTOR_LIVE_AI_ENABLED=true`; the flag defaults to false.
+- Per-user and per-organization limits, an eight-second timeout, one bounded retry, idempotent request handling, and a circuit breaker reduce failure and cost exposure.
+- Redacted events contain status, model, latency, token counts, and error category only—never prompt bodies or keys.
+- Versioned pricing metadata supports request and organization token/cost counters; unknown model pricing reports cost as unavailable instead of guessing.
+- A six-case de-identified fixture set covers schema validity, tutor-gold agreement, rule/model contradictions, confidence buckets, abstention/review behavior, prompt injection, and API absence/failure. Normal tests never make a live API request.
+- The tutor review includes a versioned mock fixture so the complete local sales demo remains inspectable without a key or network.
+
 ## Trust and trademark boundary
 
 TraceTutor is independent practice software and is not endorsed by or affiliated with ETS. TOEFL is a registered trademark of ETS. Tutor verification refers to the intended workflow in which a tutor reviews mistake patterns and evidence traces; it does not imply ETS verification. Practice feedback, progress indicators, goals, and future product signals are not official TOEFL scores or score predictions.
 
-## Out of scope after Phase 6
+## Out of scope after Phase 7
 
-- External AI diagnosis or generated content
+- AI-generated practice content or autonomous diagnosis
 - PDF file generation; the lesson brief uses the browser print workflow
 - Payments, subscriptions, or deployment
 - Official score estimation
 - Push notifications or manipulative engagement loops
 - Service-role browser access, automatic fake-history migration, and claims of multi-device offline sync
 - Production SMTP, custom domains, monitoring, backups, and deployment configuration
+- Paid live model evaluation without separate human approval

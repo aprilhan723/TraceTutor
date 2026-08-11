@@ -8,6 +8,7 @@
 - Tailwind CSS 4
 - ESLint 9 with Next.js Core Web Vitals and TypeScript rules
 - npm lockfile and package manager declaration
+- OpenAI Node SDK 7.4.0, imported only by a `server-only` provider module
 
 The official Webpack opt-in is used for local development and production builds because this managed environment blocks the loopback worker port used by Turbopack’s PostCSS evaluation. No custom Webpack configuration is present.
 
@@ -28,6 +29,7 @@ LearningRepository interface
 LocalDemoLearningRepository | SupabaseLearningRepository
     ↓
 localStorage | cookie-authenticated Supabase with RLS
+    ↘ optional server-only AI disambiguation → tutor review (never direct truth)
 ```
 
 Route components do not import mock records. The repository factory selects `LocalDemoLearningRepository` whenever public configuration is absent or the request explicitly enters Demo Mode, and selects `SupabaseLearningRepository` only with authenticated Supabase context. Existing demo providers and their storage keys are unchanged. Authenticated relational mutations use narrow server actions and database functions instead of accepting a client-authored aggregate; this preserves the repository read contract while preventing students from writing final outcomes or tutor decisions.
@@ -40,19 +42,20 @@ The local demo and authenticated product coexist in one build. `/demo/student` a
 
 ## Relational data model
 
-Three ordered migrations under `supabase/migrations/` create:
+Four ordered migrations under `supabase/migrations/` create:
 
 - identity and ownership: profiles, organizations, memberships, classes, tutor/student links, and one-time invite hashes;
 - immutable content: stimuli/items plus versions, option/evidence rows, taxonomy versions, skills, and version mappings;
 - work and observations: assignments, assignment items, attempts, responses, response events, confidence, and evidence selections;
 - verification and retention: diagnostic sessions, machine hypotheses, append-only tutor adjudications, transfer links, review schedules/attempts, and learner error states;
 - communication and accountability: questions, messages, tutor-only notes, append-only audit logs, and idempotency records.
+- optional assistance audit: append-only, tutor-only AI suggestions with input fingerprints, model/prompt/schema versions, policy review, token usage, and estimated cost—never raw prompt bodies or identity.
 
 Indexes cover every common ownership, due-date, assignment, review, and policy join. Published content and its children are trigger-protected. Publication validates complete options, exactly one key, and designated evidence. Client column privileges hide correct responses, correct-option flags, distractor tags, explanations, and designated-evidence flags from the student Data API surface.
 
 ## RLS design
 
-All 35 exposed tables enable RLS. Private security-definer helpers answer narrowly scoped questions such as organization tutoring, explicit tutor/student linkage, assignment ownership, and item/diagnostic readability. They use empty search paths and indexed relations. Anonymous table access is revoked.
+All 36 exposed tables enable RLS. Private security-definer helpers answer narrowly scoped questions such as organization tutoring, explicit tutor/student linkage, assignment ownership, and item/diagnostic readability. They use empty search paths and indexed relations. Anonymous table access is revoked.
 
 Students can select only their own assignments, attempts, responses, diagnoses, reviews, messages, and assigned content. Tutors can select or mutate only records in an active linked organization/class relationship. Tutor notes never have a student policy. Direct mutations of memberships, links, invitations, attempts, final responses, diagnostics, hypotheses, adjudications, retention state, audit logs, and idempotency rows are revoked from authenticated clients.
 
@@ -147,6 +150,32 @@ The engine is intentionally deterministic and external-service-free. Reviewed op
 
 Timing, answer changes, selected evidence, and reported confidence are observations or behavioral context. They do not become causal labels by themselves. Stored supporting text uses probabilistic “likely” language, and high-confidence wrong answers are routed for tutor review rather than treated as certain diagnoses.
 
+## Optional AI diagnosis boundary
+
+```text
+Deterministic rule result with multiple candidates
+    ↓
+Minimal de-identified AiDiagnosisInput (strict Zod validation)
+    ↓
+Feature flag + tutor auth + per-user/org limit + circuit breaker
+    ↓
+OpenAI Responses API · strict Structured Outputs · store:false
+    ↓
+Second schema validation + contradiction/review policy
+    ↓
+Append-only model/prompt/schema/usage audit
+    ↓
+Tutor adjudication remains separate and final
+```
+
+`src/ai/` contains the storage-independent input/output contract, prompt policy, safety controls, usage ledger, fixture evaluator, and the provider interface. Only `openai-provider.ts`, `server-config.ts`, and `server-service.ts` import `server-only` or read `OPENAI_API_KEY`. Browser code can send only the strict de-identified DTO to the no-store route handler; actor and organization scope are resolved from Demo Mode or verified Supabase cookies, never request fields.
+
+Live AI requests from Demo Mode are permitted only by the development server. A production runtime requires a cookie-authenticated tutor and active organization membership, and the route rejects cross-origin requests. This prevents a public sales demo from becoming an anonymous paid-API relay.
+
+The default model is `gpt-5.6-luna`, chosen from current official guidance for cost-sensitive workloads. The adapter uses `responses.parse` with `zodTextFormat`, a maximum output budget, `store: false`, and a privacy-preserving safety identifier derived from opaque server actor IDs. The orchestration layer retries once, times out after eight seconds, opens a short circuit after repeated failures, and always returns a typed deterministic fallback. It stores no hidden reasoning and logs no prompt body.
+
+The local tutor aggregate may append multiple `AiDiagnosisAuditSnapshot` records per diagnosis. These snapshots preserve provider output, policy review, versions, fingerprint, and usage while leaving `MachineDiagnosisSnapshot` and `TutorAdjudication` untouched. A student-facing explanation is selected only when the latest AI primary cause matches a completed tutor decision.
+
 ## Source map
 
 - `src/app/` — routes, layouts, metadata, and framework states
@@ -154,6 +183,7 @@ Timing, answer changes, selected evidence, and reported confidence are observati
 - `src/domain/` — storage-independent entities, versioned taxonomies, and repository contracts
 - `src/data/` — original practice content, reviewed diagnostic metadata, six structured probes, transfer bank, student and tutor seed state, and local repository adapter
 - `src/services/` — pure diagnosis, Complete the Words analysis, transfer/retention logic, mission selection, tutor operations, evaluation, analytics, persistence orchestration, and UI data assembly
+- `src/ai/` — de-identified contracts, strict schemas, optional provider orchestration, safety/cost controls, and versioned mocked evaluation fixtures
 - `src/content/` — typed static marketing content
 - `src/test/` — shared unit test setup
 - `e2e/` — Playwright student, diagnosis, spaced-review, tutor, offline/PWA, responsive, and accessibility journeys
@@ -183,10 +213,10 @@ Marketing layouts are mobile-first and progressively move to two- or three-colum
 
 ## Testing and quality
 
-- Vitest + Testing Library for taxonomy boundaries, diagnosis rules, Complete the Words layers, mission selection, persistence, transfer/retention, queue ranking, adjudication audit history, content validation/versioning, lesson-brief selection, report calculations, service integration, and components
+- Vitest + Testing Library for taxonomy boundaries, diagnosis rules, Complete the Words layers, mission selection, persistence, transfer/retention, queue ranking, adjudication audit history, content validation/versioning, lesson-brief selection, report calculations, strict AI schemas, mocked provider fallbacks, rate/circuit behavior, prompt injection, tutor-gold evaluation, service integration, and components
 - Playwright coverage for onboarding and full mission completion, high-confidence wrong diagnosis and transfer, demo-clock D2/D7 review, tutor queue → diagnosis → transfer → lesson brief, offline-safe resume, and representative axe-core accessibility audits in desktop Chromium and Pixel 7 profiles
 - ESLint, strict TypeScript, Prettier, and production build checks
 
 ## Next backend notes
 
-Phase 6 intentionally uses no service-role key, external AI, payments, deployment, or production SMTP. The next backend phase should verify the migrations against the selected hosted/local project, add operational monitoring/backups and an explicit authenticated offline reconciliation protocol, then consider external diagnosis evaluation separately. UI code must continue to use repository/services or validated server commands rather than importing seeds or trusting client-authored ownership.
+Phase 7 still uses no service-role key, payments, deployment, or production SMTP. The next backend phase should verify all migrations against the selected hosted/local project, regenerate database types, connect durable distributed rate/usage controls, add operational monitoring/backups and an authenticated offline reconciliation protocol, and run a separately approved blinded live evaluation before enabling AI for real learners. UI code must continue to use repository/services or validated server commands rather than importing seeds or trusting client-authored ownership.

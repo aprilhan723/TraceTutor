@@ -5,6 +5,7 @@ import {
   practiceItems,
 } from "@/data/practice-content";
 import type { Student } from "@/domain/models";
+import type { AiDiagnosisAuditSnapshot } from "@/domain/ai-diagnosis";
 import {
   distractorRelationLabels,
   errorCauseLabels,
@@ -102,6 +103,7 @@ export interface WeeklyReport {
   confidenceCalibrationChange: number;
   nextWeekFocus: string[];
   latestFeedback: string[];
+  approvedAiExplanations: string[];
 }
 
 function currentCause(item: TutorDiagnosisCase) {
@@ -348,6 +350,44 @@ export function applyTutorAdjudication(
     };
   });
 
+  return changed
+    ? { ...workspace, diagnosisCases, updatedAt: nowIso }
+    : workspace;
+}
+
+export function appendAiSuggestion(
+  workspace: TutorWorkspaceState,
+  caseId: string,
+  suggestion: AiDiagnosisAuditSnapshot,
+  tutorId: string,
+  nowIso: string,
+): TutorWorkspaceState {
+  let changed = false;
+  const diagnosisCases = workspace.diagnosisCases.map((item) => {
+    if (item.id !== caseId) return item;
+    if (
+      item.aiSuggestions?.some(
+        (candidate) => candidate.requestId === suggestion.requestId,
+      )
+    ) {
+      return item;
+    }
+    changed = true;
+    return {
+      ...item,
+      aiSuggestions: [...(item.aiSuggestions ?? []), suggestion],
+      auditTrail: [
+        ...item.auditTrail,
+        {
+          id: `audit-${item.id}-ai-${item.aiSuggestions?.length ?? 0}`,
+          action: "ai-suggestion-recorded" as const,
+          summary: `Recorded an optional AI suggestion (${suggestion.modelVersion}, ${suggestion.promptVersion}) without changing the rule trace or tutor decision.`,
+          createdAt: nowIso,
+          tutorId,
+        },
+      ],
+    };
+  });
   return changed
     ? { ...workspace, diagnosisCases, updatedAt: nowIso }
     : workspace;
@@ -808,6 +848,15 @@ export function calculateWeeklyReport(
     latestFeedback: verified
       .map((item) => item.adjudication.feedback)
       .filter((feedback): feedback is string => Boolean(feedback))
+      .slice(0, 2),
+    approvedAiExplanations: verified
+      .flatMap((item) => {
+        const latest = item.aiSuggestions?.at(-1);
+        return latest &&
+          latest.suggestion.primaryErrorCause === currentCause(item)
+          ? [latest.suggestion.studentFacingExplanation]
+          : [];
+      })
       .slice(0, 2),
   };
 }

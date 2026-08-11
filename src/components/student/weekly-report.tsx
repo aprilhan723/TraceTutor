@@ -145,6 +145,34 @@ export function WeeklyReportView() {
         </Card>
       </div>
 
+      {report.approvedAiExplanations.length ? (
+        <Card className="mt-6" tone="violet">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold text-violet uppercase">
+                Tutor-approved explanation
+              </p>
+              <h2 className="mt-2 font-editorial text-2xl font-bold">
+                A cautious way to name the pattern
+              </h2>
+            </div>
+            <Badge tone="mint">Human verified</Badge>
+          </div>
+          {report.approvedAiExplanations.map((explanation) => (
+            <p
+              key={explanation}
+              className="mt-4 max-w-3xl text-sm leading-7 text-ink-muted"
+            >
+              {explanation}
+            </p>
+          ))}
+          <p className="mt-3 text-xs leading-5 text-ink-muted">
+            Optional AI assisted with the draft; it appears here only because it
+            matches the tutor’s completed adjudication.
+          </p>
+        </Card>
+      ) : null}
+
       <div className="mt-7 flex flex-col items-start justify-between gap-4 rounded-2xl border border-ink/10 bg-white p-5 sm:flex-row sm:items-center">
         <p className="max-w-2xl text-sm leading-6 text-ink-muted">
           This report tracks practice and verified correction behavior only. It
