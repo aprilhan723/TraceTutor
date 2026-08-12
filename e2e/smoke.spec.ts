@@ -95,6 +95,26 @@ test("student can enter the demo from the landing page", async ({ page }) => {
   ).toBeVisible();
 });
 
+test("founding tutor pilot is transparent and reaches the demo", async ({
+  page,
+}) => {
+  await page.goto("/pilot");
+
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: /spend the lesson on the right mistake/i,
+    }),
+  ).toBeVisible();
+  await expect(page.getByText("$49", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText(/pricing hypothesis, not a charge/i),
+  ).toBeVisible();
+
+  await page.getByRole("link", { name: /explore the pilot demo/i }).click();
+  await expect(page).toHaveURL(/\/demo$/);
+});
+
 test("student onboarding and mission draft resume after refresh", async ({
   page,
 }) => {

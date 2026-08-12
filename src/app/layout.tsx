@@ -1,16 +1,20 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { PwaRegistration } from "@/components/pwa-registration";
+import { getPublicAppUrl } from "@/lib/public-url";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("http://localhost:3000"),
+  metadataBase: getPublicAppUrl(),
   title: {
     default: "TraceTutor — TOEFL Reading Correction Sprint",
     template: "%s · TraceTutor",
   },
   description:
-    "Tutor-verified daily mistake correction for the 2026 TOEFL Reading experience.",
+    "Tutor-verified mistake correction for the 2026 TOEFL Reading experience—not another question bank.",
+  alternates: {
+    canonical: "/",
+  },
   applicationName: "TraceTutor",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
@@ -39,6 +43,10 @@ export const metadata: Metadata = {
     description:
       "Ten focused minutes to stop repeating the same Reading mistake.",
     images: ["/og.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 

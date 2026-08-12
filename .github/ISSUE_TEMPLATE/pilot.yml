@@ -1,0 +1,41 @@
+name: Founding tutor pilot feedback
+description: Share de-identified workflow feedback before creating a workspace.
+title: "[Pilot]: "
+labels: ["pilot"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This form is public. Do not provide student names, contact details, credentials, official questions, or private lesson material.
+  - type: dropdown
+    id: roster
+    attributes:
+      label: Approximate active TOEFL Reading roster
+      options:
+        - 1–2 students
+        - 3–5 students
+        - 6–12 students
+        - 13–30 students
+        - More than 30 students
+    validations:
+      required: true
+  - type: textarea
+    id: workflow
+    attributes:
+      label: Current correction workflow
+      description: Describe the tools and time involved without identifying a learner.
+    validations:
+      required: true
+  - type: textarea
+    id: value
+    attributes:
+      label: What would make the pilot worth using weekly?
+    validations:
+      required: true
+  - type: checkboxes
+    id: boundary
+    attributes:
+      label: Product boundary
+      options:
+        - label: I understand TraceTutor is independent software, is not endorsed by ETS, and does not provide official TOEFL scores.
+          required: true

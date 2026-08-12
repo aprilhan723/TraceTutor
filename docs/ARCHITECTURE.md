@@ -12,7 +12,7 @@
 
 The official Webpack opt-in is used for local development and production builds because this managed environment blocks the loopback worker port used by Turbopack’s PostCSS evaluation. No custom Webpack configuration is present.
 
-Next.js currently requires Node.js 20.9 or newer. The installed official Supabase client requires Node.js 22 or newer, so TraceTutor declares Node 22 as its combined minimum and is verified with Node.js 24.14.0.
+Next.js currently requires Node.js 20.9 or newer. The installed official Supabase client requires Node.js 22 or newer, and TraceTutor pins Node.js 24 for local, CI, and Vercel runtime parity.
 
 ## Application boundaries
 
@@ -220,7 +220,7 @@ Marketing layouts are mobile-first and progressively move to two- or three-colum
 
 ## Next backend notes
 
-Phase 9 still uses no service-role key, payments, Production release, or production SMTP; only an isolated Preview is permitted. The next backend phase should verify all five migrations against the selected non-production hosted/local project, regenerate database types, connect durable distributed rate/usage controls, add operational monitoring/backups and authenticated offline reconciliation, and run a separately approved blinded live evaluation before enabling AI for real learners. UI code must continue to use repository/services or validated server commands rather than importing seeds or trusting client-authored ownership.
+The public account beta still uses no service-role key, payment processor, production SMTP, live AI, or analytics tracker. The next backend phase should add dedicated transactional email and recovery, self-service account deletion, regenerate database types, connect durable distributed rate/usage controls, add operational monitoring/backups and authenticated offline reconciliation, and run a separately approved blinded live evaluation before enabling AI for real learners. Billing remains a separate opt-in phase after the founding tutor price and roster limit receive real usage evidence. UI code must continue to use repository/services or validated server commands rather than importing seeds or trusting client-authored ownership.
 
 ## Preview deployment boundary
 
@@ -253,3 +253,25 @@ The runtime still selects the storage adapter at the existing boundary. Valid pu
 Password sign-up may return either a pending-confirmation user or an immediate session. The server action handles both: a confirmed session continues directly to immutable role setup, while a confirmation-required project returns the existing email-confirmation state. Server-only flags hide magic-link UI when transactional email is unavailable. These flags are not authorization inputs; profile roles, memberships, invitations, and every data access decision remain database-owned and RLS-enforced.
 
 The hosted project contains all five additive migrations. The 22-assertion pgTAP suite executes as transactional test users and rolls back its fixture data. Only the Supabase Project URL and publishable key are public. No service-role key exists in the client or deployment contract, and live OpenAI requests remain disabled.
+
+## Public launch and discovery surface
+
+The root landing page and /pilot are static Server Components. They read only
+the existing public runtime-configuration predicate to choose between account
+registration and Demo Mode; they do not create a client bundle, lead record,
+cookie, analytics event, or payment state. The $49 founding plan is
+presentation content labeled as a pricing hypothesis.
+
+getPublicAppUrl validates the configured HTTP(S) origin and supplies the
+metadata base, sitemap, and robots route. Search metadata exposes only public
+marketing, trust, and demo-entry routes. It explicitly disallows crawling API,
+authentication, invitation, student, and tutor paths; this is a discovery
+control, never an authorization mechanism.
+
+GitHub release assets add a source-visible README, evaluation-only rights
+boundary, security and contribution policies, privacy-safe issue forms, and CI
+quality gates. CI installs the lockfile under Node 24 and runs formatting,
+linting, strict types, unit/integration tests, static RLS verification, secret
+scanning, and the Demo Mode production build. Browser and connected Supabase
+tests stay separately gated because they require a browser runtime or create
+disposable records.

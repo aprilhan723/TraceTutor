@@ -2,7 +2,7 @@
 
 ## Current phase
 
-**Public account beta release: Phase 9 learning behavior is preserved, the complete local Demo Mode remains available, and a real Supabase-backed password account path is connected for tutors and invited students.**
+**Founding tutor pilot launch: the public account beta and Phase 9 learning behavior are preserved, while a transparent commercial-validation path and GitHub launch surface are being added.**
 
 ## Public account beta release state
 
@@ -16,6 +16,11 @@
 
 ## Implemented
 
+- Dedicated Founding Tutor Pilot page with an explicit free-beta boundary, $49/month pricing hypothesis, 12-active-student assumption, fit criteria, and demo-first conversion
+- Landing-page pilot positioning and calls to action without adding payment, analytics, advertising, or lead-storage dependencies
+- Validated public metadata origin plus generated sitemap and robots routes that exclude private application paths from discovery
+- Updated privacy page separating browser-local Demo Mode from the limited Supabase account beta and stating recovery/deletion limitations
+- Public-source README, evaluation-only rights boundary, security policy, contribution boundary, privacy-safe issue forms, and GitHub Actions quality gates
 - Official Next.js App Router foundation with strict TypeScript, Tailwind CSS, ESLint, `src/`, and npm configuration
 - Premium responsive landing page with all required positioning, method, coverage, trust, and CTA sections
 - Demo role selection
@@ -206,3 +211,16 @@ Local builds use `.next.nosync` because this checkout is under macOS Documents s
 - Actual-domain HTTP smoke: 10/10 landing, account, demo, protected-shell, manifest, and trust requests returned 200 without Vercel Authentication.
 - Actual-domain account-mode browser smoke: 2/2 desktop/mobile checks passed for registration UI, anonymous route protection, separate Demo Mode entry, zero console errors, and no horizontal overflow.
 - Hosted account creation was not automated against the real project because the connected lifecycle test intentionally creates disposable users; the public form and immediate-session code path are verified without polluting hosted learner data.
+
+## Founding tutor pilot launch verification
+
+- Formatting and ESLint passed with zero errors.
+- Next.js route generation and strict TypeScript passed with zero errors.
+- Vitest passed 32 files and 114 unit/integration tests, including the validated public-origin helper.
+- Static RLS verification passed all 42 exposed tables.
+- Secret scan passed 241 repository files.
+- Next.js 16.3.0 production build compiled and emitted the landing, pilot, sitemap, and robots artifacts.
+- Playwright production passed 33 browser journeys with 5 expected environment-gated skips across desktop and mobile profiles.
+- The new pilot path passed its conversion smoke twice and its axe-core accessibility audit twice.
+- Browser visual QA at 1440 × 1000 and 390 × 844 found no horizontal overflow; the pricing hypothesis, free-beta boundary, and independent-product notice remained visible and readable.
+- GitHub and refreshed Vercel publication remain pending because the connected GitHub account has no repository yet and the available browser is not signed in. No remote repository, deployment, billing system, or hosted learner data was created or mutated by this launch change.

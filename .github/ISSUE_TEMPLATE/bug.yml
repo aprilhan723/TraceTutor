@@ -1,0 +1,49 @@
+name: Bug report
+description: Report a reproducible TraceTutor problem without learner data.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve TraceTutor. Do not include student names, email addresses, credentials, copyrighted test material, or private workspace links.
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Surface
+      options:
+        - Public landing or pilot
+        - Demo student
+        - Demo tutor
+        - Account student
+        - Account tutor
+        - Local development
+    validations:
+      required: true
+  - type: textarea
+    id: observed
+    attributes:
+      label: What happened?
+      description: Include the smallest reproducible sequence using fictional data.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and device
+      placeholder: "Example: Safari 19, iPhone"
+    validations:
+      required: true
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy check
+      options:
+        - label: I removed personal data, credentials, official test content, and private links.
+          required: true

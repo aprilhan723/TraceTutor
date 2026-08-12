@@ -54,6 +54,9 @@ export default function HomePage() {
             <a className="transition-colors hover:text-ink" href="#tutors">
               For tutors
             </a>
+            <a className="transition-colors hover:text-ink" href="#pilot">
+              Founding pilot
+            </a>
           </div>
           <Button
             href={accountMode ? "/auth/sign-in" : "/demo"}
@@ -548,6 +551,47 @@ export default function HomePage() {
           </div>
         </section>
 
+        <section id="pilot" className="relative overflow-hidden">
+          <div
+            className="absolute -top-24 -left-24 -z-10 size-80 rounded-full bg-coral/15 blur-3xl"
+            aria-hidden="true"
+          />
+          <div className="mx-auto grid max-w-7xl gap-10 px-4 py-24 sm:px-6 sm:py-32 lg:grid-cols-[1fr_0.92fr] lg:items-center lg:px-8">
+            <div>
+              <SectionHeading
+                eyebrow="Founding tutor pilot"
+                title="Turn the tutor workspace into a paid habit—only if it earns one."
+                description="The public beta is open to independent tutors with a small active roster. Test the full correction workflow now; no card is collected while the founding plan and limits are validated."
+              />
+              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+                <Button href="/pilot" variant="violet" size="lg">
+                  Review the pilot <span aria-hidden="true">→</span>
+                </Button>
+                <Button href="/demo" variant="secondary" size="lg">
+                  Inspect both roles
+                </Button>
+              </div>
+            </div>
+            <Card tone="coral" className="p-7 sm:p-9">
+              <p className="text-xs font-bold tracking-[0.16em] text-coral-deep uppercase">
+                Transparent beta offer
+              </p>
+              <p className="mt-5 font-editorial text-4xl tracking-tight">
+                Free now. Planned at $49 per tutor each month.
+              </p>
+              <p className="mt-5 text-sm leading-7 text-ink-muted">
+                The planned founding tier covers up to 12 active students. It is
+                a pricing hypothesis, not a current charge. Early tutors can
+                evaluate the workflow before any billing decision.
+              </p>
+              <p className="mt-5 border-t border-coral/25 pt-5 text-xs leading-5 text-ink-muted">
+                No official questions, no score prediction, and no autonomous AI
+                teaching. Tutors remain the final reviewers.
+              </p>
+            </Card>
+          </div>
+        </section>
+
         <section className="px-4 pb-5 sm:px-6 lg:px-8">
           <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2.5rem] bg-violet px-6 py-18 text-center text-white shadow-[0_30px_90px_rgba(76,49,143,0.28)] sm:px-12 sm:py-24">
             <div
@@ -600,6 +644,9 @@ export default function HomePage() {
             </Link>
             <Link className="hover:text-ink" href="/method">
               Method
+            </Link>
+            <Link className="hover:text-ink" href="/pilot">
+              Founding pilot
             </Link>
             <Link className="hover:text-ink" href="/trust">
               Trust

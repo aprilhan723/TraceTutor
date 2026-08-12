@@ -4,7 +4,7 @@
 
 - **Brand:** TraceTutor
 - **Product label:** TOEFL Reading Correction Sprint
-- **Phase:** 7 — optional tutor-reviewed AI assistance, with deterministic and local fallbacks preserved
+- **Phase:** public account beta plus founding tutor pilot; Phase 9 learning behavior and the optional tutor-reviewed AI boundary remain preserved
 - **Primary promise:** Practice less randomly. Correct what keeps repeating.
 
 TraceTutor is not a question bank. It is a tutor-verified daily mistake-correction product for the 2026 TOEFL Reading experience. The student completes one focused correction sprint; the tutor sees the repeated reasoning pattern before the next lesson.
@@ -23,6 +23,12 @@ TraceTutor is not a question bank. It is a tutor-verified daily mistake-correcti
 5. **Retain** — revisit the correction after time has passed.
 
 Phase 7 adds a narrowly scoped, server-only OpenAI adapter without replacing any Phase 6 behavior. The model is consulted only when the deterministic trace contains multiple plausible causes or a short structured student explanation needs classification. Live AI is disabled by default, every normal test uses mocks, and provider failure returns the unchanged rule trace. Tutor adjudication remains the verification boundary.
+
+The public launch adds a commercial validation surface without changing the
+learning contract. A founding tutor pilot states a $49-per-tutor monthly
+pricing hypothesis for up to 12 active learners, while clearly saying that the
+current beta is free and collects no card. The hypothesis is not a checkout
+offer, entitlement, or promise that billing exists.
 
 ## 2026 Reading task coverage
 
@@ -296,3 +302,13 @@ Tutors may read engagement summaries only for explicitly linked learners. They m
 - The initial free hosted release uses password authentication with immediate sessions. Magic links, email verification, and password recovery remain disabled until dedicated transactional SMTP is configured; this limitation is visible on the sign-up screen.
 - No service-role key or OpenAI key is sent to the browser or configured in the public deployment. Live AI remains off, and deterministic diagnosis plus tutor adjudication remain fully functional.
 - TraceTutor remains independent software, is not endorsed by ETS, and never represents practice feedback as an official TOEFL score.
+
+## Founding tutor pilot
+
+- The primary commercial customer is an independent tutor with 3–12 active TOEFL Reading learners who already owns or has permission to use their lesson material.
+- The landing page and dedicated /pilot route lead with the tutor outcome: identify the reasoning trace worth addressing before the next lesson.
+- The public beta collects no payment. The displayed $49 per tutor per month price for up to 12 active learners is explicitly labeled a hypothesis that early usage must validate.
+- Pilot conversion uses the existing real tutor registration and workspace setup. No new lead database, analytics tracker, advertising pixel, payment processor, secret, or remote-data mutation is introduced.
+- Demo Mode remains the first evaluation path. Prospects can inspect both roles with fictional data before creating an account.
+- Account recovery, self-service deletion, billing, production SMTP, analytics, and private support intake remain visible launch limitations rather than simulated capabilities.
+- The public repository is source-visible for evaluation under an all-rights-reserved boundary until the owner makes a separate open-source or dual-license decision.

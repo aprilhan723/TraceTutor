@@ -44,6 +44,11 @@ test("landing and trust surfaces have no serious accessibility violations", asyn
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expectNoSeriousAccessibilityViolations(page);
+  await page.goto("/pilot");
+  await expect(
+    page.getByRole("heading", { name: /right mistake/i }),
+  ).toBeVisible();
+  await expectNoSeriousAccessibilityViolations(page);
   await page.goto("/trust");
   await expectNoSeriousAccessibilityViolations(page);
 });
