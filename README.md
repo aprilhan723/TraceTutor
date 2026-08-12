@@ -4,7 +4,7 @@
 
 TraceTutor is a tutor-verified mistake-correction workspace for the 2026 TOEFL Reading experience. It turns a learner's answer, confidence, and evidence trace into a short correction loop that a tutor can review before the next lesson.
 
-[Open the live product](https://project-qiel2.vercel.app) · [Inspect both demo roles](https://project-qiel2.vercel.app/demo) · [Review the founding tutor pilot](https://project-qiel2.vercel.app/pilot)
+[Open the live account beta](https://project-qiel2.vercel.app) · [Inspect both demo roles](https://project-qiel2.vercel.app/demo) · [Review the founding tutor pilot Preview](https://project-qiel2-3d3n7oo53-1-8746.vercel.app/pilot)
 
 ## Why it exists
 

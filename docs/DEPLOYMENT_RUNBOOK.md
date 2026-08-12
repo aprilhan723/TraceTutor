@@ -157,3 +157,15 @@ Deploy only after the complete formatter/lint/type/unit/RLS/E2E/build/audit/secr
 ## Release decision
 
 The preview is ready to share only when all available checks pass and every unavailable connected check is listed as a limitation. Phase 9 never promotes the preview to Production.
+
+## Founding tutor pilot Preview
+
+- Vercel scope/project: 1-8746/project-qiel2
+- Source branch/commit: codex/launch-tutor-pilot at 4dac557
+- Deployment ID: dpl_C38GbF4rjX8nPuvwDhBNi4jNdCBT
+- Target/status: preview / Ready
+- URL: https://project-qiel2-3d3n7oo53-1-8746.vercel.app
+- Build: Next.js 16.3.0 compiled, typechecked, and generated 36 page units
+- Environment inventory: the same six approved public-account-beta variable names; no service-role or OpenAI key; live AI disabled
+- Browser smoke: pilot pricing/free-beta boundary, landing pilot link, protected account redirect, separate Demo Mode, robots, sitemap, and zero browser warnings/errors passed
+- Production changed: no; no promotion, alias change, paid plan, domain, add-on, or hosted-data mutation was performed

@@ -223,4 +223,7 @@ Local builds use `.next.nosync` because this checkout is under macOS Documents s
 - Playwright production passed 33 browser journeys with 5 expected environment-gated skips across desktop and mobile profiles.
 - The new pilot path passed its conversion smoke twice and its axe-core accessibility audit twice.
 - Browser visual QA at 1440 × 1000 and 390 × 844 found no horizontal overflow; the pricing hypothesis, free-beta boundary, and independent-product notice remained visible and readable.
-- GitHub and refreshed Vercel publication remain pending because the connected GitHub account has no repository yet and the available browser is not signed in. No remote repository, deployment, billing system, or hosted learner data was created or mutated by this launch change.
+- Dependency audit passed with zero vulnerabilities.
+- Vercel Preview dpl_C38GbF4rjX8nPuvwDhBNi4jNdCBT is Ready at https://project-qiel2-3d3n7oo53-1-8746.vercel.app; the target is explicitly preview, and Production was not changed.
+- Actual-Preview browser smoke passed for the pilot, account-mode landing, anonymous protected-route redirect, isolated Demo Mode entry, robots, sitemap, and zero browser warning/error logs.
+- GitHub publication remains pending because the connected GitHub account has no repository yet and the available browser is not signed in. No remote repository, billing system, or hosted learner data was created or mutated by the launch deployment.
