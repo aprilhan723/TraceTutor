@@ -35,35 +35,23 @@ export function CompleteProfileForm({
         autoComplete="name"
         required
       />
-      <fieldset className="mt-6">
-        <legend className="text-sm font-bold">I am joining as</legend>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          {(["tutor", "student"] as const).map((role) => (
-            <label
-              key={role}
-              className="flex min-h-16 cursor-pointer items-center gap-3 rounded-2xl border border-ink/15 bg-white px-4 font-semibold capitalize has-checked:border-violet has-checked:bg-violet-soft"
-            >
-              <input
-                type="radio"
-                name="role"
-                value={role}
-                defaultChecked={role === (inviteToken ? "student" : "tutor")}
-              />
-              {role}
-            </label>
-          ))}
-        </div>
-      </fieldset>
-      <label className="mt-6 block text-sm font-bold" htmlFor="inviteToken">
-        Student invite code <span className="font-normal">(students only)</span>
-      </label>
-      <input
-        className={inputClass}
-        id="inviteToken"
-        name="inviteToken"
-        defaultValue={inviteToken}
-        autoComplete="off"
-      />
+      <div className="mt-6 rounded-2xl bg-violet-soft px-4 py-4">
+        <p className="text-xs font-bold tracking-[0.12em] text-violet uppercase">
+          Fixed account role
+        </p>
+        <p className="mt-1 font-bold">
+          {inviteToken
+            ? "Student · tutor invitation verified next"
+            : "Tutor · workspace owner"}
+        </p>
+        <p className="mt-1 text-xs leading-5 text-ink-muted">
+          Students can join only through a one-time tutor code. Account roles
+          cannot be self-promoted later.
+        </p>
+      </div>
+      {inviteToken ? (
+        <input type="hidden" name="inviteToken" value={inviteToken} />
+      ) : null}
       {state.message ? (
         <p
           className="mt-4 rounded-2xl bg-coral-soft px-4 py-3 text-sm text-coral-deep"
@@ -73,7 +61,11 @@ export function CompleteProfileForm({
         </p>
       ) : null}
       <Button className="mt-6 w-full" type="submit" disabled={pending}>
-        {pending ? "Securing role…" : "Continue"}
+        {pending
+          ? "Securing role…"
+          : inviteToken
+            ? "Join class and start diagnostic"
+            : "Continue to workspace setup"}
       </Button>
     </form>
   );

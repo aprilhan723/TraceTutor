@@ -303,6 +303,16 @@ Tutors may read engagement summaries only for explicitly linked learners. They m
 - No service-role key or OpenAI key is sent to the browser or configured in the public deployment. Live AI remains off, and deterministic diagnosis plus tutor adjudication remain fully functional.
 - TraceTutor remains independent software, is not endorsed by ETS, and never represents practice feedback as an official TOEFL score.
 
+## Tutor-first diagnostic start
+
+- A tutor creates the account, workspace, and class first, then sends a one-time student code.
+- A student can register only into the tutor/class encoded by that invitation and cannot self-select or later escalate the tutor role.
+- Immediately after joining, a new student completes six original Reading items: two Complete the Words, two Read in Daily Life, and two Academic Reading questions.
+- Every response includes confidence. The baseline favors observed misses and high-confidence wrong signals when choosing the first task and skill target.
+- Completion creates the first conservative study plan and sends the student to Today with one visible recommended-study action.
+- The linked tutor sees waiting/completed baseline status and the same first-focus evidence.
+- The baseline is learning guidance only. It is not an official TOEFL test, score, estimate, or ETS material.
+
 ## Founding tutor pilot
 
 - The primary commercial customer is an independent tutor with 3–12 active TOEFL Reading learners who already owns or has permission to use their lesson material.

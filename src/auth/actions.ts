@@ -1,6 +1,7 @@
 "use server";
 
 import { createHash } from "node:crypto";
+import type { Route } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import {
@@ -96,6 +97,13 @@ export async function signUpAction(
       maxAge: 60 * 60,
     });
   }
+  cookieStore.set("tt_account_path", invite ? "student" : "tutor", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 60,
+  });
   cookieStore.set("tt_display_name", parsed.data.displayName, {
     httpOnly: true,
     sameSite: "lax",
@@ -158,12 +166,14 @@ export async function completeProfileAction(
   formData: FormData,
 ): Promise<AuthActionState> {
   const cookieStore = await cookies();
+  const accountPath = cookieStore.get("tt_account_path")?.value;
+  const inviteToken =
+    getFormString(formData, "inviteToken") ||
+    cookieStore.get("tt_invite")?.value;
   const parsed = completeProfileSchema.safeParse({
     displayName: getFormString(formData, "displayName"),
-    role: getFormString(formData, "role"),
-    inviteToken:
-      getFormString(formData, "inviteToken") ||
-      cookieStore.get("tt_invite")?.value,
+    role: accountPath === "student" || inviteToken ? "student" : "tutor",
+    inviteToken,
   });
   if (!parsed.success) {
     return actionError(
@@ -184,6 +194,7 @@ export async function completeProfileAction(
     });
     if (error) return actionError(error.message);
     cookieStore.delete("tt_display_name");
+    cookieStore.delete("tt_account_path");
     redirect("/auth/setup");
   }
 
@@ -202,7 +213,8 @@ export async function completeProfileAction(
   if (error) return actionError(error.message);
   cookieStore.delete("tt_invite");
   cookieStore.delete("tt_display_name");
-  redirect("/student/today");
+  cookieStore.delete("tt_account_path");
+  redirect("/student/diagnostic" as Route);
 }
 
 export async function createTutorWorkspaceAction(

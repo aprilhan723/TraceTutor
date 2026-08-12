@@ -22,8 +22,8 @@ export default async function CompleteProfilePage() {
   return (
     <AuthPageShell
       eyebrow="One-time role setup"
-      title="Choose the account boundary."
-      description="Tutor roles can create a workspace. Student roles require a valid one-time invitation, and the role cannot later be self-escalated."
+      title="Confirm the account boundary."
+      description="The signup path fixes the role: tutors create the workspace first, while students enter only through a valid one-time invitation."
     >
       <CompleteProfileForm
         suggestedName={cookieStore.get("tt_display_name")?.value ?? ""}

@@ -254,6 +254,14 @@ Password sign-up may return either a pending-confirmation user or an immediate s
 
 The hosted project contains all five additive migrations. The 22-assertion pgTAP suite executes as transactional test users and rolls back its fixture data. Only the Supabase Project URL and publishable key are public. No service-role key exists in the client or deployment contract, and live OpenAI requests remain disabled.
 
+## Tutor-first entry diagnostic
+
+The account role path is now server-owned before profile creation. An uninvited signup receives the tutor path; a signup carrying a tutor invitation receives the student path. The completion form displays that immutable boundary instead of accepting a client-controlled role choice. Accepting an invitation redirects a new student to `/student/diagnostic` before Today.
+
+`entry-reading-diagnostic.ts` exposes six original prompt DTOs without correct options or accepted word endings. The client records response, confidence, and bounded elapsed time. A validated Server Action requires all six unique item IDs and a future target date, then calls `complete_reading_entry_diagnostic`. The database RPC recomputes correctness from `private.entry_reading_diagnostic_keys`, derives a task/skill recommendation, creates a conservative learner plan, updates the profile target date, and appends an audit record. Clients cannot select the private keys or directly insert diagnostic summaries.
+
+Both entry-diagnostic tables use RLS. A learner may read only their own baseline; a tutor may read it only through the existing active `tutor_student_links` predicate. Existing learners with a verified completed study plan receive an explicit `existing-plan-baseline-v0` row during migration. That row preserves access and states that no diagnostic score or attempt history was inferred.
+
 ## Public launch and discovery surface
 
 The root landing page and /pilot are static Server Components. They read only

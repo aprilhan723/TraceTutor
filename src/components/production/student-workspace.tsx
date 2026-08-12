@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { Route } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { requireAccountRole } from "@/auth/access";
 import { savePersonalizedStudyPlanAction } from "@/app/actions/workspace";
 import { ProductionResponseForm } from "@/components/production/student-response-form";
@@ -23,25 +23,39 @@ export async function StudentProductionToday() {
   const account = await requireAccountRole("student");
   if (!account) return null;
   const supabase = await createSupabaseServerClient();
-  const [{ data: profile }, { data: plan }, { data: streak }] =
-    await Promise.all([
-      supabase
-        .from("profiles")
-        .select("display_name, target_test_date, onboarding_completed_at")
-        .eq("id", account.userId)
-        .single(),
-      supabase
-        .from("learner_study_plans")
-        .select("*")
-        .eq("learner_id", account.userId)
-        .maybeSingle(),
-      supabase
-        .from("learner_streak_stats")
-        .select("current_streak, longest_streak")
-        .eq("learner_id", account.userId)
-        .maybeSingle(),
-    ]);
+  const [
+    { data: profile },
+    { data: plan },
+    { data: streak },
+    { data: entryDiagnostic },
+  ] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("display_name, target_test_date, onboarding_completed_at")
+      .eq("id", account.userId)
+      .single(),
+    supabase
+      .from("learner_study_plans")
+      .select("*")
+      .eq("learner_id", account.userId)
+      .maybeSingle(),
+    supabase
+      .from("learner_streak_stats")
+      .select("current_streak, longest_streak")
+      .eq("learner_id", account.userId)
+      .maybeSingle(),
+    supabase
+      .from("entry_reading_diagnostics")
+      .select(
+        "version, reading_priority, recommended_skill, primary_observation, result",
+      )
+      .eq("learner_id", account.userId)
+      .order("completed_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
   if (!profile) return null;
+  if (!entryDiagnostic) redirect("/student/diagnostic" as Route);
   if (!plan?.onboarding_completed_at) {
     const scoreLevels = Array.from(
       { length: 11 },
@@ -205,6 +219,29 @@ export async function StudentProductionToday() {
             : `${daysUntil} days until your target test date. Complete due tutor work before new practice.`
         }
       />
+      {entryDiagnostic.version === "reading-entry-v1" ? (
+        <Card tone="violet" className="mt-7">
+          <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div>
+              <Badge tone="violet">Diagnostic → first correction</Badge>
+              <p className="mt-4 text-xs font-bold tracking-[0.12em] text-violet uppercase">
+                Recommended first target ·{" "}
+                {entryDiagnostic.reading_priority.replaceAll("_", " ")}
+              </p>
+              <h2 className="mt-2 font-editorial text-3xl capitalize">
+                {entryDiagnostic.recommended_skill.replaceAll("-", " ")}
+              </h2>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-ink-muted">
+                {entryDiagnostic.primary_observation} Your tutor sees the same
+                baseline evidence.
+              </p>
+            </div>
+            <Button href="/student/study" size="lg">
+              Start my recommended study
+            </Button>
+          </div>
+        </Card>
+      ) : null}
       <div className="mt-7 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
         <Card tone={pending.length ? "coral" : "mint"}>
           <p className="text-xs font-bold tracking-[0.14em] text-coral-deep uppercase">

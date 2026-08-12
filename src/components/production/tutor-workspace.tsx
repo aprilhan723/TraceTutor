@@ -11,12 +11,33 @@ import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { loadTutorProductionWorkspace } from "@/data/supabase-workspace";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function TutorProductionDashboard() {
   const account = await requireAccountRole("tutor");
   if (!account) return null;
   const workspace = await loadTutorProductionWorkspace(account.userId);
   if (!workspace.organization) redirect("/auth/setup");
+  const supabase = await createSupabaseServerClient();
+  const studentIds = workspace.students.map((student) => student.id);
+  const { data: entryDiagnostics } = studentIds.length
+    ? await supabase
+        .from("entry_reading_diagnostics")
+        .select(
+          "learner_id, version, reading_priority, recommended_skill, primary_observation, completed_at",
+        )
+        .in("learner_id", studentIds)
+        .order("completed_at", { ascending: false })
+    : { data: [] };
+  const diagnosticByStudent = new Map<
+    string,
+    NonNullable<typeof entryDiagnostics>[number]
+  >();
+  entryDiagnostics?.forEach((diagnostic) => {
+    if (!diagnosticByStudent.has(diagnostic.learner_id)) {
+      diagnosticByStudent.set(diagnostic.learner_id, diagnostic);
+    }
+  });
   const unresolved = workspace.recentAttempts.filter(
     (attempt) => !attempt.isCorrect,
   ).length;
@@ -47,6 +68,76 @@ export async function TutorProductionDashboard() {
           </Card>
         ))}
       </section>
+
+      <Card className="mt-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-bold tracking-[0.14em] text-violet uppercase">
+              Tutor → code → diagnostic
+            </p>
+            <h2 className="mt-2 font-editorial text-3xl">
+              Student start status
+            </h2>
+          </div>
+          <Badge tone="mint">
+            {
+              workspace.students.filter((student) =>
+                diagnosticByStudent.has(student.id),
+              ).length
+            }
+            /{workspace.students.length} baseline ready
+          </Badge>
+        </div>
+        {workspace.students.length ? (
+          <ul className="mt-5 divide-y divide-ink/10 border-y border-ink/10">
+            {workspace.students.map((student) => {
+              const diagnostic = diagnosticByStudent.get(student.id);
+              return (
+                <li
+                  key={student.id}
+                  className="flex flex-col justify-between gap-3 py-4 sm:flex-row sm:items-start"
+                >
+                  <div>
+                    <p className="font-bold">{student.displayName}</p>
+                    <p className="mt-1 text-xs text-ink-muted">
+                      {student.targetTestDate
+                        ? `Test date · ${student.targetTestDate}`
+                        : "Target date collected in the diagnostic"}
+                    </p>
+                  </div>
+                  {diagnostic?.version === "reading-entry-v1" ? (
+                    <div className="sm:max-w-md sm:text-right">
+                      <Badge tone="mint">Diagnostic complete</Badge>
+                      <p className="mt-2 font-bold capitalize">
+                        {diagnostic.recommended_skill.replaceAll("-", " ")}
+                      </p>
+                      <p className="mt-1 text-xs text-ink-muted">
+                        First focus ·{" "}
+                        {diagnostic.reading_priority.replaceAll("_", " ")}
+                      </p>
+                    </div>
+                  ) : diagnostic ? (
+                    <Badge>Existing verified plan preserved</Badge>
+                  ) : (
+                    <div className="sm:text-right">
+                      <Badge tone="violet">Waiting for diagnostic</Badge>
+                      <p className="mt-2 text-xs text-ink-muted">
+                        Their first screen leads directly to the six-question
+                        baseline.
+                      </p>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <p className="mt-5 rounded-2xl bg-cream p-4 text-sm text-ink-muted">
+            Generate the one-time student code below. The diagnostic status
+            appears here after signup.
+          </p>
+        )}
+      </Card>
 
       <div className="mt-7 grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
         <Card>

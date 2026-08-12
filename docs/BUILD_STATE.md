@@ -2,7 +2,7 @@
 
 ## Current phase
 
-**Founding tutor pilot launch: the public account beta and Phase 9 learning behavior are preserved, while a transparent commercial-validation path and GitHub launch surface are being added.**
+**Founding tutor pilot plus tutor-first entry diagnostic: the public account beta, complete local demo, and Phase 9 learning behavior are preserved while newly invited students now complete a required Reading baseline before receiving their first recommendation.**
 
 ## Public account beta release state
 
@@ -15,6 +15,14 @@
 - The complete browser-local `/demo` student and tutor experience remains a safe fallback and sales demo.
 
 ## Implemented
+
+- Tutor-first account boundary: uninvited signup is tutor-only, while the one-time invite path locks the new account to student and removes client-controlled role selection
+- Newly invited students redirect directly to a required six-item Reading entry diagnostic with target test date and confidence on every response
+- Original diagnostic coverage across Complete the Words, Read in Daily Life, and Academic Reading with answer keys omitted from student DTOs
+- Deterministic first recommendation from task misses, high-confidence wrong signals, and rule metadata; no official score estimate
+- Server-validated, idempotent diagnostic RPC with private answer keys, RLS-linked tutor visibility, audit logging, and automatic conservative study-plan creation
+- Existing verified learners are grandfathered through an explicitly labeled existing-plan baseline without fabricating diagnostic attempts
+- Tutor dashboard status for waiting/completed diagnostics and shared first-focus evidence
 
 - Dedicated Founding Tutor Pilot page with an explicit free-beta boundary, $49/month pricing hypothesis, 12-active-student assumption, fit criteria, and demo-first conversion
 - Landing-page pilot positioning and calls to action without adding payment, analytics, advertising, or lead-storage dependencies
@@ -83,7 +91,7 @@
 - Authenticated tutor workspace for content copy, linked-student visibility, assignment creation, and recent response review
 - Authenticated student workspace for onboarding, assigned work, evidence/confidence response submission, resume-safe duplicate submission handling, and honest progress surfaces
 - Storage-agnostic repository factory with a Supabase `LearningRepository` read adapter and narrow validated relational commands for writes
-- Five versioned SQL migrations covering 42 RLS-protected public tables, security-definer commands, taxonomy seed data, personalized study records, indexes, constraints, immutable publication history, soft retirement, audit records, and idempotency records
+- Six versioned SQL migrations covering the prior 42 RLS-protected public tables plus two entry-diagnostic tables, security-definer commands, taxonomy seed data, personalized study records, indexes, constraints, immutable publication history, soft retirement, audit records, and idempotency records
 - Separate machine hypotheses and immutable tutor adjudications for future evaluation
 - Column-level protection for correct responses, distractor labels, designated evidence, tutor-only notes, invite hashes, and audit data
 - Static RLS coverage/secret verification scripts, a pgTAP cross-user policy test, and a gated connected Supabase E2E workflow
@@ -142,6 +150,8 @@
 
 ## Known Phase 9 limitations
 
+- The entry-diagnostic migration is implemented and locally verified but has not been applied to the connected hosted Supabase project in this change. It must be applied before deploying the matching application code.
+
 - The selected Vercel project began as an empty project. Vercel automatically assigned the first CLI upload to its Production target even though the command explicitly used `--target=preview`. TraceTutor did not request or perform a Production promotion, attach a domain, or upload application secrets. That immutable first record was left untouched because this phase forbids deletion/reset of remote data. The verified staging artifact is the later deployment whose target is explicitly `preview`.
 - After explicit owner authorization, project-level Vercel Authentication was disabled so the Demo Mode Preview can be opened without a Vercel account. Unauthenticated HTTP checks for the landing, student Today, and tutor dashboard routes return 200. Source/build-log protection remains unchanged; the Preview contains no application environment variables or connected learner database.
 - Earlier immutable Phase 8/9 Preview URLs remain Demo Mode artifacts with zero application variables. The current account release uses a separately configured hosted Supabase runtime while preserving `/demo`.
@@ -173,6 +183,16 @@
 ## Exact next backend phase
 
 **Add dedicated transactional SMTP and password recovery, regenerate database types from the hosted schema, then add durable authenticated offline reconciliation, distributed AI limits/usage accounting, backups, and monitoring. A branded custom domain, payments, and live AI remain separate opt-in work.**
+
+## Tutor-first entry diagnostic verification — 2026-08-12
+
+- Formatting, ESLint, Next.js route generation, and strict TypeScript passed with zero errors.
+- Vitest passed 33 files and 117 unit/integration tests, including the six-item Reading diagnostic and deterministic recommendation rules.
+- Playwright passed 32 desktop/mobile browser journeys with 6 expected environment-gated skips; all 6 representative axe audits reported zero serious or critical violations.
+- Static RLS verification passed all 44 exposed tables; the additive diagnostic migration and 6 pgTAP assertions are present but intentionally not applied to the hosted project in this local change.
+- Secret scan passed 252 repository files, and the dependency audit reported zero vulnerabilities.
+- Next.js 16.3.0 production build compiled, typechecked, and generated all 37 page units, including `/student/diagnostic`.
+- Browser inspection confirmed the 375 px student entry has no horizontal overflow or console warnings/errors. Demo Mode remains independent and redirects its unsupported diagnostic URL back to the preserved local onboarding flow.
 
 ## Phase 9 verification
 

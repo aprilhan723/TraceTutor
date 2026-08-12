@@ -25,7 +25,7 @@ export default async function SignUpPage({
       description={
         invite
           ? "The invitation is checked once after email confirmation. It cannot be used to join another tutor or class."
-          : "Create an account first. Your permanent tutor or student role is set only during the verified onboarding step."
+          : "This path creates a tutor workspace. Students join only through the one-time code their tutor sends."
       }
     >
       <SignUpForm invite={invite} />

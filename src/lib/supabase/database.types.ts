@@ -603,6 +603,56 @@ export interface Database {
           updated_at?: string;
         }
       >;
+      entry_reading_diagnostics: Table<
+        {
+          id: string;
+          learner_id: string;
+          idempotency_key: string;
+          version: string;
+          reading_priority: ReadingPriority;
+          recommended_skill: string;
+          primary_observation: string;
+          result: Json;
+          completed_at: string;
+          created_at: string;
+        },
+        {
+          id?: string;
+          learner_id: string;
+          idempotency_key: string;
+          version?: string;
+          reading_priority: ReadingPriority;
+          recommended_skill: string;
+          primary_observation: string;
+          result?: Json;
+          completed_at?: string;
+          created_at?: string;
+        }
+      >;
+      entry_reading_diagnostic_responses: Table<
+        {
+          id: string;
+          diagnostic_id: string;
+          learner_id: string;
+          item_id: string;
+          response: string;
+          confidence: string;
+          elapsed_seconds: number;
+          is_correct: boolean;
+          created_at: string;
+        },
+        {
+          id?: string;
+          diagnostic_id: string;
+          learner_id: string;
+          item_id: string;
+          response: string;
+          confidence: string;
+          elapsed_seconds: number;
+          is_correct: boolean;
+          created_at?: string;
+        }
+      >;
       study_sessions: Table<
         Timestamped & {
           id: string;
@@ -795,6 +845,14 @@ export interface Database {
     Functions: {
       accept_student_invite: {
         Args: { p_token_hash: string; p_display_name: string };
+        Returns: Json;
+      };
+      complete_reading_entry_diagnostic: {
+        Args: {
+          p_idempotency_key: string;
+          p_target_test_date: string;
+          p_responses: Json;
+        };
         Returns: Json;
       };
       create_student_invite: {
