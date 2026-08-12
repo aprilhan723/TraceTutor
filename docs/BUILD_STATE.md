@@ -202,3 +202,7 @@ Local builds use `.next.nosync` because this checkout is under macOS Documents s
 - Static RLS: all 42 exposed tables passed. Hosted transactional pgTAP: 22 passed and 0 failed.
 - Migration inventory/status: all five ordered migrations are present and applied to the selected hosted project.
 - Hosted variables: six approved names in Production and Preview; no service-role/OpenAI key; live AI disabled.
+- Vercel public Production deployment `dpl_84iKiGyJacLP7kAhbUgBhDcNnvm3` is Ready and aliased to `https://project-qiel2.vercel.app`.
+- Actual-domain HTTP smoke: 10/10 landing, account, demo, protected-shell, manifest, and trust requests returned 200 without Vercel Authentication.
+- Actual-domain account-mode browser smoke: 2/2 desktop/mobile checks passed for registration UI, anonymous route protection, separate Demo Mode entry, zero console errors, and no horizontal overflow.
+- Hosted account creation was not automated against the real project because the connected lifecycle test intentionally creates disposable users; the public form and immediate-session code path are verified without polluting hosted learner data.

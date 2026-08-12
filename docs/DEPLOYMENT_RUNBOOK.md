@@ -19,6 +19,19 @@ Never configure a Supabase service-role key or OpenAI key in this release. Supab
 
 Before `vercel --prod`, run the full preflight below, confirm the five migrations are present/applied, require 22/22 remote pgTAP assertions, and verify the variable inventory by name without printing values. After deployment, inspect the Production target, smoke the public landing/sign-up/sign-in/demo routes, require protected account routes to redirect, inspect console/network behavior, and verify 375 px rendering.
 
+### Verified release record
+
+- Public URL: `https://project-qiel2.vercel.app`
+- Deployment: `dpl_84iKiGyJacLP7kAhbUgBhDcNnvm3`
+- Source commit: `99b602e` (`feat: enable hosted account beta`)
+- Target/status: `production` / `Ready`
+- Vercel build: Next.js 16.3.0 compiled, typechecked, and emitted all 33 page units successfully
+- External HTTP smoke: 10/10 routes returned 200 without a Vercel/ChatGPT gate
+- Account-mode browser smoke: 2/2 desktop/mobile checks passed, including sign-up UI, anonymous protection redirect, Demo Mode isolation, console errors, and horizontal overflow
+- Supabase: five migrations applied; 22/22 transactional pgTAP assertions passed
+- Secrets: no service-role or OpenAI key in Vercel; live AI disabled
+- Known release limitation: dedicated SMTP is not connected, so email ownership verification, magic links, and password recovery are unavailable
+
 ## Historical Phase 8/9 Preview boundary
 
 TraceTutor Phase 9 uses a Vercel **Preview** deployment only. The Preview environment is the staging environment for this phase. Do not run `vercel --prod`, promote a deployment, attach a production/custom domain, create a paid custom environment, or purchase any plan or add-on.

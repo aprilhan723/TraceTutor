@@ -6,6 +6,8 @@ Do not reset or delete Supabase data. If the public account release has a blocki
 
 For immediate containment, disable new Supabase sign-ups or re-enable Vercel Authentication only when public access itself is unsafe. Do not expose, rotate through chat, or add a service-role/OpenAI secret. The browser-local Demo Mode and earlier immutable Preview URLs remain available for sales demonstrations while the account release is repaired.
 
+Current known-good Production rollback target: `dpl_84iKiGyJacLP7kAhbUgBhDcNnvm3` (`https://project-qiel2-fc3kvz20g-1-8746.vercel.app`, source commit `99b602e`). From a later regression, select this deployment in Vercel and use **Redeploy**, then verify the stable alias `https://project-qiel2.vercel.app`. This changes application code only; it does not delete or reset Supabase data.
+
 ## Historical Preview-only rollback policy
 
 Vercel Preview deployments are immutable URLs and are not the production site. A Phase 9 rollback therefore means creating a new Preview from the last verified commit or the annotated `before-personalized-learning-modes` checkpoint, verifying it, and sharing that replacement URL. Do not promote either deployment, change production aliases, delete deployments, or reset remote data.
