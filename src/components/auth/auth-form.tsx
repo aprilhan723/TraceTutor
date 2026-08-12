@@ -20,7 +20,11 @@ function Feedback({ message, success }: { message: string; success: boolean }) {
   );
 }
 
-export function SignInForm() {
+export function SignInForm({
+  emailLinkEnabled = false,
+}: {
+  emailLinkEnabled?: boolean;
+}) {
   const [state, action, pending] = useActionState(
     signInAction,
     initialAuthActionState,
@@ -63,33 +67,35 @@ export function SignInForm() {
         </Button>
       </form>
 
-      <div className="border-t border-ink/10 pt-7">
-        <p className="text-sm font-bold">Prefer a one-time link?</p>
-        <form
-          action={magicAction}
-          className="mt-3 flex flex-col gap-3 sm:flex-row"
-        >
-          <label className="sr-only" htmlFor="magicEmail">
-            Email for magic link
-          </label>
-          <input
-            className={`${inputClass} mt-0 flex-1`}
-            id="magicEmail"
-            name="magicEmail"
-            type="email"
-            autoComplete="email"
-            placeholder="you@example.com"
-            required
+      {emailLinkEnabled ? (
+        <div className="border-t border-ink/10 pt-7">
+          <p className="text-sm font-bold">Prefer a one-time link?</p>
+          <form
+            action={magicAction}
+            className="mt-3 flex flex-col gap-3 sm:flex-row"
+          >
+            <label className="sr-only" htmlFor="magicEmail">
+              Email for magic link
+            </label>
+            <input
+              className={`${inputClass} mt-0 flex-1`}
+              id="magicEmail"
+              name="magicEmail"
+              type="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              required
+            />
+            <Button type="submit" variant="secondary" disabled={magicPending}>
+              Email link
+            </Button>
+          </form>
+          <Feedback
+            message={magicState.message}
+            success={magicState.status === "success"}
           />
-          <Button type="submit" variant="secondary" disabled={magicPending}>
-            Email link
-          </Button>
-        </form>
-        <Feedback
-          message={magicState.message}
-          success={magicState.status === "success"}
-        />
-      </div>
+        </div>
+      ) : null}
     </div>
   );
 }

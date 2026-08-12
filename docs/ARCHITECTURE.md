@@ -245,3 +245,11 @@ Active time is intentionally event-based. A client heartbeat proposes at most 90
 The fifth additive migration creates `learner_study_plans`, `study_sessions`, `daily_learner_progress`, `learner_streak_stats`, `study_activity_events`, and `tutor_study_recommendations`. All six enable RLS. Students can read their own rows; linked tutors can read session/daily/streak summaries but not private plan rows or raw activity events; unrelated tutors see none. New client sessions must begin with zero activity, sensitive counters are RPC-owned, IANA timezone names are database-validated, and tutor recommendations require an existing organization link. Existing completed student profiles receive conservative plan defaults only—no historical time, attempts, Core completion, or streak is manufactured.
 
 The Supabase adapter maps the six tables back into the existing aggregate contract. Validated server commands repeat role/ownership checks for plan writes, idempotent activity, tutor recommendations, and learner responses. The local Demo Mode remains the complete offline-safe product and does not depend on Supabase, OpenAI, or a secret.
+
+## Hosted account-mode runtime
+
+The runtime still selects the storage adapter at the existing boundary. Valid public Supabase URL and publishable-key variables activate cookie-based account mode; their absence activates the complete local demo. An explicit demo-entry cookie keeps `/demo` isolated even on the hosted account release.
+
+Password sign-up may return either a pending-confirmation user or an immediate session. The server action handles both: a confirmed session continues directly to immutable role setup, while a confirmation-required project returns the existing email-confirmation state. Server-only flags hide magic-link UI when transactional email is unavailable. These flags are not authorization inputs; profile roles, memberships, invitations, and every data access decision remain database-owned and RLS-enforced.
+
+The hosted project contains all five additive migrations. The 22-assertion pgTAP suite executes as transactional test users and rolls back its fixture data. Only the Supabase Project URL and publishable key are public. No service-role key exists in the client or deployment contract, and live OpenAI requests remain disabled.

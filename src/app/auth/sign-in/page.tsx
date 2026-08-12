@@ -20,7 +20,11 @@ export default async function SignInPage() {
       title="Continue your correction trace."
       description="Cookie-based server authentication keeps the account boundary separate from the preserved local demo."
     >
-      <SignInForm />
+      <SignInForm
+        emailLinkEnabled={
+          process.env.TRACETUTOR_EMAIL_LINK_AUTH_ENABLED === "true"
+        }
+      />
       <p className="mt-6 text-center text-sm text-ink-muted">
         New to TraceTutor?{" "}
         <Link href="/auth/sign-up" className="font-bold text-violet underline">

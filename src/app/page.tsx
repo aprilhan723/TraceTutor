@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { taskCoverage } from "@/content/marketing";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 const correctionLoop = [
   ["01", "Answer", "Commit to a choice"],
@@ -26,6 +27,8 @@ const tutorBenefits = [
 ] as const;
 
 export default function HomePage() {
+  const accountMode = isSupabaseConfigured();
+
   return (
     <div className="overflow-x-clip bg-cream text-ink">
       <a
@@ -52,8 +55,13 @@ export default function HomePage() {
               For tutors
             </a>
           </div>
-          <Button href="/demo" variant="secondary" size="sm">
-            Explore demo <span aria-hidden="true">↗</span>
+          <Button
+            href={accountMode ? "/auth/sign-in" : "/demo"}
+            variant="secondary"
+            size="sm"
+          >
+            {accountMode ? "Sign in" : "Explore demo"}{" "}
+            <span aria-hidden="true">↗</span>
           </Button>
         </nav>
       </header>
@@ -94,13 +102,30 @@ export default function HomePage() {
                 lesson.
               </p>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-                <Button href="/student/today" size="lg">
-                  Try the student demo <span aria-hidden="true">→</span>
+                <Button
+                  href={accountMode ? "/auth/sign-up" : "/student/today"}
+                  size="lg"
+                >
+                  {accountMode ? "Create an account" : "Try the student demo"}{" "}
+                  <span aria-hidden="true">→</span>
                 </Button>
-                <Button href="/tutor/dashboard" variant="secondary" size="lg">
-                  See the tutor view
+                <Button
+                  href={accountMode ? "/auth/sign-in" : "/tutor/dashboard"}
+                  variant="secondary"
+                  size="lg"
+                >
+                  {accountMode ? "Sign in" : "See the tutor view"}
                 </Button>
               </div>
+              {accountMode ? (
+                <p className="mt-4 text-sm font-semibold text-ink-muted">
+                  Students join through a one-time tutor invitation.{" "}
+                  <Link className="text-violet underline" href="/demo">
+                    Explore the separate demo
+                  </Link>
+                  .
+                </p>
+              ) : null}
               <p className="mt-6 max-w-xl text-xs leading-5 text-ink-muted">
                 Independent practice software. Not endorsed by ETS. Practice
                 feedback is not an official TOEFL score.
@@ -319,8 +344,15 @@ export default function HomePage() {
                   </li>
                 ))}
               </ul>
-              <Button href="/student/today" className="mt-10" size="lg">
-                Open today’s mission <span aria-hidden="true">→</span>
+              <Button
+                href={accountMode ? "/auth/sign-up" : "/student/today"}
+                className="mt-10"
+                size="lg"
+              >
+                {accountMode
+                  ? "Join with a tutor invite"
+                  : "Open today’s mission"}{" "}
+                <span aria-hidden="true">→</span>
               </Button>
             </div>
 
@@ -435,12 +467,15 @@ export default function HomePage() {
                 ))}
               </ul>
               <Button
-                href="/tutor/dashboard"
+                href={accountMode ? "/auth/sign-up" : "/tutor/dashboard"}
                 variant="violet"
                 className="mt-10"
                 size="lg"
               >
-                See the tutor view <span aria-hidden="true">→</span>
+                {accountMode
+                  ? "Create a tutor workspace"
+                  : "See the tutor view"}{" "}
+                <span aria-hidden="true">→</span>
               </Button>
             </div>
           </div>
@@ -530,11 +565,19 @@ export default function HomePage() {
               Stop collecting mistakes. Start correcting the one that repeats.
             </h2>
             <div className="relative mt-9 flex flex-col justify-center gap-3 sm:flex-row">
-              <Button href="/student/today" size="lg">
-                Try the student demo <span aria-hidden="true">→</span>
+              <Button
+                href={accountMode ? "/auth/sign-up" : "/student/today"}
+                size="lg"
+              >
+                {accountMode ? "Create an account" : "Try the student demo"}{" "}
+                <span aria-hidden="true">→</span>
               </Button>
-              <Button href="/tutor/dashboard" variant="secondary" size="lg">
-                See the tutor view
+              <Button
+                href={accountMode ? "/auth/sign-in" : "/tutor/dashboard"}
+                variant="secondary"
+                size="lg"
+              >
+                {accountMode ? "Sign in" : "See the tutor view"}
               </Button>
             </div>
           </div>

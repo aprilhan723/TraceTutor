@@ -29,6 +29,13 @@ export default async function SignUpPage({
       }
     >
       <SignUpForm invite={invite} />
+      {process.env.TRACETUTOR_EMAIL_CONFIRMATION_REQUIRED !== "true" ? (
+        <p className="mt-5 rounded-2xl bg-violet-soft px-4 py-3 text-xs leading-5 text-ink-muted">
+          Public beta accounts use a password and, for students, a one-time
+          tutor invitation. Email verification and password reset remain
+          unavailable until dedicated transactional email is connected.
+        </p>
+      ) : null}
       <p className="mt-6 text-center text-sm text-ink-muted">
         Already registered?{" "}
         <Link href="/auth/sign-in" className="font-bold text-violet underline">

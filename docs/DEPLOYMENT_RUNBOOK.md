@@ -1,6 +1,25 @@
-# TraceTutor Preview Deployment Runbook
+# TraceTutor Deployment Runbook
 
-## Deployment boundary
+## Current public account release
+
+The owner explicitly authorized a public Vercel Production release so tutors and invited students can register without a Vercel or ChatGPT account. Use the existing Hobby project and its free `vercel.app` domain. Do not purchase a plan, domain, or add-on, and do not delete/reset hosted data.
+
+Required Production variables are limited to:
+
+| Variable                                 | Scope          | Release value policy                                      |
+| ---------------------------------------- | -------------- | --------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`               | Browser/public | Selected hosted Supabase Project URL                      |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`   | Browser/public | Publishable key only                                      |
+| `NEXT_PUBLIC_APP_URL`                    | Browser/public | Exact public `https://…vercel.app` origin                 |
+| `TRACETUTOR_EMAIL_LINK_AUTH_ENABLED`     | Server-only    | `false` until dedicated transactional SMTP is configured  |
+| `TRACETUTOR_EMAIL_CONFIRMATION_REQUIRED` | Server-only    | `false` for the password-only public beta                 |
+| `TRACETUTOR_LIVE_AI_ENABLED`             | Server-only    | `false`; deterministic rules and tutor workflow remain on |
+
+Never configure a Supabase service-role key or OpenAI key in this release. Supabase RLS remains the data boundary. The complete local sales demo remains available at `/demo`.
+
+Before `vercel --prod`, run the full preflight below, confirm the five migrations are present/applied, require 22/22 remote pgTAP assertions, and verify the variable inventory by name without printing values. After deployment, inspect the Production target, smoke the public landing/sign-up/sign-in/demo routes, require protected account routes to redirect, inspect console/network behavior, and verify 375 px rendering.
+
+## Historical Phase 8/9 Preview boundary
 
 TraceTutor Phase 9 uses a Vercel **Preview** deployment only. The Preview environment is the staging environment for this phase. Do not run `vercel --prod`, promote a deployment, attach a production/custom domain, create a paid custom environment, or purchase any plan or add-on.
 

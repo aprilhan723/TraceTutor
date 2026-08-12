@@ -287,3 +287,12 @@ Active study time counts only while the session is active, the page is visible, 
 Progress reports current/longest streak, today/week active time, active days, question and task coverage, supported accuracy trends, evidence accuracy, confidence calibration, high-confidence wrong rate, review completion, immediate/D2/D7 retention, VECR-7, recurring/corrected patterns, study history, and target context. Every unsupported metric says what must happen before it becomes available. No practice level or progress metric is an official TOEFL score.
 
 Tutors may read engagement summaries only for explicitly linked learners. They may recommend weekly minutes, a Reading priority, or a Focused/Deep session, but the learner must visibly accept the recommendation. Tutors cannot read the private plan row or silently change the learner’s style.
+
+## Public account beta
+
+- When Supabase public configuration is present, the marketing landing page leads to real account creation and sign-in while retaining a separate, visibly labeled `/demo` sales experience.
+- Tutors may register directly, choose the immutable tutor role, create a workspace/class, and issue a cryptographically random one-time student invitation.
+- Students may create an account but cannot join a tutor or class without that valid invitation. They cannot self-escalate to tutor after profile creation.
+- The initial free hosted release uses password authentication with immediate sessions. Magic links, email verification, and password recovery remain disabled until dedicated transactional SMTP is configured; this limitation is visible on the sign-up screen.
+- No service-role key or OpenAI key is sent to the browser or configured in the public deployment. Live AI remains off, and deterministic diagnosis plus tutor adjudication remain fully functional.
+- TraceTutor remains independent software, is not endorsed by ETS, and never represents practice feedback as an official TOEFL score.

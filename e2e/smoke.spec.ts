@@ -101,8 +101,7 @@ test("student onboarding and mission draft resume after refresh", async ({
   await page.goto("/student/today");
   await completeStudentOnboarding(page);
 
-  await page.getByRole("link", { name: /start today’s correction/i }).click();
-  await expect(page).toHaveURL(/\/student\/practice\/mission-/);
+  await openTodayPractice(page);
   await expect(
     page.getByText("Original practice content — not official ETS material.", {
       exact: true,

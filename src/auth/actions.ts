@@ -44,6 +44,10 @@ function authMessage(message: string) {
     : "The authentication request could not be completed. Please try again.";
 }
 
+function emailLinkAuthEnabled() {
+  return process.env.TRACETUTOR_EMAIL_LINK_AUTH_ENABLED === "true";
+}
+
 export async function signInAction(
   _previous: AuthActionState,
   formData: FormData,
@@ -101,13 +105,14 @@ export async function signUpAction(
   });
 
   const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
     options: { emailRedirectTo: `${appOrigin()}/auth/confirm` },
   });
   if (error) return actionError(authMessage(error.message));
   (await cookies()).delete(DEMO_MODE_COOKIE);
+  if (data.session) redirect("/auth/complete-profile");
   return {
     status: "success",
     message: "Check your email to confirm the account, then continue here.",
@@ -118,6 +123,11 @@ export async function magicLinkAction(
   _previous: AuthActionState,
   formData: FormData,
 ): Promise<AuthActionState> {
+  if (!emailLinkAuthEnabled()) {
+    return actionError(
+      "Email-link sign-in is unavailable. Sign in with your password.",
+    );
+  }
   const parsed = magicLinkSchema.safeParse({
     email: getFormString(formData, "magicEmail"),
   });

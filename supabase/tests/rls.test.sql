@@ -120,11 +120,15 @@ select lives_ok(
 );
 select throws_ok(
   $$ update public.profiles set role = 'tutor' where id = '20000000-0000-4000-8000-000000000002' $$,
+  '42501',
+  null,
   'student cannot escalate their account role'
 );
 select is((select count(*) from public.ai_diagnosis_suggestions), 0::bigint, 'student cannot read tutor-only AI suggestions');
 select throws_ok(
   $$ insert into public.tutor_adjudications (diagnostic_session_id, tutor_id, revision, decision) values ('27000000-0000-4000-8000-000000000001', '20000000-0000-4000-8000-000000000002', 1, 'approved') $$,
+  '42501',
+  null,
   'student cannot write a tutor adjudication'
 );
 select is((select count(*) from public.learner_study_plans), 1::bigint, 'student reads only their own private study plan');
@@ -132,14 +136,20 @@ select is((select count(*) from public.study_sessions), 1::bigint, 'student read
 select is((select count(*) from public.tutor_study_recommendations), 1::bigint, 'student reads a linked tutor recommendation');
 select throws_ok(
   $$ update public.daily_learner_progress set active_seconds = 999 where learner_id = '20000000-0000-4000-8000-000000000002' $$,
+  '42501',
+  null,
   'student cannot directly rewrite server-backed daily progress'
 );
 select throws_ok(
   $$ update public.study_sessions set active_seconds = 999 where id = '28000000-0000-4000-8000-000000000001' $$,
+  '42501',
+  null,
   'student cannot directly rewrite server-backed session time'
 );
 select throws_ok(
   $$ insert into public.study_sessions (learner_id, session_type, source, topic, planned_minutes, available_minutes) values ('20000000-0000-4000-8000-000000000004', 'focused', 'dashboard', 'adaptive_mix', 30, 30) $$,
+  'P0001',
+  null,
   'student cannot create a session for another learner'
 );
 

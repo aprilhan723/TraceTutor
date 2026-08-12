@@ -2,7 +2,17 @@
 
 ## Current phase
 
-**Phase 9: personalized Daily Rhythm and Deep Focus learning modes, visible account progress, deterministic deep-study sessions, real active-time tracking, and server-backed personalized-study architecture are implemented. The complete Phase 8 local demo and Preview fallback remain intact.**
+**Public account beta release: Phase 9 learning behavior is preserved, the complete local Demo Mode remains available, and a real Supabase-backed password account path is connected for tutors and invited students.**
+
+## Public account beta release state
+
+- The existing free Supabase project is connected with all five additive migrations applied in filename order.
+- The hosted 22-assertion pgTAP cross-user isolation suite passes with 0 failures; its fixture transaction is rolled back.
+- Supabase Confirm Email is temporarily disabled so arbitrary users can start a password session without relying on the development-only hosted mail sender.
+- Magic-link UI and requests are disabled. Email verification and password recovery remain unavailable until dedicated transactional SMTP is connected, and the sign-up page states this limitation.
+- The account-mode landing page sends tutors to registration/workspace setup and keeps students on the one-time tutor-invitation path.
+- The Vercel Production and Preview environments contain only the public Supabase URL/publishable key, public application URL, and server-only feature flags. No service-role key or OpenAI key is uploaded; live AI remains off.
+- The complete browser-local `/demo` student and tutor experience remains a safe fallback and sales demo.
 
 ## Implemented
 
@@ -120,7 +130,7 @@
 - AI-generated practice content or autonomous diagnosis
 - Paid live model evaluation without separate approval
 - PDF generation (browser print is implemented)
-- Payments, remote notifications, and Production release/promotion
+- Payments, remote notifications, and custom-domain purchase
 - Official score estimates or predictions
 - Push notifications, public rankings, XP, fake scarcity, or attendance-only rewards
 - Background sync, true server reconciliation, and multi-device guarantees
@@ -129,18 +139,18 @@
 
 - The selected Vercel project began as an empty project. Vercel automatically assigned the first CLI upload to its Production target even though the command explicitly used `--target=preview`. TraceTutor did not request or perform a Production promotion, attach a domain, or upload application secrets. That immutable first record was left untouched because this phase forbids deletion/reset of remote data. The verified staging artifact is the later deployment whose target is explicitly `preview`.
 - After explicit owner authorization, project-level Vercel Authentication was disabled so the Demo Mode Preview can be opened without a Vercel account. Unauthenticated HTTP checks for the landing, student Today, and tutor dashboard routes return 200. Source/build-log protection remains unchanged; the Preview contains no application environment variables or connected learner database.
-- The selected Vercel Preview has zero application environment variables. It intentionally runs Demo Mode only; Supabase authentication, auth callback success, connected protected-route isolation, and pgTAP RLS cannot be exercised remotely until a non-production Supabase project is explicitly connected.
+- Earlier immutable Phase 8/9 Preview URLs remain Demo Mode artifacts with zero application variables. The current account release uses a separately configured hosted Supabase runtime while preserving `/demo`.
 - Browser-local demo progress is isolated to one browser profile and is not multi-device synchronization. Preview redeployments do not migrate that local data.
 - The first two upload attempts used the empty project's `Other` framework preset and returned 404. The checked `vercel.json` now forces `nextjs`; the verified Preview builds and serves all expected routes.
 
 - Live AI is intentionally off unless `TRACETUTOR_LIVE_AI_ENABLED=true`; this phase made no paid API request even though a secure local server key is available.
 - Rate limits, circuit state, idempotency cache, and usage totals are process-local. A multi-instance deployment needs a durable shared store before live AI is enabled.
-- The authenticated Supabase diagnosis-review surface remains gated by the Phase 6 project-connection limitation. The schema, RLS audit table, record function, route auth, and local tutor UI are ready, but no hosted project was available for connected persistence verification.
+- The authenticated Supabase diagnosis-review schema and RLS audit tables are hosted. Live AI remains off; tutor adjudication and deterministic rule observations stay authoritative.
 - Production builds refuse live AI calls from anonymous Demo Mode; live production assistance requires a cookie-authenticated tutor and linked organization.
 - Cost estimates are versioned for the documented GPT-5.6 model family; an unknown model reports cost as unavailable instead of inventing a price.
 - The six mocked fixtures are a contract/evaluation baseline, not evidence of production learning efficacy or model quality on real student data.
 
-- The Phase 9 Supabase migration and 22-assertion pgTAP suite are checked in but cannot be applied in this checkout because no non-production Supabase project is connected. Static policy verification remains mandatory and passing.
+- All five migrations are applied to the selected hosted project. The corrected 22-assertion pgTAP suite passes remotely and rolls back its synthetic isolation fixtures.
 - Authenticated multi-device personalized session authoring remains limited to assigned/published account content. The complete adaptive session planner and offline-safe resume are available in the local Demo Mode until connected backend reconciliation is explicitly designed and verified.
 - The reviewed demo pool is intentionally finite. Long plans may end early with a visible sufficiency warning rather than repeat ordinary unseen items or manufacture volume.
 
@@ -150,15 +160,14 @@
 - There is no push notification service, account recovery, conflict resolution, or multi-device sync.
 - The Weekly Boss uses reviewed deterministic rule data rather than generated content or external AI.
 - Lesson brief export remains browser print; no PDF file generator is included.
-- No Supabase project is connected in this checkout, so the migrations and pgTAP suite have not yet been executed against a real Postgres instance.
-- The connected registration/invitation/assignment E2E is present and gated, but cannot run until the public Project URL and publishable key are supplied locally.
+- The connected registration/invitation/assignment E2E remains gated to an isolated local Supabase stack because it creates disposable accounts. It is intentionally not run against the hosted project containing real users.
 - Authenticated account pages intentionally use `private, no-store`; browser-local offline mission reconciliation remains a Demo Mode capability until a server conflict protocol is designed and verified.
 - Supabase-generated TypeScript types should replace the checked relational interface after the first migration is applied to the selected project.
-- Production SMTP, domain configuration, backups, monitoring, deployment, and payments remain unconfigured. Live AI remains intentionally disabled.
+- Transactional SMTP, a branded custom domain, backups, monitoring, and payments remain unconfigured. Live AI remains intentionally disabled.
 
 ## Exact next backend phase
 
-**Connect a selected non-production Supabase project, apply and verify all five additive migrations, regenerate database types, run the 22-assertion pgTAP suite and connected auth/account-personalization E2E, then add durable authenticated offline reconciliation, distributed AI limits/usage accounting, backups, and monitoring. Production promotion, payments, domains, and live AI remain separate opt-in work and must not start automatically.**
+**Add dedicated transactional SMTP and password recovery, regenerate database types from the hosted schema, then add durable authenticated offline reconciliation, distributed AI limits/usage accounting, backups, and monitoring. A branded custom domain, payments, and live AI remain separate opt-in work.**
 
 ## Phase 9 verification
 
@@ -179,3 +188,17 @@
 - Production changed: no; no promotion, Production deployment command, domain, paid environment, application variable, or remote-data mutation was performed
 
 Local builds use `.next.nosync` because this checkout is under macOS Documents storage, where file-provider conflict copies previously contaminated `.next`. Vercel keeps the conventional `.next` output because `VERCEL=1`; this changes only generated output location, not application behavior or route contracts.
+
+## Public account release verification
+
+- Formatting, ESLint, Next.js route generation, and strict TypeScript: passed with zero errors.
+- Vitest: 31 files and 111 unit/integration tests passed.
+- Playwright development rerun: 30 passed and 4 expected skips out of 34 after correcting the existing first dynamic-route development warm-up fallback.
+- Playwright production: 31 passed and 3 expected skips out of 34, including the offline-safe PWA path.
+- Accessibility: 12 desktop/mobile axe audits passed with zero serious or critical violations.
+- Production build: Next.js 16.3.0 compiled, typechecked, and generated all 33 page units successfully.
+- Dependency audit: zero vulnerabilities at every severity.
+- Secret scan: 228 repository files passed; 66 generated browser-static files contained neither the local OpenAI key nor forbidden server variable names.
+- Static RLS: all 42 exposed tables passed. Hosted transactional pgTAP: 22 passed and 0 failed.
+- Migration inventory/status: all five ordered migrations are present and applied to the selected hosted project.
+- Hosted variables: six approved names in Production and Preview; no service-role/OpenAI key; live AI disabled.

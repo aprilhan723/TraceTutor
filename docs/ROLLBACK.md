@@ -1,6 +1,12 @@
-# TraceTutor Preview Rollback
+# TraceTutor Rollback
 
-## Preview-only rollback policy
+## Current public account release rollback
+
+Do not reset or delete Supabase data. If the public account release has a blocking regression, use Vercel's deployment history to redeploy the last verified application deployment to Production, then re-run public route, protected-route, demo fallback, console, and mobile smoke checks. Database migrations in this release are additive; application rollback does not reverse them.
+
+For immediate containment, disable new Supabase sign-ups or re-enable Vercel Authentication only when public access itself is unsafe. Do not expose, rotate through chat, or add a service-role/OpenAI secret. The browser-local Demo Mode and earlier immutable Preview URLs remain available for sales demonstrations while the account release is repaired.
+
+## Historical Preview-only rollback policy
 
 Vercel Preview deployments are immutable URLs and are not the production site. A Phase 9 rollback therefore means creating a new Preview from the last verified commit or the annotated `before-personalized-learning-modes` checkpoint, verifying it, and sharing that replacement URL. Do not promote either deployment, change production aliases, delete deployments, or reset remote data.
 
