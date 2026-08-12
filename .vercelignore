@@ -8,6 +8,7 @@ coverage
 
 # Local credentials and platform state
 .env*
+.git
 .vercel
 *.pem
 
