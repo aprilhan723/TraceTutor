@@ -6,7 +6,7 @@ Do not reset or delete Supabase data. If the public account release has a blocki
 
 For immediate containment, disable new Supabase sign-ups or re-enable Vercel Authentication only when public access itself is unsafe. Do not expose, rotate through chat, or add a service-role/OpenAI secret. The browser-local Demo Mode and earlier immutable Preview URLs remain available for sales demonstrations while the account release is repaired.
 
-Current known-good Production rollback target: `dpl_84iKiGyJacLP7kAhbUgBhDcNnvm3` (`https://project-qiel2-fc3kvz20g-1-8746.vercel.app`, source commit `99b602e`). From a later regression, select this deployment in Vercel and use **Redeploy**, then verify the stable alias `https://project-qiel2.vercel.app`. This changes application code only; it does not delete or reset Supabase data.
+Current known-good Production rollback target: `dpl_6Y2dULq5YywPqBugwPYrFVqbzz1f` (`https://project-qiel2-avgsmu38p-1-8746.vercel.app`, source commit `651cf9dc64e02f912cc89fcb705310bc7d613df8`). From a later regression, select this deployment in Vercel and use **Redeploy**, then verify the stable alias `https://project-qiel2.vercel.app`. This changes application code only; it does not delete or reset Supabase data. The entry-diagnostic migration is additive and should remain in place during an application rollback.
 
 ## Historical Preview-only rollback policy
 

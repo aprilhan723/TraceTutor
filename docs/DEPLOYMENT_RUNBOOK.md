@@ -22,13 +22,13 @@ Before `vercel --prod`, run the full preflight below, confirm the five migration
 ### Verified release record
 
 - Public URL: `https://project-qiel2.vercel.app`
-- Deployment: `dpl_84iKiGyJacLP7kAhbUgBhDcNnvm3`
-- Source commit: `99b602e` (`feat: enable hosted account beta`)
+- Deployment: `dpl_6Y2dULq5YywPqBugwPYrFVqbzz1f`
+- Source commit: `651cf9dc64e02f912cc89fcb705310bc7d613df8` (`feat: add tutor-first entry diagnostic`)
 - Target/status: `production` / `Ready`
-- Vercel build: Next.js 16.3.0 compiled, typechecked, and emitted all 33 page units successfully
-- External HTTP smoke: 10/10 routes returned 200 without a Vercel/ChatGPT gate
+- Vercel build: Next.js 16.3.0 compiled, typechecked, and emitted the complete 37-unit application including `/student/diagnostic`
+- External HTTP smoke: landing, account sign-up, diagnostic, and Demo Mode routes returned 200 without a Vercel/ChatGPT gate
 - Account-mode browser smoke: 2/2 desktop/mobile checks passed, including sign-up UI, anonymous protection redirect, Demo Mode isolation, console errors, and horizontal overflow
-- Supabase: five migrations applied; 22/22 transactional pgTAP assertions passed
+- Supabase: all prior migrations plus the additive entry-diagnostic migration applied; hosted schema and policies verified
 - Secrets: no service-role or OpenAI key in Vercel; live AI disabled
 - Known release limitation: dedicated SMTP is not connected, so email ownership verification, magic links, and password recovery are unavailable
 

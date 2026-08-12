@@ -150,7 +150,7 @@
 
 ## Known Phase 9 limitations
 
-- The entry-diagnostic migration is implemented and locally verified but has not been applied to the connected hosted Supabase project in this change. It must be applied before deploying the matching application code.
+- The entry-diagnostic migration is now applied to the connected hosted Supabase project. Dedicated transactional email, verified email ownership, and password recovery remain deferred.
 
 - The selected Vercel project began as an empty project. Vercel automatically assigned the first CLI upload to its Production target even though the command explicitly used `--target=preview`. TraceTutor did not request or perform a Production promotion, attach a domain, or upload application secrets. That immutable first record was left untouched because this phase forbids deletion/reset of remote data. The verified staging artifact is the later deployment whose target is explicitly `preview`.
 - After explicit owner authorization, project-level Vercel Authentication was disabled so the Demo Mode Preview can be opened without a Vercel account. Unauthenticated HTTP checks for the landing, student Today, and tutor dashboard routes return 200. Source/build-log protection remains unchanged; the Preview contains no application environment variables or connected learner database.
@@ -247,3 +247,16 @@ Local builds use `.next.nosync` because this checkout is under macOS Documents s
 - Vercel Preview dpl_C38GbF4rjX8nPuvwDhBNi4jNdCBT is Ready at https://project-qiel2-3d3n7oo53-1-8746.vercel.app; the target is explicitly preview, and Production was not changed.
 - Actual-Preview browser smoke passed for the pilot, account-mode landing, anonymous protected-route redirect, isolated Demo Mode entry, robots, sitemap, and zero browser warning/error logs.
 - GitHub publication remains pending because the connected GitHub account has no repository yet and the available browser is not signed in. No remote repository, billing system, or hosted learner data was created or mutated by the launch deployment.
+
+## Public diagnostic release — 2026-08-13
+
+- GitHub `aprilhan723/TraceTutor` `main` now points to `651cf9dc64e02f912cc89fcb705310bc7d613df8`; the existing untracked `outputs/` directory remains untouched.
+- Additive migration `202608120001_phase10_entry_diagnostic.sql` was applied to the existing hosted TOEFL Supabase project without resetting or deleting data.
+- Hosted verification confirmed the diagnostic, response, and private answer-key tables, the validated completion function, and both diagnostic policies.
+- Vercel Production deployment `dpl_6Y2dULq5YywPqBugwPYrFVqbzz1f` is `Ready` and aliased to `https://project-qiel2.vercel.app`.
+- Public HTTP smoke passed for the landing, account sign-up, student diagnostic, and separate Demo Mode routes; no Vercel or ChatGPT login gate is enabled.
+- Live browser inspection found zero horizontal overflow and the landing exposes direct account, tutor-workspace, invited-student, and separate-demo paths.
+- Production Playwright account smoke passed 2/2 across desktop and Pixel 7: registration, anonymous route protection, separate Demo Mode, console errors, and horizontal overflow.
+- Final validation passed formatting, ESLint, strict TypeScript, 117/117 unit/integration tests, 44-table RLS static checks, a 37-route Production build, dependency audit, and a 249-file secret scan.
+- Delivered JavaScript scan inspected 9 files and found zero `sb_secret_`, `service_role`, or `OPENAI_API_KEY` matches.
+- No service-role key or OpenAI key was added to the browser or Vercel environment; live AI remains disabled.
