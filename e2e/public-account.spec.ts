@@ -49,6 +49,29 @@ test.describe("public account release", () => {
     await expect(
       page.getByText("Demo Mode", { exact: true }).first(),
     ).toBeVisible();
+    const onboardingAccountLink = page.getByRole("link", {
+      name: "Use my account instead",
+    });
+    await expect(onboardingAccountLink).toBeVisible();
+    await onboardingAccountLink.click();
+    await expect(page).toHaveURL(/\/auth\/sign-in$/);
+    await expect(
+      page.getByRole("heading", { name: /continue your correction trace/i }),
+    ).toBeVisible();
+
+    await page.goto("/student/today");
+    await expect(page).toHaveURL(/\/auth\/sign-in$/);
+    await expect(page.getByText("Demo Mode", { exact: true })).toHaveCount(0);
+
+    await page.goto("/demo/tutor");
+    await expect(page).toHaveURL(/\/tutor\/dashboard$/);
+    await expect(
+      page.getByText("Demo Mode", { exact: true }).first(),
+    ).toBeVisible();
+    const shellAccountLink = page.locator('a[href="/account"]:visible').first();
+    await expect(shellAccountLink).toBeVisible();
+    await shellAccountLink.click();
+    await expect(page).toHaveURL(/\/auth\/sign-in$/);
 
     const viewport = await page.evaluate(() => ({
       clientWidth: document.documentElement.clientWidth,

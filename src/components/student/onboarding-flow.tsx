@@ -99,6 +99,12 @@ export function OnboardingFlow() {
             label="Onboarding progress"
             tone="violet"
           />
+          <a
+            href="/account"
+            className="mt-3 inline-flex min-h-8 items-center text-xs font-bold text-violet underline decoration-violet/35 underline-offset-4 focus-visible:rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet"
+          >
+            Use my account instead
+          </a>
         </header>
 
         <div className="max-h-[68dvh] overflow-y-auto px-5 py-7 sm:px-8 sm:py-9">

@@ -6,6 +6,11 @@
 
 ## Public account beta release state
 
+- Account Mode now has a dedicated `/account` entry that clears any prior
+  browser-local Demo Mode selection before continuing an existing session or
+  opening sign-in. Demo shells expose this action on desktop and mobile, so a
+  sales-demo visit cannot trap a returning tutor or student in the fictional
+  workspace.
 - The existing free Supabase project is connected with all five additive migrations applied in filename order.
 - The hosted 22-assertion pgTAP cross-user isolation suite passes with 0 failures; its fixture transaction is rolled back.
 - Supabase Confirm Email is temporarily disabled so arbitrary users can start a password session without relying on the development-only hosted mail sender.

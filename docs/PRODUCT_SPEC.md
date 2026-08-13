@@ -5,6 +5,9 @@
 - **Brand:** TraceTutor
 - **Product label:** TOEFL Reading Correction Sprint
 - **Phase:** public account beta plus founding tutor pilot; Phase 9 learning behavior and the optional tutor-reviewed AI boundary remain preserved
+- **Mode transition:** Demo Mode remains an explicit fictional workspace, while
+  `/account` clears that browser selection before resuming an authenticated
+  account or opening sign-in.
 - **Primary promise:** Practice less randomly. Correct what keeps repeating.
 
 TraceTutor is not a question bank. It is a tutor-verified daily mistake-correction product for the 2026 TOEFL Reading experience. The student completes one focused correction sprint; the tutor sees the repeated reasoning pattern before the next lesson.

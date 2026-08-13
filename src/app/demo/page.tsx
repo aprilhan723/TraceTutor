@@ -45,8 +45,13 @@ export default function DemoPage() {
           <BrandMark />
           <div className="flex items-center gap-2">
             {accountsAvailable ? (
-              <Button href="/auth/sign-in" variant="secondary" size="sm">
-                Account sign in
+              <Button
+                href="/account"
+                nativeNavigation
+                variant="secondary"
+                size="sm"
+              >
+                Open my account
               </Button>
             ) : null}
             <Button href="/" variant="ghost" size="sm">

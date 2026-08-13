@@ -59,7 +59,8 @@ export default function HomePage() {
             </a>
           </div>
           <Button
-            href={accountMode ? "/auth/sign-in" : "/demo"}
+            href={accountMode ? "/account" : "/demo"}
+            nativeNavigation={accountMode}
             variant="secondary"
             size="sm"
           >
@@ -113,7 +114,8 @@ export default function HomePage() {
                   <span aria-hidden="true">→</span>
                 </Button>
                 <Button
-                  href={accountMode ? "/auth/sign-in" : "/tutor/dashboard"}
+                  href={accountMode ? "/account" : "/tutor/dashboard"}
+                  nativeNavigation={accountMode}
                   variant="secondary"
                   size="lg"
                 >
@@ -617,7 +619,8 @@ export default function HomePage() {
                 <span aria-hidden="true">→</span>
               </Button>
               <Button
-                href={accountMode ? "/auth/sign-in" : "/tutor/dashboard"}
+                href={accountMode ? "/account" : "/tutor/dashboard"}
+                nativeNavigation={accountMode}
                 variant="secondary"
                 size="lg"
               >

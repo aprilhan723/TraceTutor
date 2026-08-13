@@ -84,9 +84,17 @@ export function ProductTour() {
             {current.body}
           </p>
           <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <Button variant="ghost" onClick={close}>
-              Skip tour
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button variant="ghost" onClick={close}>
+                Skip tour
+              </Button>
+              <a
+                href="/account"
+                className="inline-flex min-h-10 items-center rounded-full px-3 text-sm font-bold text-violet underline decoration-violet/35 underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet"
+              >
+                Use my account
+              </a>
+            </div>
             <Button
               onClick={() =>
                 step === steps.length - 1 ? close() : setStep(step + 1)

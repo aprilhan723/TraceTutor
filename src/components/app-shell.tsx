@@ -132,15 +132,24 @@ export function AppShell({
               <div className="mb-3">{demoDesktopControl}</div>
             ) : null}
             {demoMode ? (
-              <Link
-                href={otherRoleHref}
-                className="mb-4 flex min-h-12 items-center justify-between rounded-2xl border border-violet/15 bg-violet-soft px-4 text-sm font-semibold text-violet-deep transition-colors hover:bg-violet/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet"
-              >
-                <span>
-                  Switch to {role === "student" ? "Tutor" : "Student"}
-                </span>
-                <span aria-hidden="true">↗</span>
-              </Link>
+              <div className="mb-4 space-y-2">
+                <a
+                  href="/account"
+                  className="flex min-h-12 items-center justify-between rounded-2xl bg-ink px-4 text-sm font-semibold text-white transition-colors hover:bg-violet-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet"
+                >
+                  <span>Exit demo · use my account</span>
+                  <span aria-hidden="true">→</span>
+                </a>
+                <Link
+                  href={otherRoleHref}
+                  className="flex min-h-12 items-center justify-between rounded-2xl border border-violet/15 bg-violet-soft px-4 text-sm font-semibold text-violet-deep transition-colors hover:bg-violet/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet"
+                >
+                  <span>
+                    Switch to {role === "student" ? "Tutor" : "Student"}
+                  </span>
+                  <span aria-hidden="true">↗</span>
+                </Link>
+              </div>
             ) : null}
             <div className="flex items-center gap-3 border-t border-ink/10 pt-5">
               <span className="grid size-10 place-items-center rounded-full bg-mint font-bold text-mint-deep">
@@ -181,6 +190,14 @@ export function AppShell({
           <div className="flex items-center gap-2">
             {headerStatus}
             {demoMode ? <Badge tone="violet">Demo Mode</Badge> : null}
+            {demoMode && !practiceMode ? (
+              <a
+                href="/account"
+                className="inline-flex min-h-9 items-center rounded-full border border-ink/15 bg-ink px-3 text-xs font-bold text-white transition-colors hover:bg-violet-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet lg:hidden"
+              >
+                My account
+              </a>
+            ) : null}
             {!practiceMode && demoMobileControl ? demoMobileControl : null}
             {demoMode && !practiceMode ? (
               <Link
