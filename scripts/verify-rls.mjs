@@ -3,9 +3,10 @@ import { resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
 const migrationsDirectory = resolve(root, "supabase/migrations");
-const source = readdirSync(migrationsDirectory)
+const migrationFiles = readdirSync(migrationsDirectory)
   .filter((file) => file.endsWith(".sql"))
-  .sort()
+  .sort();
+const source = migrationFiles
   .map((file) => readFileSync(resolve(migrationsDirectory, file), "utf8"))
   .join("\n");
 
@@ -56,6 +57,23 @@ if (!source.includes("private.can_tutor_student")) {
 }
 if (!source.includes("Published content must be versioned, not modified")) {
   failures.push("published content immutability trigger is missing");
+}
+const entryDiagnosticFix = readFileSync(
+  resolve(
+    migrationsDirectory,
+    "202608150001_fix_entry_diagnostic_ambiguity.sql",
+  ),
+  "utf8",
+);
+if (
+  !entryDiagnosticFix.includes(
+    "where response.diagnostic_id = v_diagnostic_id",
+  ) ||
+  entryDiagnosticFix.includes("where response.diagnostic_id = diagnostic_id")
+) {
+  failures.push(
+    "entry diagnostic completion still contains an ambiguous diagnostic identifier",
+  );
 }
 if (failures.length) {
   console.error(`RLS verification failed (${failures.length}):`);
