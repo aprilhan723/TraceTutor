@@ -61,11 +61,11 @@ Open [http://localhost:3000/demo](http://localhost:3000/demo). Requirements are 
 
 ## Runtime modes
 
-| Mode | Storage | External services | Intended use |
-| --- | --- | --- | --- |
-| Demo | Browser-local | None | Product evaluation, development, and safe examples |
-| Account beta | Supabase with RLS | Supabase | Invited learner and tutor pilot workflows |
-| Optional AI assist | Server-only | OpenAI API | Ambiguous diagnosis assistance; disabled by default |
+| Mode               | Storage           | External services | Intended use                                        |
+| ------------------ | ----------------- | ----------------- | --------------------------------------------------- |
+| Demo               | Browser-local     | None              | Product evaluation, development, and safe examples  |
+| Account beta       | Supabase with RLS | Supabase          | Invited learner and tutor pilot workflows           |
+| Optional AI assist | Server-only       | OpenAI API        | Ambiguous diagnosis assistance; disabled by default |
 
 The complete Demo Mode must continue to work when every optional integration is absent.
 
