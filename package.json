@@ -1,6 +1,6 @@
 {
   "name": "tracetutor",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "engines": {
     "node": "24.x"
@@ -48,5 +48,15 @@
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^3.2.4"
+  },
+  "description": "Open-source, tutor-verified mistake-correction workspace for evidence-led TOEFL Reading practice.",
+  "license": "MIT",
+  "homepage": "https://project-qiel2.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aprilhan723/TraceTutor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aprilhan723/TraceTutor/issues"
   }
 }

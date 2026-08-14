@@ -1,0 +1,53 @@
+name: Feature request
+description: Propose a focused improvement without learner data or restricted content.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the user problem, not just a preferred implementation. This form is public. Do not include learner records, credentials, private links, or official assessment material.
+  - type: dropdown
+    id: user
+    attributes:
+      label: Primary user
+      options:
+        - Student
+        - Tutor
+        - Contributor or self-host
+        - Maintainer
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is difficult today, and for whom?
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Smallest useful outcome
+      description: Describe the observable result rather than a full solution.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Share de-identified observations, reproduction steps, or comparable workflows.
+  - type: textarea
+    id: privacy
+    attributes:
+      label: Privacy, security, or content implications
+      description: Could this affect learner records, authorization, AI use, tracking, or licensed material?
+    validations:
+      required: true
+  - type: checkboxes
+    id: boundary
+    attributes:
+      label: Submission check
+      options:
+        - label: I removed personal data, credentials, private links, and restricted assessment material.
+          required: true

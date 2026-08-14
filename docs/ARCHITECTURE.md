@@ -276,9 +276,9 @@ marketing, trust, and demo-entry routes. It explicitly disallows crawling API,
 authentication, invitation, student, and tutor paths; this is a discovery
 control, never an authorization mechanism.
 
-GitHub release assets add a source-visible README, evaluation-only rights
-boundary, security and contribution policies, privacy-safe issue forms, and CI
-quality gates. CI installs the lockfile under Node 24 and runs formatting,
+GitHub release assets add an MIT-licensed README, maintainer governance,
+security and contribution policies, privacy-safe issue forms, a public roadmap,
+and CI quality gates. CI installs the lockfile under Node 24 and runs formatting,
 linting, strict types, unit/integration tests, static RLS verification, secret
 scanning, and the Demo Mode production build. Browser and connected Supabase
 tests stay separately gated because they require a browser runtime or create

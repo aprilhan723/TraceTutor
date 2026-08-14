@@ -41,3 +41,11 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Phase 7 adds optional server-only OpenAI diagnosis assistance for genuinely ambiguous rule traces. Live AI stays feature-flagged off by default; deterministic rules remain authoritative, the tutor remains the final adjudicator, requests contain only de-identified minimum data with `store: false`, and normal tests use mocks only. Never log prompt bodies, request hidden chain-of-thought, or run a paid live evaluation without separate approval.
 - Phase 8 adds a Vercel Preview-only staging release. Never run a production deployment or promotion, buy a plan/domain/add-on, upload a local secret unless the integration is explicitly enabled, or mutate/delete remote data. Preserve Demo Mode as the default preview fallback and follow `docs/DEPLOYMENT_RUNBOOK.md` and `docs/ROLLBACK.md`.
 - Keep payments, AI-generated practice content, official score estimates, and Production deployment out until a later phase explicitly requests them.
+
+## Open-source discipline
+
+- TraceTutor is MIT-licensed and accepts focused code, documentation, accessibility, testing, and privacy-safe product contributions.
+- Never include credentials, learner records, private workspace links, official assessment content, or material the contributor cannot license.
+- AI-assisted contributions are welcome only when a human reviews the work, runs the required checks, and discloses material assistance.
+- Keep README, CONTRIBUTING, SECURITY, governance, roadmap, changelog, and release claims consistent with the code and verified evidence.
+- Do not claim adoption, efficacy, security, or compatibility without dated, reproducible evidence.

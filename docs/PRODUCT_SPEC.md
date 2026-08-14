@@ -324,4 +324,4 @@ Tutors may read engagement summaries only for explicitly linked learners. They m
 - Pilot conversion uses the existing real tutor registration and workspace setup. No new lead database, analytics tracker, advertising pixel, payment processor, secret, or remote-data mutation is introduced.
 - Demo Mode remains the first evaluation path. Prospects can inspect both roles with fictional data before creating an account.
 - Account recovery, self-service deletion, billing, production SMTP, analytics, and private support intake remain visible launch limitations rather than simulated capabilities.
-- The public repository is source-visible for evaluation under an all-rights-reserved boundary until the owner makes a separate open-source or dual-license decision.
+- The public repository is released under the MIT License. Focused code, documentation, accessibility, testing, and privacy-safe product contributions are welcome under the documented governance and review process.

@@ -33,7 +33,7 @@
 - Landing-page pilot positioning and calls to action without adding payment, analytics, advertising, or lead-storage dependencies
 - Validated public metadata origin plus generated sitemap and robots routes that exclude private application paths from discovery
 - Updated privacy page separating browser-local Demo Mode from the limited Supabase account beta and stating recovery/deletion limitations
-- Public-source README, evaluation-only rights boundary, security policy, contribution boundary, privacy-safe issue forms, and GitHub Actions quality gates
+- MIT-licensed open-source README, contribution and security policies, maintainer governance, public roadmap, privacy-safe issue forms, and GitHub Actions quality gates
 - Official Next.js App Router foundation with strict TypeScript, Tailwind CSS, ESLint, `src/`, and npm configuration
 - Premium responsive landing page with all required positioning, method, coverage, trust, and CTA sections
 - Demo role selection
@@ -265,3 +265,13 @@ Local builds use `.next.nosync` because this checkout is under macOS Documents s
 - Final validation passed formatting, ESLint, strict TypeScript, 117/117 unit/integration tests, 44-table RLS static checks, a 37-route Production build, dependency audit, and a 249-file secret scan.
 - Delivered JavaScript scan inspected 9 files and found zero `sb_secret_`, `service_role`, or `OPENAI_API_KEY` matches.
 - No service-role key or OpenAI key was added to the browser or Vercel environment; live AI remains disabled.
+
+## Open-source release readiness — 2026-08-15
+
+- The repository source and original documentation are released under the MIT License.
+- Focused code, documentation, accessibility, testing, and privacy-safe product contributions are open under the documented maintainer-led governance process.
+- The current tree contains 251 tracked files. All non-binary files were inspected for common OpenAI, GitHub, AWS, Supabase secret, service-role, private-key, JWT, email, and phone patterns before public visibility.
+- All 23 commits from the initial repository history through `c763f19a027664403146141b509536a962649944` were inspected for the same credential patterns. No credential was found; matched email addresses and identifiers are explicit synthetic fixtures.
+- The latest `main` GitHub Actions run completed successfully before the OSS preparation branch.
+- README, CONTRIBUTING, SECURITY, governance, roadmap, support, reuse, issue, pull-request, and changelog documents now state the same privacy, licensing, human-review, and evidence boundaries.
+- This readiness release changes no application behavior, hosted data, environment variable, payment setting, or live-AI setting.
