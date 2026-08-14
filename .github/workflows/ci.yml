@@ -2,7 +2,7 @@ name: Quality gates
 
 on:
   push:
-    branches: ["main", "codex/**"]
+    branches: ["main", "agent/**", "codex/**"]
   pull_request:
 
 permissions:
