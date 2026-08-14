@@ -300,13 +300,13 @@ export function ProgressDashboard() {
           />
           <MetricCard
             tone="violet"
-            label="D2 retention"
+            label="2-day retention"
             value={ratio(metrics.d2RetentionRate)}
             detail="Completed Day 2 returns only."
           />
           <MetricCard
             tone="coral"
-            label="D7 retention"
+            label="7-day retention"
             value={ratio(metrics.d7RetentionRate)}
             detail="Completed Day 7 returns only."
           />
@@ -317,7 +317,7 @@ export function ProgressDashboard() {
           />
           <MetricCard
             tone="mint"
-            label="VECR-7"
+            label="Verified 7-day correction rate"
             value={
               vecr7?.rate === null || vecr7 === null
                 ? "Not enough data"
@@ -325,8 +325,8 @@ export function ProgressDashboard() {
             }
             detail={
               vecr7?.eligibleDiagnoses
-                ? `${vecr7.retainedDiagnoses} verified corrections of ${vecr7.eligibleDiagnoses} eligible D7 opportunities.`
-                : "Complete an eligible Day 7 retention opportunity to unlock this metric."
+                ? `${vecr7.retainedDiagnoses} verified corrections of ${vecr7.eligibleDiagnoses} eligible 7-day review opportunities.`
+                : "Complete an eligible 7-day review to unlock this metric."
             }
           />
         </div>

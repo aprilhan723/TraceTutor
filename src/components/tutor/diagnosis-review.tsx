@@ -477,101 +477,153 @@ export function DiagnosisReview({
         <aside className="space-y-5" aria-label="Tutor adjudication actions">
           <Card>
             <p className="text-xs font-bold tracking-[0.14em] text-coral-deep uppercase">
-              Tutor adjudication
+              Three-step tutor review
             </p>
             <h2 className="mt-2 font-editorial text-3xl font-bold">
-              Make the human call
+              Confirm, assign, leave one clear note
             </h2>
+            <p className="mt-3 text-sm leading-6 text-ink-muted">
+              Start with the likely cause. The next practice and student note
+              are optional, so you can finish a useful review without filling
+              every field.
+            </p>
 
-            <label
-              className="mt-5 block text-xs font-bold uppercase"
-              htmlFor="primary-cause"
+            <section
+              className="mt-6 rounded-2xl border border-violet/15 bg-violet-soft/60 p-4"
+              aria-labelledby="review-step-one"
             >
-              Primary cause
-            </label>
-            <select
-              id="primary-cause"
-              value={primary ?? ""}
-              onChange={(event) =>
-                void act({
-                  type: "change-primary",
-                  cause: event.target.value as ErrorCause,
-                })
-              }
-              disabled={busy}
-              className="mt-2 min-h-12 w-full rounded-xl border border-ink/15 bg-white px-3 text-sm focus-visible:outline-2 focus-visible:outline-violet"
-            >
-              {errorCauseTaxonomy.map((cause) => (
-                <option key={cause} value={cause}>
-                  {errorCauseLabels[cause]}
-                </option>
-              ))}
-            </select>
+              <div className="flex items-start gap-3">
+                <span
+                  className="grid size-8 shrink-0 place-items-center rounded-full bg-violet text-sm font-bold text-white"
+                  aria-hidden="true"
+                >
+                  1
+                </span>
+                <div>
+                  <h3 id="review-step-one" className="font-bold">
+                    Confirm the main mistake
+                  </h3>
+                  <p className="mt-1 text-xs leading-5 text-ink-muted">
+                    Choose the best explanation for what the student did, then
+                    approve your decision.
+                  </p>
+                </div>
+              </div>
 
-            <div className="mt-5">
-              <p className="text-xs font-bold uppercase">
-                Alternate hypotheses
-              </p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {secondary.map((cause) => (
-                  <button
-                    key={cause}
-                    type="button"
-                    onClick={() =>
-                      void act({ type: "remove-secondary", cause })
-                    }
-                    className="min-h-9 rounded-full bg-violet-soft px-3 text-xs font-bold text-violet-deep focus-visible:outline-2 focus-visible:outline-violet"
-                    aria-label={`Remove ${errorCauseLabels[cause]} alternate cause`}
-                  >
-                    {errorCauseLabels[cause]} ×
-                  </button>
+              <label
+                className="mt-4 block text-xs font-bold uppercase"
+                htmlFor="primary-cause"
+              >
+                Main mistake
+              </label>
+              <select
+                id="primary-cause"
+                value={primary ?? ""}
+                onChange={(event) =>
+                  void act({
+                    type: "change-primary",
+                    cause: event.target.value as ErrorCause,
+                  })
+                }
+                disabled={busy}
+                className="mt-2 min-h-12 w-full rounded-xl border border-ink/15 bg-white px-3 text-sm focus-visible:outline-2 focus-visible:outline-violet"
+              >
+                {errorCauseTaxonomy.map((cause) => (
+                  <option key={cause} value={cause}>
+                    {errorCauseLabels[cause]}
+                  </option>
                 ))}
-              </div>
-              <div className="mt-2 flex gap-2">
-                <select
-                  aria-label="Secondary cause"
-                  value={secondaryCause}
-                  onChange={(event) =>
-                    setSecondaryCause(event.target.value as ErrorCause)
-                  }
-                  className="min-h-11 min-w-0 flex-1 rounded-xl border border-ink/15 bg-white px-2 text-xs"
-                >
-                  {errorCauseTaxonomy
-                    .filter((cause) => cause !== primary)
-                    .map((cause) => (
-                      <option key={cause} value={cause}>
-                        {errorCauseLabels[cause]}
-                      </option>
-                    ))}
-                </select>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() =>
-                    void act({ type: "add-secondary", cause: secondaryCause })
-                  }
-                  disabled={busy}
-                >
-                  Add
-                </Button>
-              </div>
-            </div>
+              </select>
 
-            <Button
-              className="mt-5 w-full"
-              variant="violet"
-              onClick={() => void act({ type: "approve" })}
-              disabled={busy}
+              <details className="mt-4 rounded-xl border border-violet/15 bg-white/75 p-3">
+                <summary className="cursor-pointer text-xs font-bold text-violet-deep focus-visible:outline-2 focus-visible:outline-violet">
+                  Optional: add another possible cause
+                  {secondary.length ? ` · ${secondary.length} saved` : ""}
+                </summary>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {secondary.map((cause) => (
+                    <button
+                      key={cause}
+                      type="button"
+                      onClick={() =>
+                        void act({ type: "remove-secondary", cause })
+                      }
+                      className="min-h-9 rounded-full bg-violet-soft px-3 text-xs font-bold text-violet-deep focus-visible:outline-2 focus-visible:outline-violet"
+                      aria-label={`Remove ${errorCauseLabels[cause]} alternate cause`}
+                    >
+                      {errorCauseLabels[cause]} ×
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-2 flex gap-2">
+                  <select
+                    aria-label="Another possible cause"
+                    value={secondaryCause}
+                    onChange={(event) =>
+                      setSecondaryCause(event.target.value as ErrorCause)
+                    }
+                    className="min-h-11 min-w-0 flex-1 rounded-xl border border-ink/15 bg-white px-2 text-xs"
+                  >
+                    {errorCauseTaxonomy
+                      .filter((cause) => cause !== primary)
+                      .map((cause) => (
+                        <option key={cause} value={cause}>
+                          {errorCauseLabels[cause]}
+                        </option>
+                      ))}
+                  </select>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() =>
+                      void act({
+                        type: "add-secondary",
+                        cause: secondaryCause,
+                      })
+                    }
+                    disabled={busy}
+                  >
+                    Add
+                  </Button>
+                </div>
+              </details>
+
+              <Button
+                className="mt-4 w-full"
+                variant="violet"
+                onClick={() => void act({ type: "approve" })}
+                disabled={busy}
+              >
+                Approve diagnosis
+              </Button>
+            </section>
+
+            <section
+              className="mt-4 rounded-2xl border border-ink/10 bg-cream/50 p-4"
+              aria-labelledby="review-step-two"
             >
-              Approve diagnosis
-            </Button>
-
-            <div className="mt-6 border-t border-ink/10 pt-5">
+              <div className="flex items-start gap-3">
+                <span
+                  className="grid size-8 shrink-0 place-items-center rounded-full bg-ink text-sm font-bold text-white"
+                  aria-hidden="true"
+                >
+                  2
+                </span>
+                <div>
+                  <h3 id="review-step-two" className="font-bold">
+                    Choose the next practice
+                  </h3>
+                  <p className="mt-1 text-xs leading-5 text-ink-muted">
+                    Pick one fresh item that checks whether the correction
+                    transfers to a different example.
+                  </p>
+                </div>
+              </div>
               <label
                 htmlFor="transfer-item"
-                className="text-xs font-bold uppercase"
+                className="mt-4 block text-xs font-bold uppercase"
               >
-                Different transfer item
+                Next practice item
               </label>
               <select
                 id="transfer-item"
@@ -597,22 +649,93 @@ export function DiagnosisReview({
                 }
                 disabled={!selectedTransferItemId || busy}
               >
-                Assign transfer
+                Assign next practice
               </Button>
-            </div>
+            </section>
 
-            <div className="mt-6 border-t border-ink/10 pt-5">
+            <section
+              className="mt-4 rounded-2xl border border-mint-deep/15 bg-mint/55 p-4"
+              aria-labelledby="review-step-three"
+            >
+              <div className="flex items-start gap-3">
+                <span
+                  className="grid size-8 shrink-0 place-items-center rounded-full bg-mint-deep text-sm font-bold text-white"
+                  aria-hidden="true"
+                >
+                  3
+                </span>
+                <div>
+                  <h3 id="review-step-three" className="font-bold">
+                    Leave one clear note
+                  </h3>
+                  <p className="mt-1 text-xs leading-5 text-ink-muted">
+                    Tell the student what to notice next time. One useful
+                    sentence is enough.
+                  </p>
+                </div>
+              </div>
+
+              <label
+                htmlFor="feedback"
+                className="mt-4 block text-xs font-bold uppercase"
+              >
+                Note to the student (optional)
+              </label>
+              <textarea
+                id="feedback"
+                value={feedbackValue}
+                onChange={(event) => setFeedback(event.target.value)}
+                rows={3}
+                placeholder="Example: Keep the limit in the evidence—‘up to three’ does not mean any number."
+                aria-describedby="feedback-help"
+                className="mt-2 w-full rounded-xl border border-ink/15 bg-white p-3 text-sm"
+              />
+              <p id="feedback-help" className="mt-2 text-xs text-ink-muted">
+                This note appears in the student’s feedback after you send it.
+              </p>
+              <Button
+                className="mt-3 w-full"
+                size="sm"
+                onClick={() =>
+                  void act({ type: "send-feedback", feedback: feedbackValue })
+                }
+                disabled={!feedbackValue.trim() || busy}
+              >
+                Send note to student
+              </Button>
+              <Button
+                className="mt-2 w-full"
+                size="sm"
+                variant="secondary"
+                onClick={() => void act({ type: "add-to-lesson-brief" })}
+                disabled={busy || adjudication.addedToLessonBrief}
+              >
+                {adjudication.addedToLessonBrief
+                  ? "Added to lesson brief"
+                  : "Add to next lesson"}
+              </Button>
+            </section>
+
+            <details className="mt-4 rounded-2xl border border-ink/10 bg-white p-4">
+              <summary className="cursor-pointer text-sm font-bold focus-visible:outline-2 focus-visible:outline-violet">
+                More tutor options
+              </summary>
+              <p className="mt-2 text-xs leading-5 text-ink-muted">
+                Use these only when the diagnosis needs another student answer
+                or should remain unresolved.
+              </p>
               <label
                 htmlFor="follow-up"
-                className="text-xs font-bold uppercase"
+                className="mt-4 block text-xs font-bold uppercase"
               >
-                One follow-up question
+                Follow-up question
               </label>
               <textarea
                 id="follow-up"
                 value={followUpValue}
                 onChange={(event) => setFollowUp(event.target.value)}
                 rows={3}
+                placeholder="Ask one question that would separate the remaining possible causes."
                 className="mt-2 w-full rounded-xl border border-ink/15 bg-white p-3 text-sm"
               />
               <Button
@@ -629,10 +752,8 @@ export function DiagnosisReview({
               >
                 Request follow-up
               </Button>
-            </div>
-
-            <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
               <Button
+                className="mt-2 w-full"
                 size="sm"
                 variant="secondary"
                 onClick={() => void act({ type: "mark-ambiguous" })}
@@ -640,40 +761,7 @@ export function DiagnosisReview({
               >
                 Mark item ambiguous
               </Button>
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => void act({ type: "add-to-lesson-brief" })}
-                disabled={busy || adjudication.addedToLessonBrief}
-              >
-                {adjudication.addedToLessonBrief
-                  ? "Added to lesson brief"
-                  : "Add to next lesson"}
-              </Button>
-            </div>
-
-            <div className="mt-6 border-t border-ink/10 pt-5">
-              <label htmlFor="feedback" className="text-xs font-bold uppercase">
-                Concise student feedback
-              </label>
-              <textarea
-                id="feedback"
-                value={feedbackValue}
-                onChange={(event) => setFeedback(event.target.value)}
-                rows={4}
-                className="mt-2 w-full rounded-xl border border-ink/15 bg-white p-3 text-sm"
-              />
-              <Button
-                className="mt-2 w-full"
-                size="sm"
-                onClick={() =>
-                  void act({ type: "send-feedback", feedback: feedbackValue })
-                }
-                disabled={!feedbackValue.trim() || busy}
-              >
-                Send feedback
-              </Button>
-            </div>
+            </details>
           </Card>
 
           {item.studentQuestion ? (

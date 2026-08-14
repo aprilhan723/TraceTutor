@@ -16,7 +16,7 @@ export default function MethodPage() {
       sections={[
         {
           title: "Correction before collection",
-          body: "A daily mission surfaces due D2 and D7 work before new practice, then chooses a small target rather than an endless set.",
+          body: "A daily mission surfaces reviews due 2 and 7 days after a correction before new practice, then chooses a small target rather than an endless set.",
         },
         {
           title: "Confidence with evidence",

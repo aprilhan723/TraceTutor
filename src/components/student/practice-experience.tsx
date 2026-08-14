@@ -219,7 +219,9 @@ export function PracticeExperience({ missionId }: { missionId: string }) {
               {partNames[entry.part]}
             </Badge>
             {entry.reviewCadence ? (
-              <Badge tone="neutral">{entry.reviewCadence} return</Badge>
+              <Badge tone="neutral">
+                {entry.reviewCadence === "D2" ? "2-day review" : "7-day review"}
+              </Badge>
             ) : null}
             {mission.mode === "weekly-boss" ? (
               <Badge tone="coral">The Half-Truth Hydra</Badge>

@@ -175,7 +175,7 @@ function baseTemplate(minutes: number, timed: boolean): BlockSpec[] {
       },
       {
         title: "Session summary",
-        detail: "Record what improved and what returns on D2 or D7.",
+        detail: "Record what improved and what returns after 2 or 7 days.",
         type: "summary",
         minutes: 5,
         itemCount: 0,

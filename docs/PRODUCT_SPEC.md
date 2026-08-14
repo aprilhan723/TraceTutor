@@ -325,3 +325,11 @@ Tutors may read engagement summaries only for explicitly linked learners. They m
 - Demo Mode remains the first evaluation path. Prospects can inspect both roles with fictional data before creating an account.
 - Account recovery, self-service deletion, billing, production SMTP, analytics, and private support intake remain visible launch limitations rather than simulated capabilities.
 - The public repository is released under the MIT License. Focused code, documentation, accessibility, testing, and privacy-safe product contributions are welcome under the documented governance and review process.
+
+## First-use clarity
+
+- The learner Today page presents one prominent start or resume action immediately after the page heading, before progress summaries and optional extensions.
+- Tutor adjudication presents three ordered steps: confirm the main mistake, choose one next practice item, and optionally leave one student-facing note.
+- Alternate causes, follow-up questions, and unresolved-case controls remain available but are visually separated from the required decision path.
+- Learner- and tutor-facing copy explains retention as 2-day and 7-day reviews. `D2` and `D7` remain internal typed cadence values only.
+- TOEFL Reading remains the only implemented and verified subject. Any additional subject requires an explicit adapter contract and separate original-content, evaluation, privacy, and efficacy evidence.

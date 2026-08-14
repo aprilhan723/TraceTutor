@@ -98,7 +98,7 @@ export function WeeklyBoss() {
             </p>
             <p className="mt-1 text-xs leading-5 text-ink-muted">
               Completing or passing this Boss never resolves a pattern by
-              itself. Distinct transfer and D2/D7 retention criteria still
+              itself. Distinct transfer and 2-day/7-day retention criteria still
               apply.
             </p>
           </div>

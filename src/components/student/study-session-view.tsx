@@ -151,8 +151,8 @@ export function StudySessionView({ sessionId }: { sessionId: string }) {
           <h1 className="mt-4 font-editorial text-5xl">Good stopping point.</h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-ink-muted">
             Completed work stays in your learning trace. The planner will return
-            unresolved work through transfer, D2, or D7—not by pretending today
-            solved everything.
+            unresolved work through transfer or a review after 2 or 7 days—not
+            by pretending today solved everything.
           </p>
           <dl className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <SummaryStat
@@ -196,7 +196,7 @@ export function StudySessionView({ sessionId }: { sessionId: string }) {
                 : "No pattern is marked improved without transfer and retention evidence. "}
               {nextReview
                 ? `Next ${nextReview.cadence} check: ${nextReview.dueDate}.`
-                : "No D2 or D7 return is scheduled yet."}
+                : "No 2-day or 7-day review is scheduled yet."}
             </p>
             <p className="mt-2">
               Weekly goal: {metrics?.weeklyActiveMinutes ?? 0} /{" "}

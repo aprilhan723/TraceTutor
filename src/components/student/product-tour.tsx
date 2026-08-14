@@ -10,7 +10,7 @@ const steps = [
   {
     kicker: "Today",
     title: "One correction target, not an endless set.",
-    body: "Due D2 or D7 work comes before new practice. Every mission says what it is trying to interrupt.",
+    body: "A due 2-day or 7-day review comes before new practice. Every mission says what it is trying to interrupt.",
   },
   {
     kicker: "Trace",
