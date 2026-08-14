@@ -288,3 +288,13 @@ Local builds use `.next.nosync` because this checkout is under macOS Documents s
 - Six representative desktop/mobile axe audits passed with zero serious or critical accessibility violations.
 - Formatting, ESLint, strict TypeScript, 118/118 Vitest checks, all 44 exposed-table static RLS checks, a 38-page-unit Next.js 16.3.0 production build, and the 260-file secret scan passed. `npm ci` reported zero known vulnerabilities.
 - The subject-adapter seam is documented as future work. TOEFL Reading remains the only implemented subject, and this change makes no multi-subject claim.
+
+## Entry-diagnostic completion incident — 2026-08-15
+
+- A real invited-student completion attempt exposed PostgreSQL error `column reference "diagnostic_id" is ambiguous` after all six answers and confidence ratings were present.
+- The root cause is the original hosted RPC using `diagnostic_id` for both its PL/pgSQL local variable and the response-table column in recommendation queries. The failed RPC transaction does not leave a partial diagnostic or partial response set.
+- Additive migration `202608150001_fix_entry_diagnostic_ambiguity.sql` replaces the function in place and uses `v_diagnostic_id` in every affected comparison; it contains no destructive or learner-data rewrite statement.
+- The Server Action now keeps the completed form available for retry, shows a non-technical recovery message, and logs only the non-sensitive database error code.
+- The corrective function was replaced successfully on hosted Supabase project `pwmexvvmeonssozieatw`; read-only function-definition checks returned `true` for both the unambiguous identifier and removal of the old ambiguous comparison.
+- The hosted change replaces only function code and permissions. It does not delete, reset, or rewrite learner records, and the student can retry the existing completion action without re-entering the visible answers.
+- Static migration verification and pgTAP function-definition assertions cover the regression. A fresh Production deployment and post-deployment runtime checks remain part of this incident closeout.

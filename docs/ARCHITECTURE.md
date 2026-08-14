@@ -264,6 +264,8 @@ The account role path is now server-owned before profile creation. An uninvited 
 
 `entry-reading-diagnostic.ts` exposes six original prompt DTOs without correct options or accepted word endings. The client records response, confidence, and bounded elapsed time. A validated Server Action requires all six unique item IDs and a future target date, then calls `complete_reading_entry_diagnostic`. The database RPC recomputes correctness from `private.entry_reading_diagnostic_keys`, derives a task/skill recommendation, creates a conservative learner plan, updates the profile target date, and appends an audit record. Clients cannot select the private keys or directly insert diagnostic summaries.
 
+The completion RPC uses a distinctly named local diagnostic identifier in every response-table comparison so PL/pgSQL cannot confuse it with the `diagnostic_id` column. A later corrective migration replaces the function in place without deleting or rewriting learner records. The Server Action preserves the browser-held form on failure, returns a non-technical retry message, and logs only the database error code rather than responses or account identifiers.
+
 Both entry-diagnostic tables use RLS. A learner may read only their own baseline; a tutor may read it only through the existing active `tutor_student_links` predicate. Existing learners with a verified completed study plan receive an explicit `existing-plan-baseline-v0` row during migration. That row preserves access and states that no diagnostic score or attempt history was inferred.
 
 ## Public launch and discovery surface

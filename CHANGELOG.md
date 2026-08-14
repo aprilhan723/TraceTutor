@@ -6,6 +6,11 @@ This project follows semantic versioning while the public API and product remain
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed the hosted entry-diagnostic completion RPC so its local diagnostic identifier cannot conflict with the response-table column of the same name.
+- Replaced raw database error messages in the student diagnostic with a retry-safe explanation while logging only the non-sensitive database error code on the server.
+
 ### Changed
 
 - Added a prominent learner start/resume action before secondary dashboard metrics.

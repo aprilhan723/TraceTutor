@@ -218,6 +218,7 @@ The landing page communicates the method, contrasts volume practice with mistake
 - The response command validates assignment ownership, option/evidence membership, identifiers, timing bounds, response shape, and duplicate submission IDs before writing attempts and response events.
 - A tutor dashboard sees only attempts for explicitly linked students. High-confidence wrong is a transparent observed queue signal, not a psychological claim.
 - Future answers, correct typed responses, distractor tags, and designated-evidence flags are not granted through the student-facing Data API columns.
+- Entry-diagnostic completion keeps all six browser-held responses available for retry when the database command fails. Students receive a plain recovery message rather than a raw SQL or infrastructure error.
 
 ### Data integrity and trust
 

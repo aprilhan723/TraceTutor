@@ -65,6 +65,15 @@ export async function submitReadingEntryDiagnosticAction(
     p_target_test_date: parsed.data.targetTestDate,
     p_responses: parsed.data.responses as unknown as Json,
   });
-  if (error) return { status: "error", message: error.message };
+  if (error) {
+    console.error("[entry-diagnostic] completion RPC failed", {
+      code: error.code,
+    });
+    return {
+      status: "error",
+      message:
+        "We couldn’t finish your plan. Your answers are still here—please try again.",
+    };
+  }
   redirect("/student/today?diagnostic=complete");
 }
