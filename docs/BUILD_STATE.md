@@ -18,6 +18,9 @@
 - The account-mode landing page sends tutors to registration/workspace setup and keeps students on the one-time tutor-invitation path.
 - The Vercel Production and Preview environments contain only the public Supabase URL/publishable key, public application URL, and server-only feature flags. No service-role key or OpenAI key is uploaded; live AI remains off.
 - The complete browser-local `/demo` student and tutor experience remains a safe fallback and sales demo.
+- A privacy-safe maintainer tutor review found that the learner correction itself was clear and took approximately seven to eight minutes, while the first start action, tutor control hierarchy, and `D2`/`D7` abbreviations needed clearer first-use presentation.
+- The learner Today page now exposes its start/resume action before secondary metrics; tutor adjudication is grouped into three guided steps; optional controls are separated; and visible retention copy uses 2-day and 7-day review language without changing persisted cadence values.
+- Cross-subject reuse is documented as a future adapter boundary, not as current multi-subject compatibility.
 
 ## Implemented
 
@@ -275,3 +278,13 @@ Local builds use `.next.nosync` because this checkout is under macOS Documents s
 - The latest `main` GitHub Actions run completed successfully before the OSS preparation branch.
 - README, CONTRIBUTING, SECURITY, governance, roadmap, support, reuse, issue, pull-request, and changelog documents now state the same privacy, licensing, human-review, and evidence boundaries.
 - This readiness release changes no application behavior, hosted data, environment variable, payment setting, or live-AI setting.
+
+## First-use clarity verification — 2026-08-15
+
+- A privacy-safe, domain-informed maintainer tutor review was recorded without presenting it as an external pilot, adoption result, or efficacy evidence.
+- The learner Today screen now exposes one prominent start/resume action before secondary metrics, and visible spaced-review labels use plain language instead of unexplained `D2`/`D7` abbreviations.
+- The tutor diagnosis review now presents three focused steps—confirm the main mistake, choose the next practice, and leave one clear note—while secondary adjudication controls remain available under optional disclosure.
+- Focused Playwright verification passed 8/8 learner and tutor journeys across desktop Chromium and Pixel 7 profiles, including the 390 px navigation check, a complete correction mission, spaced-review scheduling, and tutor adjudication into a lesson brief.
+- Six representative desktop/mobile axe audits passed with zero serious or critical accessibility violations.
+- Formatting, ESLint, strict TypeScript, 118/118 Vitest checks, all 44 exposed-table static RLS checks, a 38-page-unit Next.js 16.3.0 production build, and the 260-file secret scan passed. `npm ci` reported zero known vulnerabilities.
+- The subject-adapter seam is documented as future work. TOEFL Reading remains the only implemented subject, and this change makes no multi-subject claim.

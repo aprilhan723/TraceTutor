@@ -239,8 +239,8 @@ export function TodayDashboard() {
             </h2>
             <p className="mt-4 text-sm leading-6 text-ink-muted">
               {secureCount} secure · {completedAttempts.length - secureCount}{" "}
-              still worth watching. A non-secure result schedules a D2 and D7
-              return instead of pretending the correction is finished.
+              still worth watching. A non-secure result schedules a 2-day and
+              7-day review instead of pretending the correction is finished.
             </p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <Button onClick={() => void prepareNextMission()}>
@@ -278,6 +278,11 @@ export function TodayDashboard() {
   const primaryHref = activeSession
     ? (`/student/study/${activeSession.id}` as Route)
     : missionHref;
+  const primaryActionLabel = activeSession
+    ? "Resume saved study session"
+    : mission.startedAt
+      ? "Resume today’s correction"
+      : "Start today’s correction";
   const progressValue = Math.round(
     (completedCount / mission.items.length) * 100,
   );
@@ -307,6 +312,35 @@ export function TodayDashboard() {
           </Badge>
         }
       />
+
+      <section
+        className="mt-6 flex flex-col gap-5 rounded-[1.75rem] border border-coral/25 bg-coral-soft p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-7"
+        aria-labelledby="start-correction-heading"
+      >
+        <div className="max-w-2xl">
+          <p className="text-xs font-bold tracking-[0.14em] text-coral-deep uppercase">
+            Start here
+          </p>
+          <h2
+            id="start-correction-heading"
+            className="mt-2 font-editorial text-3xl font-bold tracking-tight sm:text-4xl"
+          >
+            Begin today’s 10-minute correction
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-ink-muted">
+            Follow one guided set from answer and evidence to a fresh transfer
+            check. Today’s mission starts with any review that is already due.
+          </p>
+        </div>
+        <Button
+          href={primaryHref}
+          className="w-full shrink-0 sm:w-auto"
+          size="lg"
+        >
+          {primaryActionLabel}
+          <span aria-hidden="true">→</span>
+        </Button>
+      </section>
 
       <section
         className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-5"
@@ -344,10 +378,14 @@ export function TodayDashboard() {
             aria-label="Proof Sprout growth signals"
           >
             <span className="rounded-full border border-violet/15 bg-white/70 px-2.5 py-1 text-[0.65rem] font-bold text-violet-deep">
-              {d2Passed ? "D2 leaf earned" : "D2 leaf waiting"}
+              {d2Passed
+                ? "2-day review leaf earned"
+                : "2-day review leaf waiting"}
             </span>
             <span className="rounded-full border border-mint-deep/15 bg-white/70 px-2.5 py-1 text-[0.65rem] font-bold text-mint-deep">
-              {d7Passed ? "D7 bloom earned" : "D7 bloom waiting"}
+              {d7Passed
+                ? "7-day review bloom earned"
+                : "7-day review bloom waiting"}
             </span>
             <span className="rounded-full border border-ink/10 bg-white/70 px-2.5 py-1 text-[0.65rem] font-bold text-ink-muted">
               {recoveryPass?.available
@@ -507,11 +545,11 @@ export function TodayDashboard() {
         >
           <div className="flex gap-4">
             <span className="grid size-11 shrink-0 place-items-center rounded-full bg-violet font-editorial font-bold text-white">
-              D2
+              2 days
             </span>
             <div>
               <h2 id="due-review-heading" className="font-bold">
-                A due review goes first
+                A 2-day review goes first
               </h2>
               <p className="mt-1 text-sm leading-6 text-ink-muted">
                 Revisit the evidence correction from your tutor-verified
@@ -613,12 +651,9 @@ export function TodayDashboard() {
                 href={primaryHref}
                 className="mt-7 w-full sm:w-auto"
                 size="lg"
+                variant="secondary"
               >
-                {activeSession
-                  ? "Resume saved study session"
-                  : mission.startedAt
-                    ? "Resume today’s correction"
-                    : "Start today’s correction"}
+                Open this mission
                 <span aria-hidden="true">→</span>
               </Button>
               <Button
@@ -729,8 +764,8 @@ export function TodayDashboard() {
               See all fourteen days.
             </p>
             <p className="mt-2 text-xs leading-5 text-ink-muted">
-              Correction, transfer, D2/D7 return, and the two transparent mixed
-              challenges.
+              Correction, transfer, 2-day and 7-day reviews, and the two
+              transparent mixed challenges.
             </p>
             <Button
               href="/student/sprint"
@@ -760,8 +795,8 @@ export function TodayDashboard() {
               className="mt-2 min-h-11 w-full rounded-xl border border-violet/20 bg-white px-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet"
             />
             <p className="mt-3 text-xs leading-5 text-ink-muted">
-              Use the date to demonstrate due D2/D7 work without waiting.
-              Started mission progress is preserved.
+              Use the date to demonstrate due 2-day and 7-day reviews without
+              waiting. Started mission progress is preserved.
             </p>
           </Card>
 

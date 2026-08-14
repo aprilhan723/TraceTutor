@@ -19,7 +19,7 @@ const pilotIncludes = [
   "One tutor workspace with a transparent intervention queue",
   "Invite-only student accounts and browser-local sales demo",
   "2026 Reading correction across three task families",
-  "Mistake patterns, D2/D7 retention, lesson briefs, and weekly reports",
+  "Mistake patterns, 2-day/7-day retention, lesson briefs, and weekly reports",
   "Tutor adjudication kept separate from machine suggestions",
 ] as const;
 

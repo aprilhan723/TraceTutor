@@ -69,7 +69,7 @@ export const reviewedTransferBank: ReviewedTransferBankEntry[] = [
       kind: "transfer",
       taskType: "academic-passage",
       mistakeCategory: "inference-overreach",
-      title: "D2 transfer · Preserve frequency",
+      title: "2-day review · Preserve frequency",
       microContext:
         "A study reports that urban foxes often change routes when construction noise increases.",
       prompt: "Which conclusion matches the reported frequency?",
@@ -92,7 +92,7 @@ export const reviewedTransferBank: ReviewedTransferBankEntry[] = [
       kind: "transfer",
       taskType: "academic-passage",
       mistakeCategory: "inference-overreach",
-      title: "D7 transfer · Keep possibility",
+      title: "7-day review · Keep possibility",
       microContext:
         "Mineral layers in a cave can indicate periods of heavier rainfall, but local airflow can also affect their growth.",
       prompt: "Which claim is supported?",
@@ -142,7 +142,7 @@ export const reviewedTransferBank: ReviewedTransferBankEntry[] = [
       kind: "transfer",
       taskType: "daily-life",
       mistakeCategory: "evidence-drift",
-      title: "D2 transfer · Match the date",
+      title: "2-day review · Match the date",
       microContext:
         "Reservations close Friday. The guided walk takes place the following Tuesday.",
       prompt: "What happens Tuesday?",
@@ -165,7 +165,7 @@ export const reviewedTransferBank: ReviewedTransferBankEntry[] = [
       kind: "transfer",
       taskType: "academic-passage",
       mistakeCategory: "evidence-drift",
-      title: "D7 transfer · Match the condition",
+      title: "7-day review · Match the condition",
       microContext:
         "The coastal sensor sends an alert only when water rises quickly and wind exceeds 40 kilometers per hour.",
       prompt: "When is an alert sent?",
@@ -211,7 +211,7 @@ export const reviewedTransferBank: ReviewedTransferBankEntry[] = [
       kind: "transfer",
       taskType: "daily-life",
       mistakeCategory: "evidence-drift",
-      title: "D2 transfer · Stay inside the source",
+      title: "2-day review · Stay inside the source",
       microContext:
         "The repair notice says the west stairway is closed because a handrail is being replaced.",
       prompt: "Which reason is stated?",
@@ -234,7 +234,7 @@ export const reviewedTransferBank: ReviewedTransferBankEntry[] = [
       kind: "transfer",
       taskType: "academic-passage",
       mistakeCategory: "inference-overreach",
-      title: "D7 transfer · Keep cause and effect ordered",
+      title: "7-day review · Keep cause and effect ordered",
       microContext:
         "After shade cloth was added, soil dried more slowly, allowing seedlings to survive longer between watering days.",
       prompt: "Which relationship is supported?",
@@ -279,7 +279,7 @@ export const reviewedTransferBank: ReviewedTransferBankEntry[] = [
       kind: "transfer",
       taskType: "academic-passage",
       mistakeCategory: "word-form",
-      title: "D2 transfer · Choose the inflection",
+      title: "2-day review · Choose the inflection",
       microContext: "Last winter, the research team ______ the wetland twice.",
       prompt: "Which form fits the completed past action?",
       options: [
@@ -301,7 +301,7 @@ export const reviewedTransferBank: ReviewedTransferBankEntry[] = [
       kind: "transfer",
       taskType: "academic-passage",
       mistakeCategory: "word-form",
-      title: "D7 transfer · Match form and meaning",
+      title: "7-day review · Match form and meaning",
       microContext:
         "The new seal was highly ______; no water entered the chamber during the test.",
       prompt: "Which word fits both grammar and meaning?",

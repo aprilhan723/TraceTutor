@@ -65,7 +65,7 @@ export function ReviewsDashboard() {
       <PageHeader
         eyebrow="Retention queue"
         title="Reviews"
-        description="D2 and D7 returns come before new volume. Passing a review strengthens the trace; it does not create an official score claim."
+        description="Reviews scheduled 2 and 7 days after a correction come before new volume. Passing one strengthens the trace; it does not create an official score claim."
         action={
           due.length ? (
             <Button onClick={() => void startReviews()} disabled={starting}>
@@ -92,7 +92,7 @@ export function ReviewsDashboard() {
               <div>
                 <div className="flex flex-wrap gap-2">
                   <Badge tone={entry.cadence === "D7" ? "coral" : "violet"}>
-                    {entry.cadence}
+                    {entry.cadence === "D2" ? "2-day review" : "7-day review"}
                   </Badge>
                   <Badge>{entry.kind}</Badge>
                 </div>

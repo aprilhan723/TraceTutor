@@ -18,6 +18,7 @@ TraceTutor's roadmap is evidence-led. Dates are intentionally omitted until a ch
 - Add operational monitoring, backups, and a tested incident runbook
 - Validate the tutor workflow with real, permissioned pilot use
 - Improve mobile and keyboard workflows from observed feedback
+- Define a subject-adapter contract for task types, evidence, diagnosis labels, original content, and evaluation before adding any non-Reading subject
 
 ## Later: validated expansion
 
@@ -26,6 +27,7 @@ TraceTutor's roadmap is evidence-led. Dates are intentionally omitted until a ch
 - Run a separately approved blinded evaluation before enabling live AI for learners
 - Evaluate billing only after the price and roster assumptions receive real usage evidence
 - Consider additional maintainers after sustained contributions
+- Evaluate one evidence-based subject outside TOEFL Reading only after the adapter contract and Reading pilot are verified
 
 ## Explicitly out of scope for now
 

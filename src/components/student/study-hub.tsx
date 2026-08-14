@@ -46,7 +46,7 @@ const topics: Array<{ value: StudyTopic; label: string; detail: string }> = [
   {
     value: "due-reviews",
     label: "Due reviews",
-    detail: "Prioritize scheduled D2 and D7 work.",
+    detail: "Prioritize reviews scheduled 2 and 7 days after a correction.",
   },
   {
     value: "timed-mixed",

@@ -193,6 +193,10 @@ The local tutor aggregate may append multiple `AiDiagnosisAuditSnapshot` records
 
 Pages and layouts remain Server Components by default. Student learning flows and tutor workspaces are Client Components because onboarding, autosave, review actions, filters, editing, and browser persistence require interaction. Manifest, metadata, trust pages, loading states, and policy content remain Server Components. A tiny registration component is the only root-level client runtime added for the service worker. `StudentDemoProvider` and `TutorDemoProvider` keep persistence concerns outside route components. Repository reads and writes remain asynchronous even though the Phase 5 adapter is local, preserving the contract expected by a remote adapter.
 
+First-use clarity is presentation-only. The learner CTA links to the existing mission or saved-session route. The tutor's three-step layout invokes the existing audited commands and does not merge machine hypotheses, tutor adjudication, student feedback, or lesson-brief state. Plain-language 2-day and 7-day labels map onto the unchanged typed `D2` and `D7` persistence values, so no schema or migration changes are required.
+
+The current task, content, scoring, and diagnosis types remain Reading-specific. Future subject support must introduce a reviewed adapter boundary rather than widening `ReadingTaskType` or reusing Reading evaluation rules by assertion.
+
 ## Accessibility
 
 - Semantic landmarks, sections, headings, lists, and navigation labels

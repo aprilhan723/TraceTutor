@@ -6,6 +6,13 @@ This project follows semantic versioning while the public API and product remain
 
 ## [Unreleased]
 
+### Changed
+
+- Added a prominent learner start/resume action before secondary dashboard metrics.
+- Reorganized tutor adjudication into three guided steps with optional controls separated from the primary path.
+- Replaced learner- and tutor-facing `D2`/`D7` abbreviations with plain-language 2-day and 7-day review labels.
+- Recorded a privacy-safe maintainer tutor usability review and added a subject-adapter design step without claiming multi-subject support.
+
 ## [0.2.0] - 2026-08-15
 
 ### Changed

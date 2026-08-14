@@ -267,7 +267,9 @@ test("student navigation and personalized study fit a 390px viewport", async ({
   await expect(
     page.getByRole("img", { name: /Proof Sprout, .* stage/i }),
   ).toBeVisible();
-  await expect(page.getByText(/D2 leaf (earned|waiting)/i)).toBeVisible();
+  await expect(
+    page.getByText(/2-day review leaf (earned|waiting)/i),
+  ).toBeVisible();
   await expect(
     page.locator('nav[aria-label="student mobile navigation"]'),
   ).toBeVisible();
@@ -336,7 +338,7 @@ test("demo clock exposes spaced Day 2 and Day 7 schedule without waiting", async
   await expect(clock).toHaveValue("2026-08-12");
   await page.getByRole("button", { name: /two-minute Light Day/i }).click();
   await openTodayPractice(page);
-  await expect(page.getByText("D2 return", { exact: true })).toBeVisible();
+  await expect(page.getByText("2-day review", { exact: true })).toBeVisible();
   await page
     .getByRole("radio", { name: /to infer a sequence of community change/i })
     .check();
@@ -351,7 +353,7 @@ test("demo clock exposes spaced Day 2 and Day 7 schedule without waiting", async
 
   await page.getByLabel("Program date").fill("2026-08-15");
   await openTodayPractice(page);
-  await expect(page.getByText("D7 return", { exact: true })).toBeVisible();
+  await expect(page.getByText("7-day review", { exact: true })).toBeVisible();
   await expect(
     page.getByText("Original practice content — not official ETS material.", {
       exact: true,
@@ -531,15 +533,15 @@ test("tutor adjudicates a diagnosis and carries it into the lesson brief", async
   ).toBeVisible();
 
   await page
-    .getByLabel("Primary cause")
+    .getByLabel("Main mistake", { exact: true })
     .selectOption("outside-knowledge-added");
   await page.getByRole("button", { name: "Approve diagnosis" }).click();
   await expect(page.getByText("changed", { exact: true })).toBeVisible();
 
   await page
-    .getByLabel("Different transfer item")
+    .getByLabel("Next practice item")
     .selectOption("transfer-evidence-01");
-  await page.getByRole("button", { name: "Assign transfer" }).click();
+  await page.getByRole("button", { name: "Assign next practice" }).click();
   await expect(page.getByText(/assigned transfer-evidence-01/i)).toBeVisible();
 
   await page.getByRole("button", { name: "Add to next lesson" }).click();

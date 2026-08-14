@@ -70,7 +70,7 @@ export function TutorDashboard() {
       tone: "coral" as const,
     },
     {
-      label: "Due / failed D2–D7",
+      label: "Due / failed 2-day or 7-day review",
       value: dashboard.metrics.dueOrFailedReviews,
       tone: "coral" as const,
     },

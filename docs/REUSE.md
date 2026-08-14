@@ -22,7 +22,11 @@ The Supabase migrations demonstrate explicit RLS for tutor, learner, organizatio
 
 ### Evidence-led retention loop
 
-Answer, evidence, diagnosis, transfer, and D2/D7 review are modeled as separate, testable stages rather than one opaque score.
+Answer, evidence, diagnosis, transfer, and reviews after 2 and 7 days are modeled as separate, testable stages rather than one opaque score.
+
+### Subject expansion boundary
+
+The correction loop can inform other evidence-based learning products, but the current domain model and verified content are TOEFL Reading-specific. A fork adding another subject must define its own task taxonomy, evidence unit, answer evaluation, diagnosis vocabulary, transfer criteria, retention interpretation, and licensed or original content. Reusing the workflow does not make TraceTutor itself a verified multi-subject product.
 
 ## Start a fork safely
 
