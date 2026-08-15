@@ -10,6 +10,8 @@ This project follows semantic versioning while the public API and product remain
 
 - Fixed the hosted entry-diagnostic completion RPC so its local diagnostic identifier cannot conflict with the response-table column of the same name.
 - Replaced raw database error messages in the student diagnostic with a retry-safe explanation while logging only the non-sensitive database error code on the server.
+- Made deployed account-mode E2E checks enter the role-specific Demo Mode bootstrap before visiting protected student or tutor routes.
+- Updated marketing-entry smoke checks to support both Demo Mode and account-mode call-to-action labels, including asynchronous navigation through the demo chooser.
 
 ### Changed
 

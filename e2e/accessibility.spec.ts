@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
+import { enterStudentDemo, enterTutorDemo } from "./demo-session";
 
 async function expectNoSeriousAccessibilityViolations(page: Page) {
   const results = await new AxeBuilder({ page }).analyze();
@@ -19,7 +20,7 @@ async function expectNoSeriousAccessibilityViolations(page: Page) {
 }
 
 async function onboard(page: Page) {
-  await page.goto("/student/today");
+  await enterStudentDemo(page);
   await page.getByRole("radio", { name: /Daily Rhythm/i }).check();
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByLabel("Current Reading level").selectOption("3.5");
@@ -68,7 +69,7 @@ test("student Today and sprint roadmap have no serious accessibility violations"
 test("tutor action dashboard has no serious accessibility violations", async ({
   page,
 }) => {
-  await page.goto("/tutor/dashboard");
+  await enterTutorDemo(page);
   await expect(
     page.getByRole("heading", { name: /intervention queue/i }),
   ).toBeVisible();

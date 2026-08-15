@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { enterStudentDemo, enterTutorDemo } from "./demo-session";
 
 async function completeStudentOnboarding(
   page: import("@playwright/test").Page,
@@ -82,9 +83,15 @@ test("student can enter the demo from the landing page", async ({ page }) => {
   ).toBeVisible();
 
   await page
-    .getByRole("link", { name: /try the student demo/i })
+    .getByRole("link", {
+      name: /try the student demo|explore the separate demo/i,
+    })
     .first()
     .click();
+  await expect(page).toHaveURL(/\/(demo|student\/today)$/);
+  if (/\/demo$/.test(page.url())) {
+    await page.getByRole("link", { name: /enter as student/i }).click();
+  }
   await expect(page).toHaveURL(/\/student\/today$/);
   await completeStudentOnboarding(page);
   await expect(
@@ -111,14 +118,16 @@ test("founding tutor pilot is transparent and reaches the demo", async ({
     page.getByText(/pricing hypothesis, not a charge/i),
   ).toBeVisible();
 
-  await page.getByRole("link", { name: /explore the pilot demo/i }).click();
+  await page
+    .getByRole("link", { name: /explore the pilot demo|inspect both roles/i })
+    .click();
   await expect(page).toHaveURL(/\/demo$/);
 });
 
 test("student onboarding and mission draft resume after refresh", async ({
   page,
 }) => {
-  await page.goto("/student/today");
+  await enterStudentDemo(page);
   await completeStudentOnboarding(page);
 
   await openTodayPractice(page);
@@ -161,7 +170,7 @@ test("student onboarding and mission draft resume after refresh", async ({
 test("Deep Focus builds a block plan with breaks and resumes after leaving", async ({
   page,
 }) => {
-  await page.goto("/student/today");
+  await enterStudentDemo(page);
   await completeStudentOnboarding(page, "Deep Focus");
   // Compile the dynamic study route before exercising client navigation. In
   // development, a first-route Fast Refresh can otherwise cancel the click;
@@ -213,7 +222,7 @@ test("Deep Focus builds a block plan with breaks and resumes after leaving", asy
 test("Daily Rhythm learner can start a 30-minute Focused Session", async ({
   page,
 }) => {
-  await page.goto("/student/today");
+  await enterStudentDemo(page);
   await completeStudentOnboarding(page, "Daily Rhythm");
   await page.goto("/student/study");
   await expect(
@@ -239,7 +248,7 @@ test("Daily Rhythm learner can start a 30-minute Focused Session", async ({
 test("tutor recommendation stays advisory and learner-controlled", async ({
   page,
 }) => {
-  await page.goto("/student/today");
+  await enterStudentDemo(page);
   await completeStudentOnboarding(page);
   await page.goto("/tutor/dashboard");
   await page.getByRole("button", { name: /send recommendation/i }).click();
@@ -262,7 +271,7 @@ test("student navigation and personalized study fit a 390px viewport", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/student/today");
+  await enterStudentDemo(page);
   await completeStudentOnboarding(page);
   await expect(
     page.getByRole("img", { name: /Proof Sprout, .* stage/i }),
@@ -287,7 +296,7 @@ test("student navigation and personalized study fit a 390px viewport", async ({
 test("new student completes a full correction mission and earns a meaningful streak", async ({
   page,
 }) => {
-  await page.goto("/student/today");
+  await enterStudentDemo(page);
   await completeStudentOnboarding(page);
   await page.getByRole("link", { name: /start today’s correction/i }).click();
 
@@ -331,7 +340,7 @@ test("new student completes a full correction mission and earns a meaningful str
 test("demo clock exposes spaced Day 2 and Day 7 schedule without waiting", async ({
   page,
 }) => {
-  await page.goto("/student/today");
+  await enterStudentDemo(page);
   await completeStudentOnboarding(page);
   const clock = page.getByLabel("Program date");
   await clock.fill("2026-08-12");
@@ -369,7 +378,7 @@ test("PWA keeps an already-open mission draft resumable offline", async ({
     testInfo.project.name !== "chromium" || process.env.E2E_PRODUCTION !== "1",
     "Full offline navigation is covered once in the production Chromium run.",
   );
-  await page.goto("/student/today");
+  await enterStudentDemo(page);
   await completeStudentOnboarding(page);
   await expect
     .poll(() =>
@@ -423,7 +432,7 @@ test("PWA keeps an already-open mission draft resumable offline", async ({
 test("wrong certain answer runs a probe and immediate transfer", async ({
   page,
 }) => {
-  await page.goto("/student/today");
+  await enterStudentDemo(page);
   await completeStudentOnboarding(page);
 
   await page.getByRole("link", { name: /start today’s correction/i }).click();
@@ -482,7 +491,7 @@ test("wrong certain answer runs a probe and immediate transfer", async ({
 });
 
 test("tutor shell navigation is reachable", async ({ page }) => {
-  await page.goto("/tutor/dashboard");
+  await enterTutorDemo(page);
 
   await expect(
     page.getByRole("heading", { name: /intervention queue/i }),
@@ -495,6 +504,7 @@ test("tutor shell navigation is reachable", async ({ page }) => {
 test("tutor sees an audited AI fixture while the student sees only the approved explanation", async ({
   page,
 }) => {
+  await enterTutorDemo(page);
   await page.goto("/tutor/review/case-scope-expansion");
   await expect(
     page.getByText("AI suggestion — tutor review pending", { exact: true }),
@@ -518,7 +528,7 @@ test("tutor sees an audited AI fixture while the student sees only the approved 
 test("tutor adjudicates a diagnosis and carries it into the lesson brief", async ({
   page,
 }) => {
-  await page.goto("/tutor/dashboard");
+  await enterTutorDemo(page);
   await expect(
     page.getByRole("heading", { name: /today’s intervention queue/i }),
   ).toBeVisible();
